@@ -287,10 +287,17 @@ const ChatForm = memo(function ChatForm({
             onClick={handleContainerClick}
             className={cn(
               'relative flex w-full flex-grow flex-col overflow-hidden rounded-t-3xl border pb-4 text-text-primary transition-all duration-200 sm:rounded-3xl sm:pb-0',
-              isTextAreaFocused ? 'shadow-lg' : 'shadow-md',
+              isTextAreaFocused
+                ? 'shadow-[0_0_0_3px_rgba(255,95,5,0.18),0_14px_34px_rgba(19,41,75,0.18)]'
+                : 'shadow-md',
               isTemporary
                 ? 'border-violet-800/60 bg-violet-950/10'
-                : 'border-border-light bg-surface-chat',
+                : cn(
+                    'bg-surface-chat',
+                    isTextAreaFocused
+                      ? 'border-[var(--illini-orange)]'
+                      : 'border-[var(--illini-blue-border)]',
+                  ),
             )}
           >
             <TextareaHeader addedConvo={addedConvo} setAddedConvo={setAddedConvo} />

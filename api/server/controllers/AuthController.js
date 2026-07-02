@@ -13,6 +13,7 @@ const {
   requestPasswordReset,
   setOpenIDAuthTokens,
   setCloudFrontAuthCookies,
+  getOrCreateGuestUser,
   resetPassword,
   setAuthTokens,
   registerUser,
@@ -155,6 +156,17 @@ const resetPasswordController = async (req, res) => {
 const refreshController = async (req, res) => {
   const parsedCookies = req.headers.cookie ? cookies.parse(req.headers.cookie) : {};
   const token_provider = parsedCookies.token_provider;
+
+  if (isEnabled(process.env.GIESCHAT_GUEST_LOGIN)) {
+    try {
+      const user = await getOrCreateGuestUser();
+      const token = await setAuthTokens(user._id, res, null, req);
+      return res.status(200).send({ token, user: sanitizeUserForAuthResponse(user) });
+    } catch (error) {
+      logger.error('[refreshController] Guest login failed:', error);
+      return res.status(500).send('Guest login failed');
+    }
+  }
 
   if (token_provider === 'openid' && isEnabled(process.env.OPENID_REUSE_TOKENS)) {
     /** For OpenID users, read refresh token from session to avoid large cookie issues */

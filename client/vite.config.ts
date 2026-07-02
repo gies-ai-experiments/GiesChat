@@ -137,8 +137,8 @@ export default defineConfig(({ command }) => ({
       },
       includeAssets: [],
       manifest: {
-        name: 'LibreChat',
-        short_name: 'LibreChat',
+        name: 'GiesChat',
+        short_name: 'GiesChat',
         display: 'standalone',
         background_color: '#000000',
         theme_color: '#009688',

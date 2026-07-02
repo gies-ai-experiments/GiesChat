@@ -11,7 +11,7 @@ const createReq = (value?: string): QueryDevtoolsRequest => ({
 
 describe('query devtools HTML bootstrap', () => {
   const html =
-    '<!DOCTYPE html><html lang="en-US"><head><title>LibreChat</title></head><body></body></html>';
+    '<!DOCTYPE html><html lang="en-US"><head><title>GiesChat</title></head><body></body></html>';
 
   it('uses the documented debug header value as the opt-in signal', () => {
     expect(shouldEnableQueryDevtools(createReq('1'))).toBe(true);

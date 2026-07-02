@@ -53,6 +53,7 @@ const AuthTokenTypes = Object.freeze({
 const latestAuthTokenOptions = Object.freeze({ sort: { createdAt: -1 } });
 const genericVerificationMessage = 'Please check your email to verify your email address.';
 const invalidEmailVerificationMessage = 'Invalid or expired email verification token';
+const AUTH_USER_PROJECTION = '-password -__v -totpSecret -backupCodes -federatedTokens';
 const OPENID_SESSION_ID_TOKEN_EXPIRY_BUFFER_SECONDS = 30;
 
 const findPasswordResetToken = async (userId) => {
@@ -226,7 +227,7 @@ const sendVerificationEmail = async (user) => {
     email: user.email,
     subject: 'Verify your email',
     payload: {
-      appName: process.env.APP_TITLE || 'LibreChat',
+      appName: process.env.APP_TITLE || 'GiesChat',
       name: user.name || user.username || user.email,
       verificationLink: verificationLink,
       year: new Date().getFullYear(),
@@ -411,6 +412,39 @@ const registerUser = async (user, additionalData = {}) => {
   }
 };
 
+const getOrCreateGuestUser = async () => {
+  const email = (process.env.GIESCHAT_GUEST_EMAIL || 'guest@gieschat.local').toLowerCase();
+  const existingUser = await findUser({ email }, AUTH_USER_PROJECTION);
+  if (existingUser) {
+    return existingUser;
+  }
+
+  const tenantId = getTenantId();
+  const appConfig = await getAppConfig(tenantId ? { tenantId } : {});
+  const salt = bcrypt.genSaltSync(10);
+  const password = webcrypto.randomUUID();
+  const userData = {
+    provider: 'guest',
+    email,
+    username: process.env.GIESCHAT_GUEST_USERNAME || 'guest',
+    name: process.env.GIESCHAT_GUEST_NAME || 'GiesChat Guest',
+    avatar: null,
+    role: SystemRoles.USER,
+    password: bcrypt.hashSync(password, salt),
+    emailVerified: true,
+  };
+
+  try {
+    return await createUser(userData, appConfig.balance, true, true);
+  } catch (error) {
+    const user = await findUser({ email }, AUTH_USER_PROJECTION);
+    if (user) {
+      return user;
+    }
+    throw error;
+  }
+};
+
 /**
  * Request password reset.
  *
@@ -491,7 +525,7 @@ const requestPasswordReset = async (req) => {
       email: user.email,
       subject: 'Password Reset Request',
       payload: {
-        appName: process.env.APP_TITLE || 'LibreChat',
+        appName: process.env.APP_TITLE || 'GiesChat',
         name: user.name || user.username || user.email,
         link: link,
         year: new Date().getFullYear(),
@@ -542,7 +576,7 @@ const resetPassword = async (userId, token, password) => {
       email: user.email,
       subject: 'Password Reset Successfully',
       payload: {
-        appName: process.env.APP_TITLE || 'LibreChat',
+        appName: process.env.APP_TITLE || 'GiesChat',
         name: user.name || user.username || user.email,
         year: new Date().getFullYear(),
       },
@@ -874,7 +908,7 @@ const resendVerificationEmail = async (req) => {
       email: user.email,
       subject: 'Verify your email',
       payload: {
-        appName: process.env.APP_TITLE || 'LibreChat',
+        appName: process.env.APP_TITLE || 'GiesChat',
         name: user.name || user.username || user.email,
         verificationLink: verificationLink,
         year: new Date().getFullYear(),
@@ -910,6 +944,7 @@ module.exports = {
   logoutUser,
   verifyEmail,
   registerUser,
+  getOrCreateGuestUser,
   setAuthTokens,
   resetPassword,
   setOpenIDAuthTokens,

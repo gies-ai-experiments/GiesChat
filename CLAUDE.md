@@ -15,6 +15,10 @@ LibreChat is a monorepo with the following key workspaces:
 
 The source code for `@librechat/agents` (major backend dependency, same team) is at `/home/danny/agentus`.
 
+This checkout is customized for **GiesChat**. Keep internal LibreChat package names,
+imports, and workspace boundaries unchanged; branding changes should stay in visible
+UI/config surfaces unless a deeper rename is explicitly requested.
+
 ---
 
 ## Workspace Boundaries
@@ -24,6 +28,33 @@ The source code for `@librechat/agents` (major backend dependency, same team) is
 - Database-specific shared logic goes in `/packages/data-schemas`.
 - Frontend/backend shared API logic (endpoints, types, data-service) goes in `/packages/data-provider`.
 - Build data-provider from project root: `npm run build:data-provider`.
+
+---
+
+## GiesChat Customization Notes
+
+- Local Docker runtime uses `docker-compose.override.yml` to run `api` from the local
+  image `gieschat:local` and bind-mount repo-root `librechat.yaml` to
+  `/app/librechat.yaml`.
+- Guest/no-login access is implemented by bootstrapping a guest user from
+  `/api/auth/refresh` (`getOrCreateGuestUser` in `api/server/services/AuthService.js`)
+  and redirecting `/login`, `/login/2fa`, and `/register` to `/c/new`. The intended
+  local env shape disables email login/registration and enables `GIESCHAT_GUEST_LOGIN`.
+- Visible branding is `GiesChat`; Illini Blue `#13294B` and Illini Orange `#FF5F05`
+  styling lives mainly in `client/src/style.css`, with send/composer/header touches in
+  the chat components. Do not rename internal LibreChat identifiers for branding.
+- The white/black background toggle in `client/src/components/Chat/Header.tsx` uses the
+  existing LibreChat theme provider and persists through localStorage `color-theme`.
+- MCP is configured through repo-root `librechat.yaml`: MCP is pinned in the prompt bar,
+  user-created MCP servers are enabled with a trust warning, `gies-demo` is present for
+  local testing, and `canvas` runs via `uvx --from canvas-mcp canvas-mcp-server`.
+- Canvas MCP uses per-user `customUserVars` for `CANVAS_API_URL` and `CANVAS_API_TOKEN`.
+  The Canvas API URL must include `/api/v1`; for Illinois Canvas this is usually
+  `https://canvas.illinois.edu/api/v1`. The container needs writable `UV_CACHE_DIR` and
+  `UV_TOOL_DIR` under `/tmp` for `uvx`.
+- After frontend rebuilds, browser PWA/service-worker cache can serve stale UI. Verify
+  in an incognito window or unregister the service worker before assuming the build is
+  wrong.
 
 ---
 
@@ -142,6 +173,7 @@ Multi-line imports count total character length across all lines. Consolidate va
 | `npm run frontend` | Build all compiled code sequentially (legacy fallback) |
 | `npm run frontend:dev` | Start frontend dev server with HMR (port 3090, requires backend running) |
 | `npm run build:data-provider` | Rebuild `packages/data-provider` after changes |
+| `docker compose up -d --force-recreate api` | Restart the local GiesChat API container after config/image changes |
 
 - Node.js: v24.16.0
 - Database: MongoDB

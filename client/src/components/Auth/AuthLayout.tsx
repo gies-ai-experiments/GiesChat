@@ -39,7 +39,7 @@ function AuthLayout({
         <div className="mx-auto sm:max-w-sm">
           <ErrorMessage>
             {localize('com_auth_error_invalid_reset_token')}{' '}
-            <a className="font-semibold text-green-600 hover:underline" href="/forgot-password">
+            <a className="font-semibold text-[#13294b] hover:text-[#ff5f05] hover:underline dark:text-[#ff5f05]" href="/forgot-password">
               {localize('com_auth_click_here')}
             </a>{' '}
             {localize('com_auth_to_try_again')}
@@ -64,7 +64,7 @@ function AuthLayout({
           <img
             src="assets/logo.svg"
             className="h-full w-full object-contain"
-            alt={localize('com_ui_logo', { 0: startupConfig?.appTitle ?? 'LibreChat' })}
+            alt={localize('com_ui_logo', { 0: startupConfig?.appTitle ?? 'GiesChat' })}
           />
         </div>
       </BlinkAnimation>

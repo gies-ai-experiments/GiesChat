@@ -1,11 +1,8 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import {
-  Login,
   VerifyEmail,
-  Registration,
   ResetPassword,
   ApiErrorWatcher,
-  TwoFactorScreen,
   RequestPasswordReset,
 } from '~/components/Auth';
 import { MarketplaceProvider } from '~/components/Agents/MarketplaceContext';
@@ -15,7 +12,6 @@ import { AuthContextProvider } from '~/hooks/AuthContext';
 import WithRum from '~/lib/rum/WithRum';
 import RouteErrorBoundary from './RouteErrorBoundary';
 import StartupLayout from './Layouts/Startup';
-import LoginLayout from './Layouts/Login';
 import dashboardRoutes from './Dashboard';
 import ShareRoute from './ShareRoute';
 import ChatRoute from './ChatRoute';
@@ -82,7 +78,7 @@ export const router = createBrowserRouter(
       children: [
         {
           path: 'register',
-          element: <Registration />,
+          element: <Navigate to="/c/new" replace={true} />,
         },
         {
           path: 'forgot-password',
@@ -104,18 +100,12 @@ export const router = createBrowserRouter(
       errorElement: <RouteErrorBoundary />,
       children: [
         {
-          path: '/',
-          element: <LoginLayout />,
-          children: [
-            {
-              path: 'login',
-              element: <Login />,
-            },
-            {
-              path: 'login/2fa',
-              element: <TwoFactorScreen />,
-            },
-          ],
+          path: 'login',
+          element: <Navigate to="/c/new" replace={true} />,
+        },
+        {
+          path: 'login/2fa',
+          element: <Navigate to="/c/new" replace={true} />,
         },
         dashboardRoutes,
         {

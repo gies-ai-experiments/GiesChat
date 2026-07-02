@@ -32,10 +32,10 @@ const LoginForm: React.FC<TLoginFormProps> = ({ onSubmit, startupConfig, error, 
   const validTheme = isDark(theme) ? 'dark' : 'light';
   const requireCaptcha = Boolean(startupConfig.turnstile?.siteKey);
   const authInputClassName =
-    'webkit-dark-styles transition-color peer w-full rounded-2xl border border-border-light bg-surface-primary px-3.5 pb-2.5 pt-3 text-text-primary duration-200 hover:border-border-light focus:border-green-500 focus:outline-none focus-visible:border-green-500';
+    'webkit-dark-styles transition-color peer w-full rounded-2xl border border-border-light bg-surface-primary px-3.5 pb-2.5 pt-3 text-text-primary duration-200 hover:border-border-light focus:border-[#13294b] focus:outline-none focus-visible:border-[#ff5f05]';
   const authSecretInputClassName = `${authInputClassName} h-auto pr-12`;
   const authLabelClassName =
-    'absolute start-3 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform bg-surface-primary px-2 text-sm text-text-secondary-alt duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-green-600 dark:peer-focus:text-green-500 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4';
+    'absolute start-3 top-1.5 z-10 origin-[0] -translate-y-4 scale-75 transform bg-surface-primary px-2 text-sm text-text-secondary-alt duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-[#13294b] dark:peer-focus:text-[#ff5f05] rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4';
   const authSecretButtonClassName =
     'size-9 rounded-xl text-text-secondary-alt hover:bg-transparent hover:text-text-primary';
 
@@ -76,7 +76,7 @@ const LoginForm: React.FC<TLoginFormProps> = ({ onSubmit, startupConfig, error, 
   return (
     <>
       {showResendLink && (
-        <div className="mt-2 rounded-md border border-green-500 bg-green-500/10 px-3 py-2 text-sm text-gray-600 dark:text-gray-200">
+        <div className="mt-2 rounded-md border border-[#ff5f05] bg-[#ff5f05]/10 px-3 py-2 text-sm text-gray-600 dark:text-gray-200">
           {localize('com_auth_email_verification_resend_prompt')}
           <button
             type="button"
@@ -148,7 +148,7 @@ const LoginForm: React.FC<TLoginFormProps> = ({ onSubmit, startupConfig, error, 
         {startupConfig.passwordResetEnabled && (
           <a
             href="/forgot-password"
-            className="inline-flex p-1 text-sm font-medium text-green-600 underline decoration-transparent transition-all duration-200 hover:text-green-700 hover:decoration-green-700 focus:text-green-700 focus:decoration-green-700 dark:text-green-500 dark:hover:text-green-400 dark:hover:decoration-green-400 dark:focus:text-green-400 dark:focus:decoration-green-400"
+            className="inline-flex p-1 text-sm font-medium text-[#13294b] underline decoration-transparent transition-all duration-200 hover:text-[#ff5f05] hover:decoration-[#ff5f05] focus:text-[#ff5f05] focus:decoration-[#ff5f05] dark:text-[#ff5f05] dark:hover:text-[#ff8a3d] dark:hover:decoration-[#ff8a3d] dark:focus:text-[#ff8a3d] dark:focus:decoration-[#ff8a3d]"
           >
             {localize('com_auth_password_forgot')}
           </a>

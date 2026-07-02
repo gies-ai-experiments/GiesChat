@@ -39,9 +39,9 @@ function Footer({ className, startupConfig }: FooterProps) {
   const mainContentParts = (
     typeof config?.customFooter === 'string'
       ? config.customFooter
-      : '[LibreChat ' +
+      : '[GiesChat ' +
         Constants.VERSION +
-        '](https://librechat.ai) - ' +
+        '](https://giesbusiness.illinois.edu) - ' +
         localize('com_ui_latest_footer')
   ).split('|');
 
