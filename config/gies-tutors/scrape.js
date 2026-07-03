@@ -34,7 +34,10 @@ function htmlToText(html) {
   return { title, text };
 }
 
-async function scrapeSources(entry, { fetchImpl = undiciFetch, maxChars = 8000, timeoutMs = 10000 } = {}) {
+async function scrapeSources(
+  entry,
+  { fetchImpl = undiciFetch, maxChars = 8000, timeoutMs = 10000 } = {},
+) {
   const urls = Array.isArray(entry.sourceUrls) ? entry.sourceUrls : [];
   const out = [];
   for (const url of urls) {

@@ -28,7 +28,14 @@ export function createTutorSourceMethods(mongoose: typeof import('mongoose')): {
     const TutorSource = mongoose.models.TutorSource as Model<ITutorSource>;
     return await TutorSource.findOneAndUpdate(
       { courseValue, url },
-      { $set: { title: title || '', text: text || '', summary: summary || '', scrapedAt: new Date() } },
+      {
+        $set: {
+          title: title || '',
+          text: text || '',
+          summary: summary || '',
+          scrapedAt: new Date(),
+        },
+      },
       { new: true, upsert: true, setDefaultsOnInsert: true },
     ).lean<ITutorSource>();
   }
