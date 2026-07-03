@@ -1,0 +1,14 @@
+[
+  {
+    "courseCode": "BADM 350",
+    "courseLabel": "IT for Networked Organizations",
+    "subject": "information systems, data management, and IT strategy in business",
+    "isPromoted": true
+  },
+  {
+    "courseCode": "ACCY 200",
+    "courseLabel": "Fundamentals of Accounting",
+    "subject": "financial and managerial accounting fundamentals",
+    "isPromoted": false
+  }
+]
