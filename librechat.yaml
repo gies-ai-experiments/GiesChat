@@ -32,17 +32,29 @@ mcpServers:
     description: Local demo MCP server for testing the MCP picker.
     timeout: 30000
   canvas:
-    type: streamable-http
-    url: https://canvas-mcp.azurewebsites.net/mcp
-    oauth:
-      client_id: "${CANVAS_MCP_CLIENT_ID}"
-      client_secret: "${CANVAS_MCP_CLIENT_SECRET}"
-      authorization_url: "https://login.microsoftonline.com/44467e6f-462c-4ea2-823f-7800de5434e3/oauth2/v2.0/authorize"
-      token_url: "https://login.microsoftonline.com/44467e6f-462c-4ea2-823f-7800de5434e3/oauth2/v2.0/token"
-      scope: "api://e1443fda-5aa7-4136-a884-d97f64258ef0/access_as_user"
+    type: stdio
+    command: uvx
+    args:
+      - --from
+      - canvas-mcp
+      - canvas-mcp-server
+    env:
+      CANVAS_API_URL: "{{CANVAS_API_URL}}"
+      CANVAS_API_TOKEN: "{{CANVAS_API_TOKEN}}"
+      UV_CACHE_DIR: /tmp/uv-cache
+      UV_TOOL_DIR: /tmp/uv-tools
     title: Canvas MCP
-    description: Connect your Canvas account — sign in with your Illinois account.
+    description: Connect your Canvas LMS account using your own Canvas API URL and access token.
     timeout: 30000
+    customUserVars:
+      CANVAS_API_URL:
+        title: Canvas API URL
+        description: Enter your Canvas API URL, including the /api/v1 path. For Illinois Canvas, this is usually https://canvas.illinois.edu/api/v1.
+        sensitive: false
+      CANVAS_API_TOKEN:
+        title: Canvas API Token
+        description: Create this in Canvas under Account -> Settings -> New Access Token. This token is stored for your GiesChat user and used only to connect Canvas MCP.
+        sensitive: true
 
 endpoints:
   custom:
