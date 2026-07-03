@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { MessagesSquare } from 'lucide-react';
+import { Lightbulb, MessagesSquare } from 'lucide-react';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
 import { getConfigDefaults, getEndpointField } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';
 import type { NavLink } from '~/common';
+import BrainstormPanel from '~/components/Brainstorm/BrainstormPanel';
 import ConversationsSection from '~/components/UnifiedSidebar/ConversationsSection';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
@@ -57,8 +58,15 @@ export default function useUnifiedSidebarLinks() {
       id: 'conversations',
       Component: ConversationsSection,
     };
+    const brainstormLink: NavLink = {
+      title: 'com_ui_brainstorm',
+      label: '',
+      icon: Lightbulb,
+      id: 'brainstorm',
+      Component: BrainstormPanel,
+    };
 
-    return [conversationLink, ...sideNavLinks];
+    return [conversationLink, brainstormLink, ...sideNavLinks];
   }, [sideNavLinks]);
 
   return links;
