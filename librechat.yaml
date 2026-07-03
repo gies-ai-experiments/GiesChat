@@ -1,0 +1,65 @@
+version: 1.3.11
+cache: true
+
+interface:
+  defaultPinnedTools:
+    - mcp
+  mcpServers:
+    placeholder: MCP
+    use: true
+    create: true
+    share: false
+    public: false
+    trustCheckbox:
+      label:
+        en: I understand and want to connect this MCP server
+      subLabel:
+        en: Only connect MCP servers you trust. MCP tools can send context to external services and may take actions on your behalf.
+
+mcpServers:
+  gies-demo:
+    type: stdio
+    command: node
+    args:
+      - e2e/setup/fake-mcp-server.js
+    title: Gies Demo MCP
+    description: Local demo MCP server for testing the MCP picker.
+    timeout: 30000
+  canvas:
+    type: stdio
+    command: uvx
+    args:
+      - --from
+      - canvas-mcp
+      - canvas-mcp-server
+    env:
+      CANVAS_API_URL: "{{CANVAS_API_URL}}"
+      CANVAS_API_TOKEN: "{{CANVAS_API_TOKEN}}"
+      UV_CACHE_DIR: /tmp/uv-cache
+      UV_TOOL_DIR: /tmp/uv-tools
+    title: Canvas MCP
+    description: Connect your Canvas LMS account using your own Canvas API URL and access token.
+    timeout: 30000
+    customUserVars:
+      CANVAS_API_URL:
+        title: Canvas API URL
+        description: Enter your Canvas API URL, including the /api/v1 path. For Illinois Canvas, this is usually https://canvas.illinois.edu/api/v1.
+        sensitive: false
+      CANVAS_API_TOKEN:
+        title: Canvas API Token
+        description: Create this in Canvas under Account -> Settings -> New Access Token. This token is stored for your GiesChat user and used only to connect Canvas MCP.
+        sensitive: true
+
+endpoints:
+  custom:
+    - name: 'Azure OpenAI'
+      apiKey: '${AZURE_OPENAI_API_KEY}'
+      baseURL: 'https://ashleyn4-7611-resource.openai.azure.com/openai/v1'
+      models:
+        default:
+          - gpt-5.4
+          - gpt-5.5
+        fetch: false
+      titleConvo: true
+      titleModel: 'gpt-5.4'
+      modelDisplayLabel: 'Azure OpenAI'
