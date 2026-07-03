@@ -181,3 +181,6 @@ hive-mind-prompt-*.txt
 CLAUDE.md
 .gsd
 codedb.snapshot
+
+# Local-only design specs & plans (never committed)
+docs/superpowers/
