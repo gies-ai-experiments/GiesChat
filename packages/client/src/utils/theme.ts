@@ -27,12 +27,9 @@ export const getInitialTheme = (): string => {
     if (typeof storedPrefs === 'string') {
       return storedPrefs;
     }
-
-    const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    if (userMedia.matches) {
-      return 'dark';
-    }
   }
 
+  // White/light is the default for new visitors (ignores the OS dark-mode
+  // preference); a user's own toggle choice persists via localStorage.
   return 'light';
 };
