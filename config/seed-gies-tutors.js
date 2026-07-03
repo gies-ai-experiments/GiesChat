@@ -5,10 +5,20 @@ const { silentExit } = require('./helpers');
 const connect = require('./connect');
 const { seedTutors } = require('./gies-tutors/seed');
 const { buildInstructions } = require('./gies-tutors/persona');
+const { scrapeSources } = require('./gies-tutors/scrape');
+const { makeSummarizer, summarizePages } = require('./gies-tutors/summarize');
+const { storeSources } = require('./gies-tutors/store');
+const { buildReference } = require('./gies-tutors/reference');
 const tutors = require('./gies-tutors/tutors.json');
 
 const GIES_PROVIDER = process.env.GIES_TUTOR_PROVIDER || 'azureOpenAI';
 const GIES_MODEL = process.env.GIES_TUTOR_MODEL || 'gpt-5.4';
+
+const summarize = makeSummarizer({
+  endpoint: process.env.GIES_SUMMARY_ENDPOINT,
+  apiKey: process.env.GIES_SUMMARY_API_KEY,
+  model: process.env.GIES_SUMMARY_MODEL || 'gpt-5.4',
+});
 
 (async () => {
   await connect();
@@ -52,9 +62,17 @@ const GIES_MODEL = process.env.GIES_TUTOR_MODEL || 'gpt-5.4';
     provider: GIES_PROVIDER,
     model: GIES_MODEL,
     buildInstructions,
+    scrapeSources,
+    summarizePages,
+    storeSources,
+    buildReference,
+    summarize,
   });
 
-  console.green(`Seeded ${results.length} Gies tutor(s) on ${GIES_PROVIDER}/${GIES_MODEL}:`);
+  console.green(
+    `Seeded ${results.length} Gies tutor(s) on ${GIES_PROVIDER}/${GIES_MODEL}` +
+      `${summarize ? ' (summaries on)' : ' (summaries off — no endpoint)'}:`,
+  );
   results.forEach((r) =>
     console.cyan(`  ${r.id} -> category ${r.category} (${r.created ? 'created' : 'updated'})`),
   );

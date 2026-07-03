@@ -3,12 +3,14 @@
     "courseCode": "BADM 350",
     "courseLabel": "IT for Networked Organizations",
     "subject": "information systems, data management, and IT strategy in business",
-    "isPromoted": true
+    "isPromoted": true,
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
   },
   {
     "courseCode": "ACCY 200",
     "courseLabel": "Fundamentals of Accounting",
     "subject": "financial and managerial accounting fundamentals",
-    "isPromoted": false
+    "isPromoted": false,
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/accy/"]
   }
 ]
