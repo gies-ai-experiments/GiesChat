@@ -9,6 +9,7 @@ import { createKeyMethods, type KeyMethods } from './key';
 import { createMemoryMethods, type MemoryMethods } from './memory';
 /* Agent Categories */
 import { createAgentCategoryMethods, type AgentCategoryMethods } from './agentCategory';
+import { createTutorSourceMethods, type TutorSourceMethods } from './tutorSource';
 /* Agent API Keys */
 import { createAgentApiKeyMethods, type AgentApiKeyMethods } from './agentApiKey';
 /* MCP Servers */
@@ -119,6 +120,7 @@ export type AllMethods = UserMethods &
   FileMethods &
   MemoryMethods &
   AgentCategoryMethods &
+  TutorSourceMethods &
   AgentApiKeyMethods &
   MCPServerMethods &
   UserGroupMethods &
@@ -246,6 +248,7 @@ export function createMethods(
     ...createFileMethods(mongoose),
     ...createMemoryMethods(mongoose),
     ...createAgentCategoryMethods(mongoose),
+    ...createTutorSourceMethods(mongoose),
     ...createAgentApiKeyMethods(mongoose),
     ...createMCPServerMethods(mongoose),
     ...createAccessRoleMethods(mongoose),
@@ -291,6 +294,7 @@ export type {
   FileOwnerScope,
   MemoryMethods,
   AgentCategoryMethods,
+  TutorSourceMethods,
   AgentApiKeyMethods,
   MCPServerMethods,
   UserGroupMethods,

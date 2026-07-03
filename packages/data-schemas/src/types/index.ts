@@ -14,6 +14,7 @@ export * from './message';
 export * from './agent';
 export * from './agentApiKey';
 export * from './agentCategory';
+export * from './tutorSource';
 export * from './role';
 export * from './action';
 export * from './assistant';
