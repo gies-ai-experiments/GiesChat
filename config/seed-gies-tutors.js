@@ -1,5 +1,7 @@
 const path = require('path');
+const mongoose = require('mongoose');
 require('module-alias')({ base: path.resolve(__dirname, '..', 'api') });
+require('@librechat/data-schemas').createModels(mongoose);
 const { PrincipalType, ResourceType, AccessRoleIds } = require('librechat-data-provider');
 const { silentExit } = require('./helpers');
 const connect = require('./connect');
