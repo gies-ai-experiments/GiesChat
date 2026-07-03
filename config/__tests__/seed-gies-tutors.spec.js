@@ -16,8 +16,18 @@ describe('seedTutors', () => {
   let AgentCategory;
 
   const tutors = [
-    { courseCode: 'BADM 350', courseLabel: 'IT for Networked Organizations', subject: 'IT strategy', isPromoted: true },
-    { courseCode: 'ACCY 200', courseLabel: 'Fundamentals of Accounting', subject: 'accounting', isPromoted: false },
+    {
+      courseCode: 'BADM 350',
+      courseLabel: 'IT for Networked Organizations',
+      subject: 'IT strategy',
+      isPromoted: true,
+    },
+    {
+      courseCode: 'ACCY 200',
+      courseLabel: 'Fundamentals of Accounting',
+      subject: 'accounting',
+      isPromoted: false,
+    },
   ];
 
   const run = (grantPublic) =>

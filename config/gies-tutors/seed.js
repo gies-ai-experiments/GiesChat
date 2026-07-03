@@ -12,7 +12,15 @@ const { agentIdFor, categoryValueFor } = require('./keys');
  * @param {(entry: object) => string} deps.buildInstructions
  * @returns {Promise<Array<{ id: string, category: string, created: boolean }>>}
  */
-async function seedTutors({ methods, grantPublic, authorId, tutors, provider, model, buildInstructions }) {
+async function seedTutors({
+  methods,
+  grantPublic,
+  authorId,
+  tutors,
+  provider,
+  model,
+  buildInstructions,
+}) {
   const results = [];
 
   for (let i = 0; i < tutors.length; i++) {

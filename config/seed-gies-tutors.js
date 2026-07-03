@@ -18,14 +18,18 @@ const GIES_MODEL = process.env.GIES_TUTOR_MODEL || 'gpt-5.4';
 
   const authorEmail = process.env.GIES_TUTOR_AUTHOR_EMAIL || process.argv[2];
   if (!authorEmail) {
-    console.red('Usage: GIES_TUTOR_AUTHOR_EMAIL=staff@illinois.edu node config/seed-gies-tutors.js');
+    console.red(
+      'Usage: GIES_TUTOR_AUTHOR_EMAIL=staff@illinois.edu node config/seed-gies-tutors.js',
+    );
     console.orange('The author must be an existing user (create one with `npm run create-user`).');
     silentExit(1);
   }
 
   const author = await db.findUser({ email: authorEmail }, '_id');
   if (!author) {
-    console.red(`No user found with email ${authorEmail}. Create one first with \`npm run create-user\`.`);
+    console.red(
+      `No user found with email ${authorEmail}. Create one first with \`npm run create-user\`.`,
+    );
     silentExit(1);
   }
   const authorId = author._id;
