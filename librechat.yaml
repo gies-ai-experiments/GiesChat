@@ -39,18 +39,14 @@ mcpServers:
       - canvas-mcp
       - canvas-mcp-server
     env:
-      CANVAS_API_URL: "{{CANVAS_API_URL}}"
+      CANVAS_API_URL: "https://canvas.illinois.edu/api/v1"
       CANVAS_API_TOKEN: "{{CANVAS_API_TOKEN}}"
       UV_CACHE_DIR: /tmp/uv-cache
       UV_TOOL_DIR: /tmp/uv-tools
     title: Canvas MCP
-    description: Connect your Canvas LMS account using your own Canvas API URL and access token.
+    description: Connect your Illinois Canvas account with your Canvas access token.
     timeout: 30000
     customUserVars:
-      CANVAS_API_URL:
-        title: Canvas API URL
-        description: Enter your Canvas API URL, including the /api/v1 path. For Illinois Canvas, this is usually https://canvas.illinois.edu/api/v1.
-        sensitive: false
       CANVAS_API_TOKEN:
         title: Canvas API Token
         description: Create this in Canvas under Account -> Settings -> New Access Token. This token is stored for your GiesChat user and used only to connect Canvas MCP.
