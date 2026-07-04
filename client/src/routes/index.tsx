@@ -50,6 +50,11 @@ const loadProjectWorkspace = () =>
     Component: m.ProjectWorkspace,
   }));
 
+const loadBrainstormRoom = () =>
+  import('~/components/Brainstorm/RoomPage').then((m) => ({
+    Component: m.default,
+  }));
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -160,6 +165,10 @@ export const router = createBrowserRouter(
             {
               path: 'skills/:skillId/edit',
               lazy: loadSkillsView,
+            },
+            {
+              path: 'brainstorm/:roomId',
+              lazy: loadBrainstormRoom,
             },
             {
               path: 'projects',

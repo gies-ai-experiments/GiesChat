@@ -50,6 +50,8 @@ export default function useUnifiedSidebarLinks() {
     includeHidePanel: false,
   });
 
+  const brainstormEnabled = startupConfig?.brainstormRoomsEnabled === true;
+
   const links = useMemo(() => {
     const conversationLink: NavLink = {
       title: 'com_ui_chat_history',
@@ -58,6 +60,9 @@ export default function useUnifiedSidebarLinks() {
       id: 'conversations',
       Component: ConversationsSection,
     };
+    if (!brainstormEnabled) {
+      return [conversationLink, ...sideNavLinks];
+    }
     const brainstormLink: NavLink = {
       title: 'com_ui_brainstorm',
       label: '',
@@ -67,7 +72,7 @@ export default function useUnifiedSidebarLinks() {
     };
 
     return [conversationLink, brainstormLink, ...sideNavLinks];
-  }, [sideNavLinks]);
+  }, [sideNavLinks, brainstormEnabled]);
 
   return links;
 }

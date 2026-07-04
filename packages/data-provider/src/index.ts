@@ -41,6 +41,7 @@ export {
   loginPage,
   registerPage,
   apiBaseUrl,
+  roomStream,
   sharedFileDownload,
   buildLoginRedirectUrl,
 } from './api-endpoints';
