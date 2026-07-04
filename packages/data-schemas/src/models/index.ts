@@ -3,6 +3,12 @@ import { createSkillSyncStatusModel } from './skillSyncStatus';
 import { createConversationTagModel } from './conversationTag';
 import { createAgentCategoryModel } from './agentCategory';
 import { createTutorSourceModel } from './tutorSource';
+import {
+  createRoomModel,
+  createRoomParticipantModel,
+  createRoomMessageModel,
+  createRoomPollModel,
+} from './room';
 import { createChatProjectModel } from './chatProject';
 import { createAgentApiKeyModel } from './agentApiKey';
 import { createTransactionModel } from './transaction';
@@ -51,6 +57,10 @@ export function createModels(mongoose: typeof import('mongoose')): {
   AgentApiKey: ReturnType<typeof createAgentApiKeyModel>;
   AgentCategory: ReturnType<typeof createAgentCategoryModel>;
   TutorSource: ReturnType<typeof createTutorSourceModel>;
+  Room: ReturnType<typeof createRoomModel>;
+  RoomParticipant: ReturnType<typeof createRoomParticipantModel>;
+  RoomMessage: ReturnType<typeof createRoomMessageModel>;
+  RoomPoll: ReturnType<typeof createRoomPollModel>;
   MCPServer: ReturnType<typeof createMCPServerModel>;
   Role: ReturnType<typeof createRoleModel>;
   Action: ReturnType<typeof createActionModel>;
@@ -90,6 +100,10 @@ export function createModels(mongoose: typeof import('mongoose')): {
     AgentApiKey: createAgentApiKeyModel(mongoose),
     AgentCategory: createAgentCategoryModel(mongoose),
     TutorSource: createTutorSourceModel(mongoose),
+    Room: createRoomModel(mongoose),
+    RoomParticipant: createRoomParticipantModel(mongoose),
+    RoomMessage: createRoomMessageModel(mongoose),
+    RoomPoll: createRoomPollModel(mongoose),
     MCPServer: createMCPServerModel(mongoose),
     Role: createRoleModel(mongoose),
     Action: createActionModel(mongoose),
