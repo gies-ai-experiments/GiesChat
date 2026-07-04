@@ -56,6 +56,7 @@ export async function loadDefaultInterface({
     retainAgentFiles: interfaceConfig?.retainAgentFiles,
     runCode: interfaceConfig?.runCode,
     webSearch: interfaceConfig?.webSearch,
+    brainstormRooms: interfaceConfig?.brainstormRooms,
     fileSearch: interfaceConfig?.fileSearch,
     fileCitations: interfaceConfig?.fileCitations,
     defaultPinnedTools: interfaceConfig?.defaultPinnedTools,
