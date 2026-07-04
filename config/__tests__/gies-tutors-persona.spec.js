@@ -1,10 +1,11 @@
 const { buildInstructions } = require('../gies-tutors/persona');
-const { slugify, agentIdFor, categoryValueFor } = require('../gies-tutors/keys');
+const { slugify, agentIdFor, categoryValueFor, courseKeyFor } = require('../gies-tutors/keys');
 
 describe('gies-tutors persona + keys', () => {
   const entry = {
     courseCode: 'BADM 350',
     courseLabel: 'IT for Networked Organizations',
+    category: 'Business Administration',
     subject: 'information systems',
   };
 
@@ -16,9 +17,13 @@ describe('gies-tutors persona + keys', () => {
     expect(out).toContain('Do NOT produce completed graded deliverables');
   });
 
-  it('derives stable slug/id/category keys from the course code', () => {
+  it('derives the category from the subject area and course keys from the course code', () => {
     expect(slugify('BADM 350')).toBe('badm_350');
-    expect(categoryValueFor(entry)).toBe('badm_350');
+    expect(categoryValueFor(entry)).toBe('business_administration');
+    expect(courseKeyFor(entry)).toBe('badm_350');
     expect(agentIdFor(entry)).toBe('agent_gies_badm_350');
+    expect(() => categoryValueFor({ courseCode: 'BADM 999' })).toThrow(
+      /Missing "category" for BADM 999/,
+    );
   });
 });

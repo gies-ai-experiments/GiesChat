@@ -1,51 +1,58 @@
 [
   {
-    "courseCode": "BADM 350",
-    "courseLabel": "IT for Networked Organizations",
-    "subject": "information systems, data management, and IT strategy in business",
-    "isPromoted": true,
-    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
-  },
-  {
-    "courseCode": "ACCY 200",
-    "courseLabel": "Fundamentals of Accounting",
-    "subject": "financial and managerial accounting fundamentals",
-    "isPromoted": false,
-    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/accy/"]
-  },
-  {
     "courseCode": "FIN 221",
     "courseLabel": "Corporate Finance",
+    "category": "Finance",
     "subject": "time value of money, valuation, capital budgeting, and corporate financial decisions",
     "isPromoted": true,
     "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/fin/"]
   },
   {
-    "courseCode": "BADM 310",
-    "courseLabel": "Management and Organizational Behavior",
-    "subject": "management, organizational behavior, motivation, teams, and leadership",
-    "isPromoted": false,
-    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
-  },
-  {
     "courseCode": "ECON 102",
     "courseLabel": "Microeconomic Principles",
+    "category": "Finance",
     "subject": "microeconomics: supply and demand, elasticity, market structures, and firm behavior",
     "isPromoted": false,
     "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/econ/"]
   },
   {
-    "courseCode": "BADM 300",
-    "courseLabel": "The Legal Environment of Business",
-    "subject": "business law: contracts, torts, and the regulatory environment",
+    "courseCode": "ACCY 200",
+    "courseLabel": "Fundamentals of Accounting",
+    "category": "Accounting",
+    "subject": "financial and managerial accounting fundamentals",
     "isPromoted": false,
-    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/accy/"]
   },
   {
     "courseCode": "ACCY 201",
     "courseLabel": "Accounting II — Managerial",
+    "category": "Accounting",
     "subject": "managerial accounting: cost behavior, budgeting, and variance analysis",
     "isPromoted": false,
     "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/accy/"]
+  },
+  {
+    "courseCode": "BADM 350",
+    "courseLabel": "IT for Networked Organizations",
+    "category": "Business Administration",
+    "subject": "information systems, data management, and IT strategy in business",
+    "isPromoted": true,
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
+  },
+  {
+    "courseCode": "BADM 310",
+    "courseLabel": "Management and Organizational Behavior",
+    "category": "Business Administration",
+    "subject": "management, organizational behavior, motivation, teams, and leadership",
+    "isPromoted": false,
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
+  },
+  {
+    "courseCode": "BADM 300",
+    "courseLabel": "The Legal Environment of Business",
+    "category": "Business Administration",
+    "subject": "business law: contracts, torts, and the regulatory environment",
+    "isPromoted": false,
+    "sourceUrls": ["https://catalog.illinois.edu/courses-of-instruction/badm/"]
   }
 ]

@@ -24,6 +24,7 @@ describe('seedTutors with knowledge', () => {
     {
       courseCode: 'BADM 350',
       courseLabel: 'IT for Networked Organizations',
+      category: 'Business Administration',
       subject: 'IT strategy',
       isPromoted: true,
       sourceUrls: ['https://x/a', 'https://x/b'],

@@ -1,9 +1,11 @@
-const { agentIdFor, categoryValueFor } = require('./keys');
+const { agentIdFor, categoryValueFor, courseKeyFor } = require('./keys');
 
 /**
- * Idempotently upsert one category + one public tutor agent per entry, and
- * (when an entry has sourceUrls) scrape → summarize → store tagged course
- * content and inject a "Course reference" block into the tutor's instructions.
+ * Idempotently upsert one category per subject area (Finance, Accounting, …) and
+ * one public tutor agent per entry grouped under it, and (when an entry has
+ * sourceUrls) scrape → summarize → store tagged course content and inject a
+ * "Course reference" block into the tutor's instructions. Stale per-course
+ * categories from the old one-category-per-course layout are deleted.
  * @param {object} deps
  * @param {object} deps.methods - db methods (categories, agents, tutor sources)
  * @param {(resourceId: any) => Promise<unknown>} deps.grantPublic - grants public view access
@@ -36,16 +38,20 @@ async function seedTutors({
   summaryMaxChars = 1500,
   referenceMaxChars = 12000,
 }) {
-  const results = [];
-
-  for (let i = 0; i < tutors.length; i++) {
-    const entry = tutors[i];
+  const categories = tutors.reduce((acc, entry) => {
     const value = categoryValueFor(entry);
+    if (!acc.some((category) => category.value === value)) {
+      acc.push({ value, label: entry.category });
+    }
+    return acc;
+  }, []);
 
+  for (let i = 0; i < categories.length; i++) {
+    const { value, label } = categories[i];
     const categoryData = {
       value,
-      label: entry.courseLabel,
-      description: entry.subject || '',
+      label,
+      description: `${label} course tutors`,
       order: i,
       isActive: true,
     };
@@ -55,11 +61,26 @@ async function seedTutors({
     } else {
       await methods.createCategory(categoryData);
     }
+  }
+
+  const categoryValues = new Set(categories.map(({ value }) => value));
+  const staleValues = [...new Set(tutors.map(courseKeyFor))].filter(
+    (key) => !categoryValues.has(key),
+  );
+  for (const value of staleValues) {
+    await methods.deleteCategory(value);
+  }
+
+  const results = [];
+
+  for (const entry of tutors) {
+    const category = categoryValueFor(entry);
+    const courseKey = courseKeyFor(entry);
 
     let reference = '';
     if (Array.isArray(entry.sourceUrls) && entry.sourceUrls.length > 0 && scrapeSources) {
       const scraped = await scrapeSources(entry, { maxChars });
-      const priorRecords = await methods.findTutorSourcesByCourse(value);
+      const priorRecords = await methods.findTutorSourcesByCourse(courseKey);
       const prior = {};
       for (const record of priorRecords) {
         prior[record.url] = record;
@@ -69,8 +90,8 @@ async function seedTutors({
         prior,
         maxChars: summaryMaxChars,
       });
-      await storeSources({ methods, courseValue: value, scraped: summarized });
-      const records = await methods.findTutorSourcesByCourse(value);
+      await storeSources({ methods, courseValue: courseKey, scraped: summarized });
+      const records = await methods.findTutorSourcesByCourse(courseKey);
       reference = buildReference(records, { maxChars: referenceMaxChars });
     }
 
@@ -84,7 +105,7 @@ async function seedTutors({
       instructions,
       provider,
       model,
-      category: value,
+      category,
       is_promoted: Boolean(entry.isPromoted),
     };
 
@@ -97,7 +118,7 @@ async function seedTutors({
     }
 
     await grantPublic(agent._id);
-    results.push({ id, category: value, created: !existingAgent });
+    results.push({ id, category, created: !existingAgent });
   }
 
   return results;
