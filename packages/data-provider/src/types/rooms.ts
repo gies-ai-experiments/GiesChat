@@ -48,10 +48,12 @@ export type TRoomPoll = {
   pollId: string;
   question: string;
   options: string[];
-  votes?: Record<string, number>;
   status: TRoomPollStatus;
   expiresAt?: string;
   createdBy: string;
+  myVote?: number;
+  tally?: number[];
+  voteCount: number;
 };
 
 export type TRoomSnapshot = {

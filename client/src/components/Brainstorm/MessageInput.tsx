@@ -2,8 +2,23 @@ import { useRef, useState } from 'react';
 import { SendHorizontal } from 'lucide-react';
 import { Button, TextareaAutosize } from '@librechat/client';
 import { useLocalize } from '~/hooks';
-import { useSendRoomMessageMutation, useRoomTypingMutation } from '~/data-provider';
+import {
+  useSendRoomMessageMutation,
+  useCreateRoomPollMutation,
+  useRoomTypingMutation,
+} from '~/data-provider';
 import AttachFileButton from './AttachFileButton';
+
+export const parsePollCommand = (text: string): { question: string; options: string[] } | null => {
+  if (!text.toLowerCase().startsWith('/poll ')) {
+    return null;
+  }
+  const [question, ...options] = text
+    .slice(6)
+    .split('|')
+    .map((part) => part.trim());
+  return { question: question ?? '', options };
+};
 
 const MESSAGE_CAP = 8000;
 const TYPING_THROTTLE_MS = 2000;
@@ -19,6 +34,7 @@ export default function MessageInput({
   const [text, setText] = useState('');
   const lastTypingAt = useRef(0);
   const sendMessage = useSendRoomMessageMutation(roomId);
+  const createPoll = useCreateRoomPollMutation(roomId);
   const sendTyping = useRoomTypingMutation(roomId);
 
   const submit = () => {
@@ -26,7 +42,12 @@ export default function MessageInput({
     if (trimmed.length === 0 || trimmed.length > MESSAGE_CAP || sendMessage.isLoading) {
       return;
     }
-    sendMessage.mutate(trimmed);
+    const poll = parsePollCommand(trimmed);
+    if (poll) {
+      createPoll.mutate(poll);
+    } else {
+      sendMessage.mutate(trimmed);
+    }
     setText('');
   };
 

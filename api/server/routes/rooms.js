@@ -22,6 +22,11 @@ const {
   summarizeRoom,
   attachFile,
   detachFile,
+  PollError,
+  createPoll,
+  votePoll,
+  closePoll,
+  toPollView,
 } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { getAppConfig } = require('~/server/services/Config/app');
@@ -34,7 +39,7 @@ router.use(requireJwtAuth);
 const displayName = (user) => user.name || user.username || user.email || 'Unknown';
 
 const handleRoomError = (res, error, context) => {
-  if (error instanceof RoomError) {
+  if (error instanceof RoomError || error instanceof PollError) {
     return res.status(error.status).json({ error: error.code });
   }
   logger.error(`[rooms] ${context}`, error);
@@ -86,6 +91,7 @@ router.get('/:roomId', async (req, res) => {
         ...p,
         online: online.has(p.userId.toString()),
       })),
+      polls: snapshot.polls.map((poll) => toPollView(poll, req.user.id)),
       files,
     });
   } catch (error) {
@@ -225,6 +231,59 @@ router.patch('/:roomId/archive', async (req, res) => {
     return res.json(room);
   } catch (error) {
     return handleRoomError(res, error, 'archive');
+  }
+});
+
+router.post('/:roomId/polls', async (req, res) => {
+  try {
+    const { question, options, expiresAt } = req.body ?? {};
+    const poll = await createPoll({
+      roomId: req.params.roomId,
+      userId: req.user.id,
+      question: typeof question === 'string' ? question : '',
+      options: Array.isArray(options) ? options.filter((o) => typeof o === 'string') : [],
+      expiresAt: typeof expiresAt === 'string' ? new Date(expiresAt) : undefined,
+    });
+    const note = await postSystemMessage(
+      req.params.roomId,
+      `${displayName(req.user)} started a poll: ${poll.question}`,
+    );
+    publish(req.params.roomId, 'message', note);
+    publish(req.params.roomId, 'poll', { pollId: poll.pollId });
+    return res.status(201).json(toPollView(poll, req.user.id));
+  } catch (error) {
+    return handleRoomError(res, error, 'poll-create');
+  }
+});
+
+router.post('/:roomId/polls/:pollId/vote', async (req, res) => {
+  try {
+    const poll = await votePoll({
+      roomId: req.params.roomId,
+      pollId: req.params.pollId,
+      userId: req.user.id,
+      optionIndex: req.body?.optionIndex,
+    });
+    publish(req.params.roomId, 'poll', { pollId: poll.pollId });
+    return res.json(toPollView(poll, req.user.id));
+  } catch (error) {
+    return handleRoomError(res, error, 'poll-vote');
+  }
+});
+
+router.post('/:roomId/polls/:pollId/close', async (req, res) => {
+  try {
+    const { poll, tallyText } = await closePoll({
+      roomId: req.params.roomId,
+      pollId: req.params.pollId,
+      userId: req.user.id,
+    });
+    const note = await postSystemMessage(req.params.roomId, tallyText);
+    publish(req.params.roomId, 'message', note);
+    publish(req.params.roomId, 'poll', { pollId: poll.pollId });
+    return res.json(toPollView(poll, req.user.id));
+  } catch (error) {
+    return handleRoomError(res, error, 'poll-close');
   }
 });
 

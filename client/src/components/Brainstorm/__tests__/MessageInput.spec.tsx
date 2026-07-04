@@ -15,6 +15,7 @@ jest.mock('~/data-provider', () => ({
   useRoomTypingMutation: () => ({ mutate: mockSendTyping }),
   useUploadFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
   useAttachRoomFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useCreateRoomPollMutation: () => ({ mutate: jest.fn(), isLoading: false }),
 }));
 
 jest.mock('@librechat/client', () => {

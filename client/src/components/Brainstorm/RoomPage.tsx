@@ -14,6 +14,7 @@ import CatchUpChip from './CatchUpChip';
 import MessageList from './MessageList';
 import RoomHeader from './RoomHeader';
 import FilesRow from './FilesRow';
+import PollCard from './PollCard';
 
 export default function RoomPage() {
   const localize = useLocalize();
@@ -68,6 +69,15 @@ export default function RoomPage() {
         </div>
       )}
       <CatchUpChip roomId={roomId} unreadCount={snapshot.unreadCount} />
+      {snapshot.polls.map((poll) => (
+        <PollCard
+          key={poll.pollId}
+          roomId={roomId}
+          poll={poll}
+          currentUserId={currentUserId}
+          isOwner={isOwner}
+        />
+      ))}
       <MessageList messages={snapshot.messages} currentUserId={currentUserId} />
       <TypingIndicator typingUsers={typingUsers} currentUserId={currentUserId} />
       <MessageInput roomId={roomId} disabled={snapshot.room.archived} />
