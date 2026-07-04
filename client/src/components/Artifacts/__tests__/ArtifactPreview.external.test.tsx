@@ -22,7 +22,10 @@ describe('ArtifactPreview external-url branch', () => {
     renderExternal('https://my-app.replit.app');
     const iframe = screen.getByTitle(/live app preview/i);
     expect(iframe).toHaveAttribute('src', 'https://my-app.replit.app/');
-    expect(iframe).toHaveAttribute('sandbox');
+    expect(iframe).toHaveAttribute(
+      'sandbox',
+      'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads',
+    );
     const link = screen.getByRole('link', { name: /open in new tab/i });
     expect(link).toHaveAttribute('href', 'https://my-app.replit.app/');
     expect(link).toHaveAttribute('target', '_blank');

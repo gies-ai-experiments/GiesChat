@@ -58,6 +58,7 @@ mcpServers:
     title: Replit
     description: Build live apps with Replit Agent using your own Replit account.
     timeout: 120000
+    chatMenu: false
 
 endpoints:
   custom:
