@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import useArtifactProps from '../useArtifactProps';
-import { TOOL_ARTIFACT_TYPES, wrapAsFencedCodeBlock } from '~/utils/artifacts';
+import {
+  TOOL_ARTIFACT_TYPES,
+  wrapAsFencedCodeBlock,
+  EXTERNAL_URL_FILE_KEY,
+} from '~/utils/artifacts';
 import type { Artifact } from '~/common';
 
 describe('useArtifactProps', () => {
@@ -303,6 +307,18 @@ describe('useArtifactProps', () => {
       const { result } = renderHook(() => useArtifactProps({ artifact }));
       const md = result.current.files['content.md'] as string;
       expect(md.startsWith('```javascript\n')).toBe(true);
+    });
+  });
+
+  describe('external-url artifacts', () => {
+    it('routes content to the content.url file key', () => {
+      const artifact = createArtifact({
+        type: TOOL_ARTIFACT_TYPES.EXTERNAL_URL,
+        content: 'https://my-app.replit.app',
+      });
+      const { result } = renderHook(() => useArtifactProps({ artifact }));
+      expect(result.current.fileKey).toBe(EXTERNAL_URL_FILE_KEY);
+      expect(result.current.files[EXTERNAL_URL_FILE_KEY]).toBe('https://my-app.replit.app');
     });
   });
 });

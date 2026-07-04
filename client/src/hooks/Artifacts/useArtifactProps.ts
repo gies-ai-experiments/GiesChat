@@ -10,6 +10,7 @@ import {
   languageForFilename,
   wrapAsFencedCodeBlock,
   TOOL_ARTIFACT_TYPES,
+  EXTERNAL_URL_FILE_KEY,
 } from '~/utils/artifacts';
 import { getMarkdownFiles } from '~/utils/markdown';
 import { getMermaidFiles } from '~/utils/mermaid';
@@ -43,6 +44,10 @@ export default function useArtifactProps({ artifact }: { artifact: Artifact }) {
 
     if (type === 'text/markdown' || type === 'text/md' || type === 'text/plain') {
       return ['content.md', getMarkdownFiles(artifact.content ?? '')];
+    }
+
+    if (type === TOOL_ARTIFACT_TYPES.EXTERNAL_URL) {
+      return [EXTERNAL_URL_FILE_KEY, { [EXTERNAL_URL_FILE_KEY]: artifact.content ?? '' }];
     }
 
     /* Office preview buckets (DOCX/SPREADSHEET/PRESENTATION): the backend
