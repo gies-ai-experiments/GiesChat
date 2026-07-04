@@ -2,7 +2,7 @@ import type { ServerResponse } from 'http';
 
 /* ponytail: in-memory registry, single-container deploy; Redis pub/sub if multi-instance */
 
-export type RoomEventName = 'message' | 'ai_delta' | 'presence' | 'typing' | 'poll';
+export type RoomEventName = 'message' | 'ai_delta' | 'presence' | 'typing' | 'poll' | 'room';
 
 interface RoomConnection {
   userId: string;

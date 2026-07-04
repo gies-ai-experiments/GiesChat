@@ -209,3 +209,55 @@ describe('summarizeRoom', () => {
     expect(messages.some((m) => m.kind === 'ai' && m.text === 'shared recap')).toBe(true);
   });
 });
+
+describe('queryRoomFiles', () => {
+  const { queryRoomFiles } = require('./ai');
+  const OLD_ENV = process.env.RAG_API_URL;
+
+  beforeAll(() => {
+    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
+  });
+
+  afterEach(() => {
+    if (OLD_ENV === undefined) {
+      delete process.env.RAG_API_URL;
+    } else {
+      process.env.RAG_API_URL = OLD_ENV;
+    }
+  });
+
+  const ragHit = (content, distance) =>
+    JSON.stringify([[{ page_content: content, metadata: { source: '/f.pdf' } }, distance]]);
+
+  it('returns top chunks ordered by distance across files', async () => {
+    process.env.RAG_API_URL = 'http://rag.test';
+    const responses = {
+      f1: ragHit('far chunk', 0.9),
+      f2: ragHit('near chunk', 0.1),
+    };
+    const fetchImpl = async (url, init) => {
+      const { file_id } = JSON.parse(init.body);
+      return new Response(responses[file_id], { status: 200 });
+    };
+    const context = await queryRoomFiles({
+      userId,
+      fileIds: ['f1', 'f2'],
+      query: 'q',
+      fetchImpl,
+    });
+    expect(context.indexOf('near chunk')).toBeLessThan(context.indexOf('far chunk'));
+  });
+
+  it('degrades to empty on failures and missing RAG url', async () => {
+    delete process.env.RAG_API_URL;
+    expect(await queryRoomFiles({ userId, fileIds: ['f1'], query: 'q' })).toBe('');
+
+    process.env.RAG_API_URL = 'http://rag.test';
+    const failing = async () => {
+      throw new Error('down');
+    };
+    expect(
+      await queryRoomFiles({ userId, fileIds: ['f1'], query: 'q', fetchImpl: failing }),
+    ).toBe('');
+  });
+});

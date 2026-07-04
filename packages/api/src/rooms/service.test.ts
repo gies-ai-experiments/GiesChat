@@ -144,3 +144,35 @@ describe('limits', () => {
     }
   });
 });
+
+describe('room files', () => {
+  const { attachFile, detachFile } = require('./service');
+
+  it('attach is member-gated; detach is owner-only', async () => {
+    const room = await createRoom({ userId: owner, name: 'Ash', title: 'Files' });
+    await joinRoom({ roomId: room.roomId, userId: member, name: 'Sam' });
+
+    await expect(
+      attachFile({ roomId: room.roomId, userId: stranger, fileId: 'f1' }),
+    ).rejects.toMatchObject({ code: 'not_member' });
+
+    const attached = await attachFile({ roomId: room.roomId, userId: member, fileId: 'f1' });
+    expect(attached.fileIds).toEqual(['f1']);
+    const again = await attachFile({ roomId: room.roomId, userId: member, fileId: 'f1' });
+    expect(again.fileIds).toEqual(['f1']);
+
+    await expect(
+      detachFile({ roomId: room.roomId, userId: member, fileId: 'f1' }),
+    ).rejects.toMatchObject({ code: 'not_owner' });
+    const detached = await detachFile({ roomId: room.roomId, userId: owner, fileId: 'f1' });
+    expect(detached.fileIds).toEqual([]);
+  });
+
+  it('attach refuses on archived rooms', async () => {
+    const room = await createRoom({ userId: owner, name: 'Ash', title: 'Files closed' });
+    await archiveRoom({ roomId: room.roomId, userId: owner });
+    await expect(
+      attachFile({ roomId: room.roomId, userId: owner, fileId: 'f1' }),
+    ).rejects.toMatchObject({ code: 'room_archived' });
+  });
+});

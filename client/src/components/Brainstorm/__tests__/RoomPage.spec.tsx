@@ -26,6 +26,9 @@ jest.mock('~/data-provider', () => ({
   useSendRoomMessageMutation: () => ({ mutate: jest.fn(), isLoading: false }),
   useRoomTypingMutation: () => ({ mutate: jest.fn() }),
   useSummarizeRoomMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useUploadFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useAttachRoomFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useDetachRoomFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
 }));
 
 jest.mock('~/components/Chat/Messages/Content/MarkdownLite', () => ({

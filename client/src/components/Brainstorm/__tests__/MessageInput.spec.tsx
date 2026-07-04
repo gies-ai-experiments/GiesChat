@@ -13,7 +13,15 @@ jest.mock('~/hooks', () => ({
 jest.mock('~/data-provider', () => ({
   useSendRoomMessageMutation: () => ({ mutate: mockSendMessage, isLoading: false }),
   useRoomTypingMutation: () => ({ mutate: mockSendTyping }),
+  useUploadFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useAttachRoomFileMutation: () => ({ mutate: jest.fn(), isLoading: false }),
 }));
+
+jest.mock('@librechat/client', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const actual = jest.requireActual('@librechat/client');
+  return { ...actual, useToastContext: () => ({ showToast: jest.fn() }) };
+});
 
 describe('MessageInput', () => {
   beforeEach(() => jest.clearAllMocks());

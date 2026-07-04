@@ -20,6 +20,8 @@ const {
   detectAiMention,
   runAiReply,
   summarizeRoom,
+  attachFile,
+  detachFile,
 } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { getAppConfig } = require('~/server/services/Config/app');
@@ -170,6 +172,48 @@ router.post('/:roomId/typing', async (req, res) => {
     return res.status(204).end();
   } catch (error) {
     return handleRoomError(res, error, 'typing');
+  }
+});
+
+router.post('/:roomId/files', async (req, res) => {
+  try {
+    const fileId = req.body?.fileId;
+    if (typeof fileId !== 'string' || fileId.length === 0) {
+      return res.status(400).json({ error: 'invalid_file' });
+    }
+    const [file] = await getFiles({ file_id: fileId, user: req.user.id }, null, {});
+    if (!file) {
+      return res.status(403).json({ error: 'not_file_owner' });
+    }
+    const room = await attachFile({ roomId: req.params.roomId, userId: req.user.id, fileId });
+    const note = await postSystemMessage(
+      room.roomId,
+      `${displayName(req.user)} attached ${file.filename}`,
+    );
+    publish(room.roomId, 'message', note);
+    publish(room.roomId, 'room', { fileIds: room.fileIds });
+    return res.status(201).json(room);
+  } catch (error) {
+    return handleRoomError(res, error, 'attach-file');
+  }
+});
+
+router.delete('/:roomId/files/:fileId', async (req, res) => {
+  try {
+    const room = await detachFile({
+      roomId: req.params.roomId,
+      userId: req.user.id,
+      fileId: req.params.fileId,
+    });
+    const note = await postSystemMessage(
+      room.roomId,
+      `${displayName(req.user)} removed a file`,
+    );
+    publish(room.roomId, 'message', note);
+    publish(room.roomId, 'room', { fileIds: room.fileIds });
+    return res.json(room);
+  } catch (error) {
+    return handleRoomError(res, error, 'detach-file');
   }
 });
 

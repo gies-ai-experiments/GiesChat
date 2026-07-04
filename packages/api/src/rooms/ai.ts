@@ -4,6 +4,7 @@ import { logger } from '@librechat/data-schemas';
 import type { Model } from 'mongoose';
 import type { AppConfig, IAgent, IRoom, IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
 import { getCustomEndpointConfig } from '~/app/config';
+import { generateShortLivedToken } from '~/crypto/jwt';
 import {
   getRoom,
   getClosedPolls,
@@ -208,16 +209,56 @@ export async function streamChatCompletion(params: {
   return text;
 }
 
-/** Phase 3 wires real RAG retrieval; empty room files always yield no context. */
+const RAG_CHUNKS_PER_FILE = 5;
+const RAG_CHUNK_LIMIT = 8;
+
+type RagHit = [{ page_content: string; metadata: { source: string } }, number];
+
+/** Retrieves relevant chunks from the room's files via the RAG API; degrades to '' on any failure. */
 export async function queryRoomFiles(params: {
   userId: string;
   fileIds: string[];
   query: string;
+  fetchImpl?: FetchImpl;
 }): Promise<string> {
-  if (params.fileIds.length === 0) {
+  const { userId, fileIds, query } = params;
+  const ragUrl = process.env.RAG_API_URL;
+  if (fileIds.length === 0 || !ragUrl) {
     return '';
   }
-  return '';
+  const fetchImpl = params.fetchImpl ?? (fetch as FetchImpl);
+  try {
+    const jwtToken = generateShortLivedToken(userId);
+    const responses = await Promise.all(
+      fileIds.map(async (fileId) => {
+        try {
+          const res = await fetchImpl(`${ragUrl}/query`, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              authorization: `Bearer ${jwtToken}`,
+            },
+            body: JSON.stringify({ file_id: fileId, query, k: RAG_CHUNKS_PER_FILE }),
+          });
+          if (!res.ok) {
+            return [];
+          }
+          return (await res.json()) as RagHit[];
+        } catch {
+          return [];
+        }
+      }),
+    );
+    return responses
+      .flat()
+      .sort((a, b) => a[1] - b[1])
+      .slice(0, RAG_CHUNK_LIMIT)
+      .map(([doc]) => doc.page_content)
+      .join('\n---\n');
+  } catch (error) {
+    logger.warn('[rooms] RAG retrieval failed; answering without file context', error);
+    return '';
+  }
 }
 
 const aiLocks = new Set<string>();

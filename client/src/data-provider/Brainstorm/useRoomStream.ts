@@ -109,6 +109,10 @@ export default function useRoomStream(roomId: string, enabled: boolean): TRoomTy
         queryClient.invalidateQueries([QueryKeys.room, roomId]);
       });
 
+      sse.addEventListener('room', () => {
+        queryClient.invalidateQueries([QueryKeys.room, roomId]);
+      });
+
       sse.addEventListener('error', () => {
         sse?.close();
         if (closed) {

@@ -3,6 +3,7 @@ import { SendHorizontal } from 'lucide-react';
 import { Button, TextareaAutosize } from '@librechat/client';
 import { useLocalize } from '~/hooks';
 import { useSendRoomMessageMutation, useRoomTypingMutation } from '~/data-provider';
+import AttachFileButton from './AttachFileButton';
 
 const MESSAGE_CAP = 8000;
 const TYPING_THROTTLE_MS = 2000;
@@ -40,6 +41,7 @@ export default function MessageInput({
 
   return (
     <div className="flex items-end gap-2 border-t border-border-light px-4 py-3">
+      <AttachFileButton roomId={roomId} disabled={disabled} />
       <TextareaAutosize
         value={text}
         onChange={(e) => onChange(e.target.value)}

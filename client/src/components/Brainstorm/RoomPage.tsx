@@ -13,6 +13,7 @@ import MessageInput from './MessageInput';
 import CatchUpChip from './CatchUpChip';
 import MessageList from './MessageList';
 import RoomHeader from './RoomHeader';
+import FilesRow from './FilesRow';
 
 export default function RoomPage() {
   const localize = useLocalize();
@@ -60,6 +61,7 @@ export default function RoomPage() {
     <div className="flex h-full min-h-0 flex-col bg-surface-primary-alt text-text-primary">
       <RoomHeader room={snapshot.room} isOwner={isOwner} />
       <ParticipantsBar participants={snapshot.participants} />
+      <FilesRow roomId={roomId} files={snapshot.files} isOwner={isOwner} />
       {snapshot.room.archived && (
         <div className="bg-surface-tertiary px-4 py-2 text-center text-sm text-text-secondary">
           {localize('com_ui_brainstorm_archived_banner')}

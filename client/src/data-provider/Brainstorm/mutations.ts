@@ -60,6 +60,24 @@ export const useSendRoomMessageMutation = (
 export const useRoomTypingMutation = (roomId: string): UseMutationResult<void, unknown, void> =>
   useMutation(() => dataService.sendRoomTyping(roomId));
 
+export const useAttachRoomFileMutation = (
+  roomId: string,
+): UseMutationResult<TRoom, unknown, string> => {
+  const queryClient = useQueryClient();
+  return useMutation((fileId: string) => dataService.attachRoomFile(roomId, fileId), {
+    onSuccess: () => queryClient.invalidateQueries([QueryKeys.room, roomId]),
+  });
+};
+
+export const useDetachRoomFileMutation = (
+  roomId: string,
+): UseMutationResult<TRoom, unknown, string> => {
+  const queryClient = useQueryClient();
+  return useMutation((fileId: string) => dataService.detachRoomFile(roomId, fileId), {
+    onSuccess: () => queryClient.invalidateQueries([QueryKeys.room, roomId]),
+  });
+};
+
 export const useSummarizeRoomMutation = (
   roomId: string,
 ): UseMutationResult<TSummarizeRoomResponse, unknown, TSummarizeRoomRequest> => {

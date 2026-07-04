@@ -258,6 +258,47 @@ export async function updateMessageText(messageId: string, text: string): Promis
   await RoomMessage().updateOne({ messageId }, { $set: { text } });
 }
 
+export async function attachFile(params: {
+  roomId: string;
+  userId: string;
+  fileId: string;
+}): Promise<IRoom> {
+  const room = await getRoom(params.roomId);
+  if (room.archived) {
+    throw new RoomError('room_archived');
+  }
+  await assertMember(params.roomId, params.userId);
+  const updated = await Room().findOneAndUpdate(
+    { roomId: params.roomId },
+    { $addToSet: { fileIds: params.fileId } },
+    { new: true },
+  );
+  if (!updated) {
+    throw new RoomError('room_not_found');
+  }
+  return updated;
+}
+
+export async function detachFile(params: {
+  roomId: string;
+  userId: string;
+  fileId: string;
+}): Promise<IRoom> {
+  const participant = await assertMember(params.roomId, params.userId);
+  if (participant.role !== 'owner') {
+    throw new RoomError('not_owner');
+  }
+  const updated = await Room().findOneAndUpdate(
+    { roomId: params.roomId },
+    { $pull: { fileIds: params.fileId } },
+    { new: true },
+  );
+  if (!updated) {
+    throw new RoomError('room_not_found');
+  }
+  return updated;
+}
+
 export async function archiveRoom(params: { roomId: string; userId: string }): Promise<IRoom> {
   const participant = await assertMember(params.roomId, params.userId);
   if (participant.role !== 'owner') {
