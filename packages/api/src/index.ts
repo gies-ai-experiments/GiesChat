@@ -49,6 +49,8 @@ export * from './actions';
 export * from './prompts';
 /* Projects */
 export * from './projects';
+/* Rooms */
+export * from './rooms';
 /* Skills */
 export * from './skills';
 /* Endpoints */
