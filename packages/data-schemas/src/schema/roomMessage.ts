@@ -28,7 +28,7 @@ const roomMessageSchema: Schema<IRoomMessage> = new Schema<IRoomMessage>(
     },
     text: {
       type: String,
-      required: true,
+      default: '',
     },
   },
   {

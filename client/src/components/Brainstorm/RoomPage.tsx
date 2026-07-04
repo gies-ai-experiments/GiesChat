@@ -10,6 +10,7 @@ import {
 import ParticipantsBar from './ParticipantsBar';
 import TypingIndicator from './TypingIndicator';
 import MessageInput from './MessageInput';
+import CatchUpChip from './CatchUpChip';
 import MessageList from './MessageList';
 import RoomHeader from './RoomHeader';
 
@@ -64,6 +65,7 @@ export default function RoomPage() {
           {localize('com_ui_brainstorm_archived_banner')}
         </div>
       )}
+      <CatchUpChip roomId={roomId} unreadCount={snapshot.unreadCount} />
       <MessageList messages={snapshot.messages} currentUserId={currentUserId} />
       <TypingIndicator typingUsers={typingUsers} currentUserId={currentUserId} />
       <MessageInput roomId={roomId} disabled={snapshot.room.archived} />

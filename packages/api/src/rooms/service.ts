@@ -219,6 +219,19 @@ export async function postMessage(params: {
   });
 }
 
+export async function getRecentMessages(roomId: string, limit: number): Promise<IRoomMessage[]> {
+  const docs = await RoomMessage()
+    .find({ roomId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean<IRoomMessage[]>();
+  return docs.reverse();
+}
+
+export async function getClosedPolls(roomId: string): Promise<IRoomPoll[]> {
+  return RoomPoll().find({ roomId, status: 'closed' }).lean<IRoomPoll[]>();
+}
+
 export async function postSystemMessage(roomId: string, text: string): Promise<IRoomMessage> {
   return RoomMessage().create({
     roomId,

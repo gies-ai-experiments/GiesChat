@@ -16,8 +16,13 @@ const {
   checkLimit,
   ROOM_CREATE_LIMIT,
   ROOM_MESSAGE_LIMIT,
+  ROOM_SUMMARIZE_LIMIT,
+  detectAiMention,
+  runAiReply,
+  summarizeRoom,
 } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
+const { getAppConfig } = require('~/server/services/Config/app');
 const requireJwtAuth = require('~/server/middleware/requireJwtAuth');
 const { getFiles } = require('~/models');
 
@@ -117,9 +122,41 @@ router.post('/:roomId/messages', async (req, res) => {
       text,
     });
     publish(req.params.roomId, 'message', message);
+    if (detectAiMention(message.text)) {
+      const aiParams = {
+        roomId: req.params.roomId,
+        authorName: displayName(req.user),
+        question: message.text,
+        userId: req.user.id,
+      };
+      getAppConfig({ role: req.user.role, userId: req.user.id })
+        .then((appConfig) => runAiReply({ ...aiParams, appConfig }))
+        .catch((error) => logger.error('[rooms] AI reply dispatch failed', error));
+    }
     return res.status(201).json(message);
   } catch (error) {
     return handleRoomError(res, error, 'message');
+  }
+});
+
+router.post('/:roomId/summarize', async (req, res) => {
+  try {
+    await assertMember(req.params.roomId, req.user.id);
+    if (
+      !checkLimit(
+        `${req.user.id}:summarize`,
+        ROOM_SUMMARIZE_LIMIT.max,
+        ROOM_SUMMARIZE_LIMIT.windowMs,
+      )
+    ) {
+      return res.status(429).json({ error: 'rate_limited' });
+    }
+    const scope = req.body?.scope === 'me' ? 'me' : 'room';
+    const appConfig = await getAppConfig({ role: req.user.role, userId: req.user.id });
+    const result = await summarizeRoom({ roomId: req.params.roomId, scope, appConfig });
+    return res.json(result);
+  } catch (error) {
+    return handleRoomError(res, error, 'summarize');
   }
 });
 

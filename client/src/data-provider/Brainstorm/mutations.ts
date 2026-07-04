@@ -7,6 +7,8 @@ import type {
   TRoomSnapshot,
   TJoinRoomResponse,
   TCreateRoomRequest,
+  TSummarizeRoomRequest,
+  TSummarizeRoomResponse,
 } from 'librechat-data-provider';
 
 export const appendRoomMessage = (
@@ -57,6 +59,21 @@ export const useSendRoomMessageMutation = (
 
 export const useRoomTypingMutation = (roomId: string): UseMutationResult<void, unknown, void> =>
   useMutation(() => dataService.sendRoomTyping(roomId));
+
+export const useSummarizeRoomMutation = (
+  roomId: string,
+): UseMutationResult<TSummarizeRoomResponse, unknown, TSummarizeRoomRequest> => {
+  const queryClient = useQueryClient();
+  return useMutation((payload: TSummarizeRoomRequest) => dataService.summarizeRoom(roomId, payload), {
+    onSuccess: (result) => {
+      if (result.message) {
+        queryClient.setQueryData<TRoomSnapshot>([QueryKeys.room, roomId], (prev) =>
+          appendRoomMessage(prev, result.message as TRoomMessage),
+        );
+      }
+    },
+  });
+};
 
 export const useArchiveRoomMutation = (roomId: string): UseMutationResult<TRoom, unknown, void> => {
   const queryClient = useQueryClient();
