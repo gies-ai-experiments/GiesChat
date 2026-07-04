@@ -6,13 +6,14 @@ jest.mock('librechat-data-provider', () => ({
 jest.mock('@librechat/data-schemas', () => ({
   ...jest.requireActual('@librechat/data-schemas'),
   logger: {
+    info: jest.fn(),
     debug: jest.fn(),
     warn: jest.fn(),
   },
 }));
 
 import { handleRateLimits } from './limits';
-import { checkWebSearchConfig } from './checks';
+import { checkVariables, checkWebSearchConfig } from './checks';
 import { logger } from '@librechat/data-schemas';
 import { extractVariableName as extract } from 'librechat-data-provider';
 
@@ -203,6 +204,51 @@ describe('checkWebSearchConfig', () => {
         expect.stringContaining('Current value: "this-is-a-..."'),
       );
     });
+  });
+});
+
+describe('checkVariables encryption secret validation', () => {
+  let originalEnv: NodeJS.ProcessEnv;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    originalEnv = process.env;
+    process.env = { ...originalEnv };
+    process.env.CREDS_KEY = 'a'.repeat(64);
+    process.env.CREDS_IV = 'b'.repeat(32);
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('should not throw when CREDS_KEY and CREDS_IV are valid hex of correct length', () => {
+    expect(() => checkVariables()).not.toThrow();
+  });
+
+  it('should throw when CREDS_KEY is 32 hex chars instead of 64', () => {
+    process.env.CREDS_KEY = 'a'.repeat(32);
+
+    expect(() => checkVariables()).toThrow(/CREDS_KEY.*64 hex.*openssl rand -hex 32/s);
+  });
+
+  it('should throw when CREDS_IV is 16 hex chars instead of 32', () => {
+    process.env.CREDS_IV = 'b'.repeat(16);
+
+    expect(() => checkVariables()).toThrow(/CREDS_IV.*32 hex.*openssl rand -hex 16/s);
+  });
+
+  it('should throw when CREDS_KEY or CREDS_IV is missing', () => {
+    delete process.env.CREDS_KEY;
+    delete process.env.CREDS_IV;
+
+    expect(() => checkVariables()).toThrow(/CREDS_KEY[\s\S]*CREDS_IV/);
+  });
+
+  it('should throw when values have correct length but are not hex', () => {
+    process.env.CREDS_KEY = 'z'.repeat(64);
+
+    expect(() => checkVariables()).toThrow(/CREDS_KEY/);
   });
 });
 

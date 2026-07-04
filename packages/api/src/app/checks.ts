@@ -5,6 +5,39 @@ import type { AppConfig } from '@librechat/data-schemas';
 import { isEnabled, checkEmailConfig } from '~/utils';
 import { handleRateLimits } from './limits';
 
+const encryptionSecrets = [
+  { key: 'CREDS_KEY', bytes: 32, command: 'openssl rand -hex 32' },
+  { key: 'CREDS_IV', bytes: 16, command: 'openssl rand -hex 16' },
+] as const;
+
+/**
+ * Validates that `CREDS_KEY`/`CREDS_IV` are hex strings of the exact length AES requires.
+ * Malformed values otherwise pass startup silently and make every credential save fail with a 500.
+ * @throws {Error} When either value is missing, non-hex, or the wrong length.
+ */
+function checkEncryptionSecrets(): void {
+  const problems = encryptionSecrets
+    .filter(
+      ({ key, bytes }) => !new RegExp(`^[0-9a-fA-F]{${bytes * 2}}$`).test(process.env[key] ?? ''),
+    )
+    .map(
+      ({ key, bytes, command }) =>
+        `${key} must be exactly ${bytes * 2} hex characters (${bytes} bytes), got length ${
+          process.env[key]?.length ?? 0
+        }. Generate a valid value with \`${command}\`.`,
+    );
+
+  if (problems.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `Invalid credential encryption configuration:\n${problems.join(
+      '\n',
+    )}\nRefusing to start: every credential save/read would fail at runtime with these values.`,
+  );
+}
+
 const secretDefaults = {
   CREDS_KEY: 'f34be427ebb29de8d88c107a71546019685ed8b241d8f2ed00c3df97ad2566f0',
   CREDS_IV: 'e2341419ec3dd3d19b13a1a87fafcbfb',
@@ -106,6 +139,7 @@ function checkPasswordReset() {
  * @param {Function} options.checkEmailConfig - Function to check email configuration
  */
 export function checkVariables(): void {
+  checkEncryptionSecrets();
   let hasDefaultSecrets = false;
   for (const [key, value] of Object.entries(secretDefaults)) {
     if (process.env[key] === value) {
