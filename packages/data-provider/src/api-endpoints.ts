@@ -69,6 +69,24 @@ export const messagesArtifacts = (messageId: string) => `${messagesRoot}/artifac
 
 export const messagesBranch = () => `${messagesRoot}/branch`;
 
+const roomsRoot = `${BASE_URL}/api/rooms`;
+export const rooms = () => roomsRoot;
+export const room = (roomId: string) => `${roomsRoot}/${encodeURIComponent(roomId)}`;
+export const roomJoin = (roomId: string) => `${room(roomId)}/join`;
+export const roomMessages = (roomId: string) => `${room(roomId)}/messages`;
+export const roomTyping = (roomId: string) => `${room(roomId)}/typing`;
+export const roomStream = (roomId: string) => `${room(roomId)}/stream`;
+export const roomArchive = (roomId: string) => `${room(roomId)}/archive`;
+export const roomFiles = (roomId: string) => `${room(roomId)}/files`;
+export const roomFile = (roomId: string, fileId: string) =>
+  `${roomFiles(roomId)}/${encodeURIComponent(fileId)}`;
+export const roomSummarize = (roomId: string) => `${room(roomId)}/summarize`;
+export const roomPolls = (roomId: string) => `${room(roomId)}/polls`;
+export const roomPollVote = (roomId: string, pollId: string) =>
+  `${roomPolls(roomId)}/${encodeURIComponent(pollId)}/vote`;
+export const roomPollClose = (roomId: string, pollId: string) =>
+  `${roomPolls(roomId)}/${encodeURIComponent(pollId)}/close`;
+
 const shareRoot = `${BASE_URL}/api/share`;
 export const shareMessages = (shareId: string) => `${shareRoot}/${shareId}`;
 export const forkSharedMessages = (shareId: string) => `${shareRoot}/${shareId}/fork`;

@@ -8,6 +8,7 @@ import * as a from './types/assistants';
 import * as m from './types/mutations';
 import * as ag from './types/agents';
 import * as q from './types/queries';
+import * as rooms from './types/rooms';
 import * as sk from './types/skills';
 import * as f from './types/files';
 import * as config from './config';
@@ -57,6 +58,71 @@ export function updateSkillStates(
   skillStates: sk.TSkillStatesResponse,
 ): Promise<sk.TSkillStatesResponse> {
   return request.post(endpoints.skillStates(), { skillStates });
+}
+
+export function getRooms(): Promise<rooms.TRoomListItem[]> {
+  return request.get(endpoints.rooms());
+}
+
+export function createRoom(payload: rooms.TCreateRoomRequest): Promise<rooms.TRoom> {
+  return request.post(endpoints.rooms(), payload);
+}
+
+export function getRoomSnapshot(roomId: string): Promise<rooms.TRoomSnapshot> {
+  return request.get(endpoints.room(roomId));
+}
+
+export function joinRoom(roomId: string): Promise<rooms.TJoinRoomResponse> {
+  return request.post(endpoints.roomJoin(roomId), {});
+}
+
+export function sendRoomMessage(
+  roomId: string,
+  payload: rooms.TSendRoomMessageRequest,
+): Promise<rooms.TRoomMessage> {
+  return request.post(endpoints.roomMessages(roomId), payload);
+}
+
+export function sendRoomTyping(roomId: string): Promise<void> {
+  return request.post(endpoints.roomTyping(roomId), {});
+}
+
+export function archiveRoom(roomId: string): Promise<rooms.TRoom> {
+  return request.patch(endpoints.roomArchive(roomId), {});
+}
+
+export function attachRoomFile(roomId: string, fileId: string): Promise<rooms.TRoom> {
+  return request.post(endpoints.roomFiles(roomId), { fileId });
+}
+
+export function detachRoomFile(roomId: string, fileId: string): Promise<rooms.TRoom> {
+  return request.delete(endpoints.roomFile(roomId, fileId));
+}
+
+export function summarizeRoom(
+  roomId: string,
+  payload: rooms.TSummarizeRoomRequest,
+): Promise<rooms.TSummarizeRoomResponse> {
+  return request.post(endpoints.roomSummarize(roomId), payload);
+}
+
+export function createRoomPoll(
+  roomId: string,
+  payload: rooms.TCreateRoomPollRequest,
+): Promise<rooms.TRoomPoll> {
+  return request.post(endpoints.roomPolls(roomId), payload);
+}
+
+export function voteRoomPoll(
+  roomId: string,
+  pollId: string,
+  payload: rooms.TVoteRoomPollRequest,
+): Promise<rooms.TRoomPoll> {
+  return request.post(endpoints.roomPollVote(roomId, pollId), payload);
+}
+
+export function closeRoomPoll(roomId: string, pollId: string): Promise<rooms.TRoomPoll> {
+  return request.post(endpoints.roomPollClose(roomId, pollId), {});
 }
 
 export function getSharedMessages(shareId: string): Promise<t.TSharedMessagesResponse> {
