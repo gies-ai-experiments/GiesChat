@@ -297,6 +297,7 @@ export const TOOL_ARTIFACT_TYPES = {
   DOCX: 'application/vnd.librechat.docx-preview',
   SPREADSHEET: 'application/vnd.librechat.spreadsheet-preview',
   PRESENTATION: 'application/vnd.librechat.presentation-preview',
+  EXTERNAL_URL: 'application/vnd.external-url',
 } as const;
 
 export type ToolArtifactType = (typeof TOOL_ARTIFACT_TYPES)[keyof typeof TOOL_ARTIFACT_TYPES];
@@ -325,6 +326,7 @@ const PREVIEW_ONLY_ARTIFACT_TYPES: ReadonlySet<ToolArtifactType> = new Set([
   TOOL_ARTIFACT_TYPES.DOCX,
   TOOL_ARTIFACT_TYPES.SPREADSHEET,
   TOOL_ARTIFACT_TYPES.PRESENTATION,
+  TOOL_ARTIFACT_TYPES.EXTERNAL_URL,
 ]);
 
 export function isPreviewOnlyArtifact(type: string | null | undefined): boolean {
@@ -340,6 +342,30 @@ export function isPreviewOnlyArtifact(type: string | null | undefined): boolean 
  */
 export function isCodeOnlyArtifact(type: string | null | undefined): boolean {
   return type === TOOL_ARTIFACT_TYPES.CODE;
+}
+
+export const EXTERNAL_URL_FILE_KEY = 'content.url';
+
+const EXTERNAL_URL_ALLOWED_HOSTS = ['replit.app', 'replit.dev', 'repl.co'];
+
+/** Validates model-emitted external-url artifact content before it reaches an iframe src. */
+export function getAllowedExternalUrl(content: string | null | undefined): string | null {
+  const trimmed = (content ?? '').trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== 'https:') {
+      return null;
+    }
+    const allowed = EXTERNAL_URL_ALLOWED_HOSTS.some(
+      (host) => url.hostname === host || url.hostname.endsWith(`.${host}`),
+    );
+    return allowed ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

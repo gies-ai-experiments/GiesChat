@@ -4,6 +4,7 @@ import {
   buildSandpackOptions,
   detectArtifactTypeFromFile,
   fileToArtifact,
+  getAllowedExternalUrl,
   isCodeOnlyArtifact,
   isPreviewOnlyArtifact,
   languageForFilename,
@@ -968,4 +969,31 @@ describe('isCodeOnlyArtifact', () => {
       expect(isCodeOnlyArtifact(type)).toBe(false);
     },
   );
+});
+
+describe('external-url artifacts', () => {
+  it('registers the type and marks it preview-only', () => {
+    expect(TOOL_ARTIFACT_TYPES.EXTERNAL_URL).toBe('application/vnd.external-url');
+    expect(isPreviewOnlyArtifact(TOOL_ARTIFACT_TYPES.EXTERNAL_URL)).toBe(true);
+  });
+
+  it('accepts https URLs on Replit hosts (trimmed, normalized)', () => {
+    expect(getAllowedExternalUrl('https://my-app.replit.app')).toBe('https://my-app.replit.app/');
+    expect(getAllowedExternalUrl('  https://x-1.kirk.replit.dev/path?a=1  ')).toBe(
+      'https://x-1.kirk.replit.dev/path?a=1',
+    );
+    expect(getAllowedExternalUrl('https://foo.repl.co')).toBe('https://foo.repl.co/');
+  });
+
+  it('rejects non-https, non-Replit, lookalike, and garbage input', () => {
+    expect(getAllowedExternalUrl('http://my-app.replit.app')).toBeNull();
+    expect(getAllowedExternalUrl('https://evil.com')).toBeNull();
+    expect(getAllowedExternalUrl('https://evilreplit.app')).toBeNull();
+    expect(getAllowedExternalUrl('https://replit.app.evil.com')).toBeNull();
+    expect(getAllowedExternalUrl('javascript:alert(1)')).toBeNull();
+    expect(getAllowedExternalUrl('not a url')).toBeNull();
+    expect(getAllowedExternalUrl('')).toBeNull();
+    expect(getAllowedExternalUrl(null)).toBeNull();
+    expect(getAllowedExternalUrl(undefined)).toBeNull();
+  });
 });
