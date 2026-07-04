@@ -16,3 +16,9 @@ docs
 
 # Ignore all hidden files
 .*
+
+# Env files anywhere in the tree (root .env is covered by .* above; these cover subdirs)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.test.example
