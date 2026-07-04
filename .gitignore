@@ -184,3 +184,4 @@ codedb.snapshot
 
 # Local-only design specs & plans (never committed)
 docs/superpowers/
+AGENTS.md
