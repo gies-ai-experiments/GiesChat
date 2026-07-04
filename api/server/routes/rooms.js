@@ -211,10 +211,7 @@ router.delete('/:roomId/files/:fileId', async (req, res) => {
       userId: req.user.id,
       fileId: req.params.fileId,
     });
-    const note = await postSystemMessage(
-      room.roomId,
-      `${displayName(req.user)} removed a file`,
-    );
+    const note = await postSystemMessage(room.roomId, `${displayName(req.user)} removed a file`);
     publish(room.roomId, 'message', note);
     publish(room.roomId, 'room', { fileIds: room.fileIds });
     return res.json(room);

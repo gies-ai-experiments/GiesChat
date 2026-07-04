@@ -19,7 +19,6 @@ jest.mock('~/data-provider', () => ({
 }));
 
 jest.mock('@librechat/client', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const actual = jest.requireActual('@librechat/client');
   return { ...actual, useToastContext: () => ({ showToast: jest.fn() }) };
 });

@@ -91,7 +91,6 @@ export default function NewRoomDialog({
                 type="text"
                 value={title}
                 maxLength={200}
-                autoFocus={true}
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submit()}
                 className="rounded-lg border border-border-light bg-surface-primary px-3 py-2"

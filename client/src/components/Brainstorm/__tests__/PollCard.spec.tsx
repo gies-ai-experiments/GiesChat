@@ -9,10 +9,8 @@ const mockVote = jest.fn();
 const mockClose = jest.fn();
 
 jest.mock('~/hooks', () => ({
-  useLocalize:
-    () =>
-    (key: string, values?: Record<string, string>) =>
-      values ? `${key}:${Object.values(values).join(',')}` : key,
+  useLocalize: () => (key: string, values?: Record<string, string>) =>
+    values ? `${key}:${Object.values(values).join(',')}` : key,
 }));
 
 jest.mock('~/data-provider', () => ({

@@ -31,9 +31,7 @@ export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: bo
           size="sm"
           className="gap-2"
           disabled={summarize.isLoading}
-          onClick={() =>
-            summarize.mutate({ scope: 'room' }, { onError: showError })
-          }
+          onClick={() => summarize.mutate({ scope: 'room' }, { onError: showError })}
         >
           {summarize.isLoading ? (
             <Spinner className="size-4" />

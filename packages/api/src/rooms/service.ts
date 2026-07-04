@@ -133,7 +133,9 @@ export async function getMyRooms(userId: string): Promise<RoomListItem[]> {
     return [];
   }
   const [rooms, counts, lastMessages] = await Promise.all([
-    Room().find({ roomId: { $in: roomIds } }).lean<IRoom[]>(),
+    Room()
+      .find({ roomId: { $in: roomIds } })
+      .lean<IRoom[]>(),
     RoomParticipant().aggregate<{ _id: string; count: number }>([
       { $match: { roomId: { $in: roomIds } } },
       { $group: { _id: '$roomId', count: { $sum: 1 } } },
@@ -153,9 +155,7 @@ export async function getMyRooms(userId: string): Promise<RoomListItem[]> {
       participantCount: countByRoom.get(room.roomId) ?? 0,
       lastMessageAt: lastByRoom.get(room.roomId),
     }))
-    .sort(
-      (a, b) => (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0),
-    );
+    .sort((a, b) => (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0));
 }
 
 export async function getRoomSnapshot(params: {
@@ -187,10 +187,7 @@ export async function getRoomSnapshot(params: {
         })
       : RoomMessage().countDocuments({ roomId: room.roomId }),
   ]);
-  await RoomParticipant().updateOne(
-    { _id: participant._id },
-    { $set: { lastReadAt: new Date() } },
-  );
+  await RoomParticipant().updateOne({ _id: participant._id }, { $set: { lastReadAt: new Date() } });
   return { room, participants, messages: messagesDesc.reverse(), polls, unreadCount };
 }
 

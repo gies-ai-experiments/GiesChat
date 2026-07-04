@@ -64,7 +64,11 @@ export default function AttachFileButton({
         onClick={() => inputRef.current?.click()}
         aria-label={localize('com_ui_brainstorm_attach')}
       >
-        {isBusy ? <Spinner className="size-4" /> : <Paperclip className="size-4" aria-hidden="true" />}
+        {isBusy ? (
+          <Spinner className="size-4" />
+        ) : (
+          <Paperclip className="size-4" aria-hidden="true" />
+        )}
       </Button>
     </>
   );

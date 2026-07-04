@@ -15,7 +15,13 @@ export class PollError extends Error {
   constructor(code: PollErrorCode) {
     super(code);
     this.code = code;
-    this.status = code === 'poll_not_found' ? 404 : code === 'poll_closed' ? 409 : 400;
+    const statuses: Record<PollErrorCode, number> = {
+      poll_not_found: 404,
+      poll_closed: 409,
+      invalid_poll: 400,
+      invalid_vote: 400,
+    };
+    this.status = statuses[code];
   }
 }
 

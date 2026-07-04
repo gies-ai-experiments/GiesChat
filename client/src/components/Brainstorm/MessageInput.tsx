@@ -23,13 +23,7 @@ export const parsePollCommand = (text: string): { question: string; options: str
 const MESSAGE_CAP = 8000;
 const TYPING_THROTTLE_MS = 2000;
 
-export default function MessageInput({
-  roomId,
-  disabled,
-}: {
-  roomId: string;
-  disabled: boolean;
-}) {
+export default function MessageInput({ roomId, disabled }: { roomId: string; disabled: boolean }) {
   const localize = useLocalize();
   const [text, setText] = useState('');
   const lastTypingAt = useRef(0);

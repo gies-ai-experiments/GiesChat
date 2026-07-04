@@ -9,6 +9,8 @@ import {
   getRoomSnapshot,
   postMessage,
   archiveRoom,
+  attachFile,
+  detachFile,
   MESSAGE_TEXT_CAP,
 } from './service';
 import { checkLimit, resetLimits } from './limits';
@@ -98,7 +100,7 @@ describe('rooms service', () => {
 
   it('getMyRooms returns counts and sorts by activity', async () => {
     const userId = new mongoose.Types.ObjectId().toHexString();
-    const quiet = await createRoom({ userId, name: 'U', title: 'Quiet' });
+    await createRoom({ userId, name: 'U', title: 'Quiet' });
     const busy = await createRoom({ userId, name: 'U', title: 'Busy' });
     await postMessage({ roomId: busy.roomId, userId, name: 'U', text: 'activity' });
     const rooms = await getMyRooms(userId);
@@ -146,8 +148,6 @@ describe('limits', () => {
 });
 
 describe('room files', () => {
-  const { attachFile, detachFile } = require('./service');
-
   it('attach is member-gated; detach is owner-only', async () => {
     const room = await createRoom({ userId: owner, name: 'Ash', title: 'Files' });
     await joinRoom({ roomId: room.roomId, userId: member, name: 'Sam' });

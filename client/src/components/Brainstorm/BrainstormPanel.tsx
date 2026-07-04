@@ -17,12 +17,7 @@ export default function BrainstormPanel() {
     <div className="flex h-full min-h-0 flex-col bg-surface-primary-alt px-3 py-4 text-text-primary">
       <div className="flex items-center justify-between px-1 pb-3">
         <h2 className="text-lg font-semibold">{localize('com_ui_brainstorm')}</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1"
-          onClick={() => setDialogOpen(true)}
-        >
+        <Button variant="outline" size="sm" className="gap-1" onClick={() => setDialogOpen(true)}>
           <Plus className="size-4" aria-hidden="true" />
           {localize('com_ui_brainstorm_new_room')}
         </Button>

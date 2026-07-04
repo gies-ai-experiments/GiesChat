@@ -4,7 +4,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { createModels } from '@librechat/data-schemas';
 import type { ServerResponse } from 'http';
 import type { AppConfig, IRoomMessage } from '@librechat/data-schemas';
-import { runAiReply, summarizeRoom, resolveRoomEndpoint } from './ai';
+import { runAiReply, summarizeRoom, resolveRoomEndpoint, queryRoomFiles } from './ai';
 import { subscribe, resetBroadcast } from './broadcast';
 import { createRoom, postMessage } from './service';
 import type { FetchImpl } from './ai';
@@ -211,7 +211,6 @@ describe('summarizeRoom', () => {
 });
 
 describe('queryRoomFiles', () => {
-  const { queryRoomFiles } = require('./ai');
   const OLD_ENV = process.env.RAG_API_URL;
 
   beforeAll(() => {
@@ -256,8 +255,8 @@ describe('queryRoomFiles', () => {
     const failing = async () => {
       throw new Error('down');
     };
-    expect(
-      await queryRoomFiles({ userId, fileIds: ['f1'], query: 'q', fetchImpl: failing }),
-    ).toBe('');
+    expect(await queryRoomFiles({ userId, fileIds: ['f1'], query: 'q', fetchImpl: failing })).toBe(
+      '',
+    );
   });
 });

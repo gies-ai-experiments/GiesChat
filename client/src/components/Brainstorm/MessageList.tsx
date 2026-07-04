@@ -21,16 +21,19 @@ export default function MessageList({
       {messages.map((message) => {
         if (message.kind === 'system') {
           return (
-            <div
-              key={message.messageId}
-              className="text-center text-xs text-text-secondary"
-            >
+            <div key={message.messageId} className="text-center text-xs text-text-secondary">
               {message.text}
             </div>
           );
         }
         const isMine = message.authorId === currentUserId;
         const isAi = message.kind === 'ai';
+        let bubbleClass = 'bg-surface-tertiary';
+        if (isAi) {
+          bubbleClass = 'border border-border-light bg-surface-primary';
+        } else if (isMine) {
+          bubbleClass = 'bg-surface-submit text-white';
+        }
         return (
           <div
             key={message.messageId}
@@ -39,16 +42,7 @@ export default function MessageList({
             <span className="px-1 text-xs font-medium text-text-secondary">
               {message.authorName}
             </span>
-            <div
-              className={cn(
-                'mt-1 max-w-[85%] rounded-2xl px-4 py-2 text-sm',
-                isAi
-                  ? 'border border-border-light bg-surface-primary'
-                  : isMine
-                    ? 'bg-surface-submit text-white'
-                    : 'bg-surface-tertiary',
-              )}
-            >
+            <div className={cn('mt-1 max-w-[85%] rounded-2xl px-4 py-2 text-sm', bubbleClass)}>
               {isAi ? (
                 <MarkdownLite content={message.text} />
               ) : (

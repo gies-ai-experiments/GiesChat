@@ -70,7 +70,9 @@ export function buildRoomMessages(params: {
   const sections = [persona?.instructions?.trim() || DEFAULT_INSTRUCTIONS];
   sections.push(`Room: ${room.title}`);
   if (room.contextText) {
-    sections.push(`Background context shared with the room:\n${room.contextText.slice(0, CONTEXT_PROMPT_CAP)}`);
+    sections.push(
+      `Background context shared with the room:\n${room.contextText.slice(0, CONTEXT_PROMPT_CAP)}`,
+    );
   }
   if (ragContext !== '') {
     sections.push(`Relevant excerpts from files attached to the room:\n${ragContext}`);

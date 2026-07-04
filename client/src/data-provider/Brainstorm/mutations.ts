@@ -30,11 +30,7 @@ export const appendRoomMessage = (
   return { ...snapshot, messages: [...snapshot.messages, message] };
 };
 
-export const useCreateRoomMutation = (): UseMutationResult<
-  TRoom,
-  unknown,
-  TCreateRoomRequest
-> => {
+export const useCreateRoomMutation = (): UseMutationResult<TRoom, unknown, TCreateRoomRequest> => {
   const queryClient = useQueryClient();
   return useMutation((payload: TCreateRoomRequest) => dataService.createRoom(payload), {
     onSuccess: () => queryClient.invalidateQueries([QueryKeys.rooms]),
@@ -144,15 +140,18 @@ export const useSummarizeRoomMutation = (
   roomId: string,
 ): UseMutationResult<TSummarizeRoomResponse, unknown, TSummarizeRoomRequest> => {
   const queryClient = useQueryClient();
-  return useMutation((payload: TSummarizeRoomRequest) => dataService.summarizeRoom(roomId, payload), {
-    onSuccess: (result) => {
-      if (result.message) {
-        queryClient.setQueryData<TRoomSnapshot>([QueryKeys.room, roomId], (prev) =>
-          appendRoomMessage(prev, result.message as TRoomMessage),
-        );
-      }
+  return useMutation(
+    (payload: TSummarizeRoomRequest) => dataService.summarizeRoom(roomId, payload),
+    {
+      onSuccess: (result) => {
+        if (result.message) {
+          queryClient.setQueryData<TRoomSnapshot>([QueryKeys.room, roomId], (prev) =>
+            appendRoomMessage(prev, result.message as TRoomMessage),
+          );
+        }
+      },
     },
-  });
+  );
 };
 
 export const useArchiveRoomMutation = (roomId: string): UseMutationResult<TRoom, unknown, void> => {

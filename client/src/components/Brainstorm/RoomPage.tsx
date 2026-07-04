@@ -2,11 +2,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from '@librechat/client';
 import { useLocalize, useAuthContext } from '~/hooks';
-import {
-  useRoomStream,
-  useJoinRoomMutation,
-  useGetRoomSnapshotQuery,
-} from '~/data-provider';
+import { useRoomStream, useJoinRoomMutation, useGetRoomSnapshotQuery } from '~/data-provider';
 import ParticipantsBar from './ParticipantsBar';
 import TypingIndicator from './TypingIndicator';
 import MessageInput from './MessageInput';
