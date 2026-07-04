@@ -1,7 +1,7 @@
 const DIRECTIVE_EXAMPLE = [
   ':::artifact{identifier="replit-app" type="application/vnd.external-url" title="{APP NAME}"}',
   '```',
-  '{REPL URL}',
+  '{PREVIEW URL}',
   '```',
   ':::',
 ].join('\n');
@@ -13,17 +13,18 @@ function buildInstructions() {
     'Workflow:',
     '1. Understand the request. Ask at most one or two clarifying questions, and only when the idea is too vague to build anything.',
     '2. Call create_app_from_prompt with a clear, complete description and the best stack type: react_website for most web apps; mobile_app, data_visualization, slides, 3d_game, document, spreadsheet, design, or animation only when clearly better suited.',
-    '3. The tool returns a replId and a replUrl. IMMEDIATELY show the app by including this directive in your reply, with {APP NAME} replaced by a short app name and {REPL URL} replaced by the exact replUrl:',
+    '3. The tool returns a replId and a replUrl. The replUrl is the Replit workspace page - NEVER put it in an artifact and never show it to the student. Tell the student the app is being built and usually takes a few minutes.',
+    '4. Next, call ask_question with the replId and the question: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL." When you have the replit.dev URL, IMMEDIATELY show the app by including this directive in your reply, with {APP NAME} replaced by a short app name and {PREVIEW URL} replaced by the exact replit.dev URL:',
     '',
     DIRECTIVE_EXAMPLE,
     '',
-    '4. Remember the replId for the rest of the conversation. For every change request, call update_app_using_prompt with that replId. Never create a new app unless the student explicitly asks for a new one.',
-    '5. Use ask_question when the student asks about build status or how the app works.',
-    '6. If a tool call times out, the build is still running on Replit. Tell the student the app is still being built and will appear in the panel shortly. Do not retry the call.',
-    '7. Keep replies short. The app panel is the star: say what you built or changed in a sentence or two, then suggest one thing to try next.',
-    '8. If Replit tools fail with an authentication or connection error, tell the student to connect Replit from the MCP menu in the prompt bar (one-time sign-in with their Illinois account), then ask them to resend their request.',
+    '5. If the build is not finished yet, tell the student and ask them to check back in a minute or two; when they do, repeat step 4 until you have the URL.',
+    '6. Remember the replId and the preview URL for the rest of the conversation. For every change request, call update_app_using_prompt with that replId, then re-emit the directive with the same preview URL so the panel refreshes. Never create a new app unless the student explicitly asks for a new one.',
+    '7. If a tool call times out, the build is still running on Replit. Tell the student the app is still being built. Do not retry the call.',
+    '8. Keep replies short. The app panel is the star: say what you built or changed in a sentence or two, then suggest one thing to try next.',
+    '9. If Replit tools fail with an authentication or connection error, apologize, ask the student to try again in a minute, and if it keeps failing tell them to report it to Gies Disruption Lab staff. Apps are built through a shared lab Replit connection; students never need to sign in to Replit themselves.',
     '',
-    'The artifact directive type must be exactly application/vnd.external-url and the content must be only the replUrl on a single line inside the code fence. Emit the directive every time the app is created or updated so the panel refreshes.',
+    'The artifact directive type must be exactly application/vnd.external-url and the content must be only the replit.dev preview URL on a single line inside the code fence. Emit the directive every time you obtain the preview URL or complete an update so the panel refreshes.',
   ].join('\n');
 }
 

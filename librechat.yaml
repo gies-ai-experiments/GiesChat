@@ -53,11 +53,16 @@ mcpServers:
         description: Create this in Canvas under Account -> Settings -> New Access Token. This token is stored for your GiesChat user and used only to connect Canvas MCP.
         sensitive: true
   replit:
-    type: streamable-http
-    url: https://replit-mcp.com/server/mcp
+    type: stdio
+    command: npx
+    args:
+      - -y
+      - mcp-remote@0.1.38
+      - https://replit-mcp.com/server/mcp
     title: Replit
-    description: Build live apps with Replit Agent using your own Replit account.
+    description: Build live apps with Replit Agent through the Gies Disruption Lab account.
     timeout: 120000
+    initTimeout: 60000
     chatMenu: false
 
 endpoints:
