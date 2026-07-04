@@ -1291,6 +1291,7 @@ export const interfaceSchema = z
     retainAgentFiles: z.boolean().optional(),
     runCode: z.boolean().optional(),
     webSearch: z.boolean().optional(),
+    brainstormRooms: z.boolean().optional(),
     contextUsage: z.boolean().optional(),
     contextCost: z.boolean().optional(),
     currency: z
@@ -1453,6 +1454,7 @@ export type TStartupConfig = {
   appTitle: string;
   socialLogins?: string[];
   interface?: TInterfaceConfig;
+  brainstormRoomsEnabled?: boolean;
   turnstile?: TTurnstileConfig;
   balance?: TBalanceConfig;
   transactions?: TTransactionsConfig;

@@ -2,6 +2,7 @@ version: 1.3.11
 cache: true
 
 interface:
+  brainstormRooms: true
   agents:
     use: true
     create: false

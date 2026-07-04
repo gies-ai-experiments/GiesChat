@@ -261,6 +261,11 @@ router.get('/', async function (req, res) {
       sharedLinksSnapshotFilesEnabled: sharedLinksEnabled && isFileSnapshotEnabled(appConfig),
       socialLogins: appConfig?.registration?.socialLogins ?? defaultSocialLogins,
       interface: appConfig?.interfaceConfig,
+      /** BRAINSTORM_ROOMS env var overrides the librechat.yaml interface flag when set */
+      brainstormRoomsEnabled:
+        process.env.BRAINSTORM_ROOMS != null
+          ? isEnabled(process.env.BRAINSTORM_ROOMS)
+          : appConfig?.interfaceConfig?.brainstormRooms === true,
       titleGenerationTiming: resolveTitleTiming({
         appConfig,
         endpoint: EModelEndpoint.agents,
