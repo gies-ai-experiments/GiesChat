@@ -173,104 +173,44 @@ export function createAgentCategoryMethods(mongoose: typeof import('mongoose')):
   }
 
   /**
-   * Ensure default categories exist and update them if they don't have localization keys
-   * @returns Promise<boolean> - true if categories were created/updated, false if no changes
+   * Ensure the GiesChat marketplace categories exist and deactivate everything else,
+   * so the marketplace only ever shows Finance, Accounting, and Business Administration
+   * (plus the built-in Top Picks/All tabs added by the controller)
+   * @returns Promise<boolean> - true if categories were created/deactivated, false if no changes
    */
   async function ensureDefaultCategories(): Promise<boolean> {
     const AgentCategory = mongoose.models.AgentCategory as Model<IAgentCategory>;
 
     const defaultCategories = [
+      { value: 'finance', label: 'Finance', description: 'Finance course tutors', order: 0 },
       {
-        value: 'general',
-        label: 'com_agents_category_general',
-        description: 'com_agents_category_general_description',
-        order: 0,
-      },
-      {
-        value: 'hr',
-        label: 'com_agents_category_hr',
-        description: 'com_agents_category_hr_description',
+        value: 'accounting',
+        label: 'Accounting',
+        description: 'Accounting course tutors',
         order: 1,
       },
       {
-        value: 'rd',
-        label: 'com_agents_category_rd',
-        description: 'com_agents_category_rd_description',
+        value: 'business_administration',
+        label: 'Business Administration',
+        description: 'Business Administration course tutors',
         order: 2,
-      },
-      {
-        value: 'finance',
-        label: 'com_agents_category_finance',
-        description: 'com_agents_category_finance_description',
-        order: 3,
-      },
-      {
-        value: 'it',
-        label: 'com_agents_category_it',
-        description: 'com_agents_category_it_description',
-        order: 4,
-      },
-      {
-        value: 'sales',
-        label: 'com_agents_category_sales',
-        description: 'com_agents_category_sales_description',
-        order: 5,
-      },
-      {
-        value: 'aftersales',
-        label: 'com_agents_category_aftersales',
-        description: 'com_agents_category_aftersales_description',
-        order: 6,
       },
     ];
 
-    const existingCategories = await getAllCategories();
-    const existingCategoryMap = new Map(existingCategories.map((cat) => [cat.value, cat]));
+    const operations = defaultCategories.map((category) => ({
+      updateOne: {
+        filter: { value: category.value },
+        update: { $set: { ...category, isActive: true } },
+        upsert: true,
+      },
+    }));
+    const seeded = await tenantSafeBulkWrite(AgentCategory, operations);
+    const deactivated = await AgentCategory.updateMany(
+      { value: { $nin: defaultCategories.map((category) => category.value) }, isActive: true },
+      { $set: { isActive: false } },
+    );
 
-    const updates = [];
-    let created = 0;
-
-    for (const defaultCategory of defaultCategories) {
-      const existingCategory = existingCategoryMap.get(defaultCategory.value);
-
-      if (existingCategory) {
-        const isNotCustom = !existingCategory.custom;
-        const needsLocalization = !existingCategory.label.startsWith('com_');
-
-        if (isNotCustom && needsLocalization) {
-          updates.push({
-            value: defaultCategory.value,
-            label: defaultCategory.label,
-            description: defaultCategory.description,
-          });
-        }
-      } else {
-        await createCategory({
-          ...defaultCategory,
-          isActive: true,
-          custom: false,
-        });
-        created++;
-      }
-    }
-
-    if (updates.length > 0) {
-      const bulkOps = updates.map((update) => ({
-        updateOne: {
-          filter: { value: update.value, custom: { $ne: true } },
-          update: {
-            $set: {
-              label: update.label,
-              description: update.description,
-            },
-          },
-        },
-      }));
-
-      await tenantSafeBulkWrite(AgentCategory, bulkOps, { ordered: false });
-    }
-
-    return updates.length > 0 || created > 0;
+    return seeded.upsertedCount > 0 || seeded.modifiedCount > 0 || deactivated.modifiedCount > 0;
   }
 
   return {
