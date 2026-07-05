@@ -75,9 +75,10 @@ mcpServers:
       https://the-app-url.replit.dev
       ```
       :::
-      5. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
-      6. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
-      7. If a tool call times out, the build is still running - do not retry the call.
+      5. If a reply says the Replit Agent is in Plan mode, paused, or waiting for approval (structured content phase "paused" with no build progress), call ask_question once with exactly: "The plan is approved. Please switch to Build mode and start building the app now." That starts the build. If a later check says it is STILL paused after your approval, stop nudging and tell the user plainly that Replit paused this build for manual approval and Gies Disruption Lab staff need to enable it - never claim it is still being built.
+      6. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
+      7. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
+      8. If a tool call times out, the build is still running - do not retry the call.
 
 endpoints:
   custom:
