@@ -13,7 +13,7 @@ function buildInstructions() {
     'Workflow:',
     '1. Understand the request. Ask at most one or two clarifying questions, and only when the idea is too vague to build anything.',
     '2. Call create_app_from_prompt with a clear, complete description and the best stack type: react_website for most web apps; mobile_app, data_visualization, slides, 3d_game, document, spreadsheet, design, or animation only when clearly better suited.',
-    '3. The tool returns a replId and a replUrl. The replUrl is the Replit workspace page - NEVER put it in an artifact and never show it to the student. Tell the student the app is being built and usually takes a few minutes.',
+    "3. The tool result includes structured content with the app's replId and a replUrl. The replUrl is the Replit workspace page - NEVER put it in an artifact and never show it to the student. Tell the student the app is being built and usually takes a few minutes. If the result did not show you a replId, call resolve_app_by_name with the exact app name you just used to get the real one. NEVER guess or invent a replId - only use a replId that came from a tool result.",
     '4. Next, call ask_question with the replId and the question: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL." When you have the replit.dev URL, IMMEDIATELY show the app by including this directive in your reply, with {APP NAME} replaced by a short app name and {PREVIEW URL} replaced by the exact replit.dev URL:',
     '',
     DIRECTIVE_EXAMPLE,

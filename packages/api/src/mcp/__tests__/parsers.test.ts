@@ -504,4 +504,110 @@ describe('formatToolContent', () => {
       expect(artifacts).toBeUndefined();
     });
   });
+
+  describe('structuredContent handling', () => {
+    const structuredContent = { replId: '4b93570a-ecbd-4e44-8f04-bb9a623949d2', phase: 'building' };
+    const structuredJson = JSON.stringify(structuredContent);
+
+    it('should append structuredContent after text for recognized providers', () => {
+      const result: t.MCPToolCallResponse = {
+        content: [{ type: 'text', text: 'Replit is building your app.' }],
+        structuredContent,
+      };
+
+      const [content, artifacts] = formatToolContent(result, 'openai');
+      expect(content).toBe(
+        `Replit is building your app.\n\nStructured content:\n${structuredJson}`,
+      );
+      expect(artifacts).toBeUndefined();
+    });
+
+    it('should append structuredContent for unrecognized providers', () => {
+      const result: t.MCPToolCallResponse = {
+        content: [{ type: 'text', text: 'Replit is building your app.' }],
+        structuredContent,
+      };
+
+      const [content] = formatToolContent(result, 'unknown' as t.Provider);
+      expect(content).toBe(
+        `Replit is building your app.\n\nStructured content:\n${structuredJson}`,
+      );
+    });
+
+    it('should return structuredContent alone when content is empty', () => {
+      const result: t.MCPToolCallResponse = { content: [], structuredContent };
+
+      const [recognized] = formatToolContent(result, 'openai');
+      const [unrecognized] = formatToolContent(result, 'unknown' as t.Provider);
+      expect(recognized).toBe(`Structured content:\n${structuredJson}`);
+      expect(unrecognized).toBe(`Structured content:\n${structuredJson}`);
+    });
+
+    it('should not duplicate structuredContent already mirrored in the text', () => {
+      const result: t.MCPToolCallResponse = {
+        content: [{ type: 'text', text: structuredJson }],
+        structuredContent,
+      };
+
+      const [content] = formatToolContent(result, 'openai');
+      expect(content).toBe(structuredJson);
+    });
+
+    it('should not duplicate structuredContent mirrored as pretty-printed JSON', () => {
+      const prettyJson = JSON.stringify(structuredContent, null, 2);
+      const result: t.MCPToolCallResponse = {
+        content: [{ type: 'text', text: prettyJson }],
+        structuredContent,
+      };
+
+      const [content] = formatToolContent(result, 'openai');
+      expect(content).toBe(prettyJson);
+    });
+
+    it('should ignore empty structuredContent objects', () => {
+      const result: t.MCPToolCallResponse = {
+        content: [{ type: 'text', text: 'Hello' }],
+        structuredContent: {},
+      };
+
+      const [content] = formatToolContent(result, 'openai');
+      expect(content).toBe('Hello');
+    });
+
+    it('should truncate oversized structuredContent payloads', () => {
+      process.env.MCP_STRUCTURED_CONTENT_MAX_CHARS = '10';
+      try {
+        const result: t.MCPToolCallResponse = {
+          content: [{ type: 'text', text: 'Hello' }],
+          structuredContent,
+        };
+
+        const [content] = formatToolContent(result, 'openai');
+        expect(content).toBe(
+          `Hello\n\nStructured content:\n${structuredJson.slice(0, 10)}… (truncated)`,
+        );
+      } finally {
+        delete process.env.MCP_STRUCTURED_CONTENT_MAX_CHARS;
+      }
+    });
+
+    it('should append structuredContent before UI resource instructions', () => {
+      const result: t.MCPToolCallResponse = {
+        content: [
+          { type: 'text', text: 'Chart ready' },
+          {
+            type: 'resource',
+            resource: { uri: 'ui://chart', mimeType: 'application/json', text: '{"type":"bar"}' },
+          },
+        ],
+        structuredContent,
+      };
+
+      const [content] = formatToolContent(result, 'openai');
+      const structuredIndex = content.indexOf('Structured content:');
+      const uiInstructionsIndex = content.indexOf('UI Resource Markers Available:');
+      expect(structuredIndex).toBeGreaterThan(-1);
+      expect(uiInstructionsIndex).toBeGreaterThan(structuredIndex);
+    });
+  });
 });

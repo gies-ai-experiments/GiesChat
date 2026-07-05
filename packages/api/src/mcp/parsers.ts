@@ -4,6 +4,7 @@ import type { UIResource } from 'librechat-data-provider';
 import type * as t from './types';
 
 export const DEFAULT_MCP_IMAGE_DATA_MAX_BYTES: number = 10 * 1024 * 1024;
+export const DEFAULT_MCP_STRUCTURED_CONTENT_MAX_CHARS: number = 100_000;
 
 function generateResourceId(text: string): string {
   return crypto.createHash('sha256').update(text).digest('hex').substring(0, 10);
@@ -94,11 +95,59 @@ function isImageContent(item: t.ToolContentPart): item is t.ImageContent {
   return item.type === 'image';
 }
 
+function getStructuredContentMaxChars(): number {
+  const raw = process.env.MCP_STRUCTURED_CONTENT_MAX_CHARS;
+  if (!raw) {
+    return DEFAULT_MCP_STRUCTURED_CONTENT_MAX_CHARS;
+  }
+
+  const parsed = Number(raw);
+  return Number.isSafeInteger(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_MCP_STRUCTURED_CONTENT_MAX_CHARS;
+}
+
+function isMirroredInText(content: Array<t.ToolContentPart>, json: string): boolean {
+  return content.some((item) => {
+    if (item.type !== 'text') {
+      return false;
+    }
+    const text = item.text.trim();
+    if (!text.startsWith('{') && !text.startsWith('[')) {
+      return false;
+    }
+    try {
+      return JSON.stringify(JSON.parse(text)) === json;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
+ * Appends the MCP result's structuredContent (machine-readable fields like ids that servers
+ * often omit from their text blocks) so the model can see it, skipping servers that already
+ * mirror the same JSON in a text block and truncating oversized payloads.
+ */
+function appendStructuredContent(result: t.MCPToolCallResponse, text: string): string {
+  const structured = result?.structuredContent;
+  if (!structured) {
+    return text;
+  }
+
+  const json = JSON.stringify(structured);
+  if (json === '{}' || isMirroredInText(result?.content ?? [], json)) {
+    return text;
+  }
+
+  const maxChars = getStructuredContentMaxChars();
+  const payload = json.length > maxChars ? `${json.slice(0, maxChars)}… (truncated)` : json;
+  const block = `Structured content:\n${payload}`;
+  return text ? `${text}\n\n${block}` : block;
+}
+
 function parseAsString(result: t.MCPToolCallResponse): string {
   const content = result?.content ?? [];
-  if (!content.length) {
-    return '(No response)';
-  }
 
   const text = content
     .map((item) => {
@@ -126,7 +175,7 @@ function parseAsString(result: t.MCPToolCallResponse): string {
     .filter(Boolean)
     .join('\n\n');
 
-  return text;
+  return appendStructuredContent(result, text) || '(No response)';
 }
 
 /**
@@ -147,10 +196,6 @@ export function formatToolContent(
   }
 
   const content = result?.content ?? [];
-  if (!content.length) {
-    return ['(No response)', undefined];
-  }
-
   const imageUrls: t.FormattedContent[] = [];
   const uiResources: UIResource[] = [];
   let currentTextBlock = '';
@@ -222,6 +267,8 @@ export function formatToolContent(
       currentTextBlock += (currentTextBlock ? '\n\n' : '') + stringified;
     }
   }
+
+  currentTextBlock = appendStructuredContent(result, currentTextBlock);
 
   if (uiResources.length > 0) {
     const uiInstructions = `

@@ -66,17 +66,18 @@ mcpServers:
     chatMenu: false
     serverInstructions: |
       Replit app-builder workflow (follow exactly):
-      1. Call create_app_from_prompt AT MOST ONCE per requested app. It returns a replId and a replUrl. The replUrl is the Replit workspace page - never show it to the user and never put it in an artifact. The build runs in the background for a few minutes.
-      2. To show the running app inside this chat, call ask_question with the replId asking: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL."
-      3. Once you have the replit.dev URL, include this directive in your reply (replace APP NAME and the URL; keep the code fence):
+      1. Call create_app_from_prompt AT MOST ONCE per requested app. Its result includes structured content with the app's replId and a replUrl. The replUrl is the Replit workspace page - never show it to the user and never put it in an artifact. The build runs in the background for a few minutes.
+      2. Only use a replId that came from a tool result. If no tool result showed you the replId, call resolve_app_by_name with the exact app name you created - NEVER guess or invent a replId.
+      3. To show the running app inside this chat, call ask_question with the replId asking: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL."
+      4. Once you have the replit.dev URL, include this directive in your reply (replace APP NAME and the URL; keep the code fence):
       :::artifact{identifier="replit-app" type="application/vnd.external-url" title="APP NAME"}
       ```
       https://the-app-url.replit.dev
       ```
       :::
-      4. If the build is not finished, say so and ask the user to check back in a minute; repeat step 2 when they do.
-      5. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
-      6. If a tool call times out, the build is still running - do not retry the call.
+      5. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
+      6. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
+      7. If a tool call times out, the build is still running - do not retry the call.
 
 endpoints:
   custom:
