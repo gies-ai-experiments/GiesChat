@@ -343,6 +343,42 @@ export function useMCPServerManager({
     [queryClient, serverInitStates, showToast, localize, setMCPValues, cleanupServerState],
   );
 
+  /**
+   * Open the server's config dialog, which surfaces the "Continue to sign in" button.
+   * That button opens the OAuth popup synchronously inside the user's click — the only
+   * reliable way across browsers. Auto-opening a popup here instead would fire after the
+   * async reinitialize round-trip, outside the gesture, so Safari silently blocks it.
+   */
+  const openServerConfig = useCallback(
+    (serverName: string) => {
+      const mcpData = queryClient.getQueryData<MCPServersResponse | undefined>([
+        QueryKeys.mcpTools,
+      ]);
+      const serverData = mcpData?.servers?.[serverName];
+      const serverConfig = loadedServers?.[serverName];
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
+      const configTool: TPlugin = {
+        name: serverName,
+        pluginKey: `${Constants.mcp_prefix}${serverName}`,
+        authConfig:
+          serverData?.authConfig ||
+          (serverConfig?.customUserVars
+            ? Object.entries(serverConfig.customUserVars).map(([key, config]) => ({
+                authField: key,
+                label: config.title,
+                description: config.description,
+                sensitive: config.sensitive,
+              }))
+            : []),
+        authenticated: serverData?.authenticated ?? false,
+      };
+      setSelectedToolForConfig(configTool);
+      setIsConfigModalOpen(true);
+    },
+    [queryClient, loadedServers, setSelectedToolForConfig, setIsConfigModalOpen],
+  );
+
   const initializeServer = useCallback(
     async (serverName: string, autoOpenOAuth: boolean = true) => {
       updateServerInitState(serverName, { isInitializing: true });
@@ -366,7 +402,7 @@ export function useMCPServerManager({
           });
 
           if (autoOpenOAuth) {
-            window.open(response.oauthUrl, '_blank', 'noopener,noreferrer');
+            openServerConfig(serverName);
           }
 
           startServerPolling(serverName);
@@ -410,6 +446,7 @@ export function useMCPServerManager({
       mcpValues,
       cleanupServerState,
       setMCPValues,
+      openServerConfig,
     ],
   );
 
@@ -570,26 +607,7 @@ export function useMCPServerManager({
         e.stopPropagation();
         e.preventDefault();
 
-        previousFocusRef.current = document.activeElement as HTMLElement;
-
-        /** Minimal TPlugin object for the config dialog */
-        const configTool: TPlugin = {
-          name: serverName,
-          pluginKey: `${Constants.mcp_prefix}${serverName}`,
-          authConfig:
-            serverData?.authConfig ||
-            (serverConfig?.customUserVars
-              ? Object.entries(serverConfig.customUserVars).map(([key, config]) => ({
-                  authField: key,
-                  label: config.title,
-                  description: config.description,
-                  sensitive: config.sensitive,
-                }))
-              : []),
-          authenticated: serverData?.authenticated ?? false,
-        };
-        setSelectedToolForConfig(configTool);
-        setIsConfigModalOpen(true);
+        openServerConfig(serverName);
       };
 
       const handleCancelClick = (e: React.MouseEvent) => {
@@ -622,7 +640,15 @@ export function useMCPServerManager({
         hasCustomUserVars,
       };
     },
-    [queryClient, isCancellable, isInitializing, cancelOAuthFlow, connectionStatus, loadedServers],
+    [
+      queryClient,
+      isCancellable,
+      isInitializing,
+      cancelOAuthFlow,
+      connectionStatus,
+      loadedServers,
+      openServerConfig,
+    ],
   );
 
   const getConfigDialogProps = useCallback(() => {
