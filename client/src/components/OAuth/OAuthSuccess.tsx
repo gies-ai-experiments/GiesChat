@@ -7,13 +7,19 @@ export default function OAuthSuccess() {
   const [searchParams] = useSearchParams();
   const [secondsLeft, setSecondsLeft] = useState(3);
   const serverName = searchParams.get('serverName');
+  /** Popup flows close themselves; full-page redirect flows return to the app. */
+  const isPopup = typeof window !== 'undefined' && !!window.opener && window.opener !== window;
 
   useEffect(() => {
     const countdown = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(countdown);
-          window.close();
+          if (isPopup) {
+            window.close();
+          } else {
+            window.location.replace('/');
+          }
           return 0;
         }
         return prev - 1;
@@ -21,7 +27,7 @@ export default function OAuthSuccess() {
     }, 1000);
 
     return () => clearInterval(countdown);
-  }, []);
+  }, [isPopup]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-8">
@@ -30,8 +36,10 @@ export default function OAuthSuccess() {
           {localize('com_ui_oauth_success_title') || 'Authentication Successful'}
         </h1>
         <p className="mb-2 text-sm text-gray-600">
-          {localize('com_ui_oauth_success_description') ||
-            'Your authentication was successful. This window will close in'}{' '}
+          {isPopup
+            ? localize('com_ui_oauth_success_description') ||
+              'Your authentication was successful. This window will close in'
+            : 'Your authentication was successful. Returning to GiesChat in'}{' '}
           <span className="font-medium text-indigo-500">{secondsLeft}</span>{' '}
           {localize('com_ui_seconds') || 'seconds'}.
         </p>
