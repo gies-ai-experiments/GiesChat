@@ -394,16 +394,24 @@ export function useMCPServerManager({
         }
 
         if (response.oauthRequired && response.oauthUrl) {
+          if (autoOpenOAuth) {
+            /**
+             * Full-page redirect to the provider instead of a popup. A popup opened after
+             * this async round-trip is outside the click gesture, so browsers (Safari
+             * especially) block it; a top-level navigation has no such restriction. The
+             * OAuth callback stores the per-user tokens, and OAuthSuccess returns here, at
+             * which point the server connects with no further interaction.
+             */
+            window.location.assign(response.oauthUrl);
+            return response;
+          }
+
           updateServerInitState(serverName, {
             oauthUrl: response.oauthUrl,
             oauthStartTime: Date.now(),
             isCancellable: true,
             isInitializing: true,
           });
-
-          if (autoOpenOAuth) {
-            openServerConfig(serverName);
-          }
 
           startServerPolling(serverName);
         } else {
@@ -446,7 +454,6 @@ export function useMCPServerManager({
       mcpValues,
       cleanupServerState,
       setMCPValues,
-      openServerConfig,
     ],
   );
 
