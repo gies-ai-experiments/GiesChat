@@ -23,10 +23,20 @@ export default function PollCard({
   const canClose = isOpen && (isOwner || poll.createdBy === currentUserId);
   const totalVotes = poll.tally?.reduce((sum, n) => sum + n, 0) ?? poll.voteCount;
 
+  const maxCount = Math.max(...(poll.tally ?? [0]), 1);
+
   return (
-    <div className="mx-4 my-2 rounded-2xl border border-border-light bg-surface-primary p-4 shadow-sm">
+    <div
+      className={cn(
+        'my-3 rounded-[10px] border border-l-[3px] border-[#E5E7EB] bg-white p-3.5 dark:border-border-light dark:bg-surface-primary',
+        isOpen ? 'border-l-[#13294B] dark:border-l-border-heavy' : 'border-l-[#FF5F05]',
+      )}
+    >
       <div className="flex items-center gap-2 text-sm font-semibold">
-        <BarChart2 className="size-4 shrink-0" aria-hidden="true" />
+        <BarChart2
+          className="size-4 shrink-0 text-[#13294B] dark:text-text-primary"
+          aria-hidden="true"
+        />
         <span className="min-w-0 flex-1 truncate">{poll.question}</span>
         {!isOpen && <Lock className="size-3.5 text-text-secondary" aria-hidden="true" />}
       </div>
@@ -35,6 +45,7 @@ export default function PollCard({
         {poll.options.map((option, idx) => {
           const isMyVote = poll.myVote === idx;
           const count = poll.tally?.[idx];
+          const isWinner = !isOpen && count !== undefined && count === maxCount && count > 0;
           return (
             <button
               key={idx}
@@ -42,16 +53,35 @@ export default function PollCard({
               disabled={!isOpen || vote.isLoading}
               onClick={() => vote.mutate({ pollId: poll.pollId, optionIndex: idx })}
               className={cn(
-                'flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm',
+                'rounded-lg border border-l-[3px] px-3 py-2 text-left text-sm transition-colors',
                 isMyVote
-                  ? 'border-border-heavy bg-surface-active-alt font-medium'
-                  : 'border-border-light bg-surface-primary-alt',
-                isOpen ? 'hover:bg-surface-tertiary' : 'cursor-default',
+                  ? 'border-[#E5E7EB] border-l-[#FF5F05] bg-[#FF5F05]/10 font-medium dark:border-border-light dark:border-l-[#FF5F05]'
+                  : 'border-[#E5E7EB] border-l-transparent bg-white dark:border-border-light dark:border-l-transparent dark:bg-surface-primary-alt',
+                isOpen ? 'hover:bg-[#FAFBFD] dark:hover:bg-surface-tertiary' : 'cursor-default',
+                isWinner && 'font-bold',
               )}
             >
-              <span className="min-w-0 truncate">{option}</span>
-              {count !== undefined && (
-                <span className="shrink-0 pl-2 text-xs text-text-secondary">{count}</span>
+              <span className="flex items-center justify-between">
+                <span className="min-w-0 truncate">{option}</span>
+                {count !== undefined && (
+                  <span className="shrink-0 pl-2 text-xs tabular-nums text-text-secondary">
+                    {count}
+                  </span>
+                )}
+              </span>
+              {!isOpen && count !== undefined && (
+                <span
+                  className="mt-1.5 block h-1 overflow-hidden rounded-sm bg-[#EDEFF3] dark:bg-surface-tertiary"
+                  aria-hidden="true"
+                >
+                  <span
+                    className={cn(
+                      'block h-full rounded-sm',
+                      isWinner ? 'bg-[#FF5F05]' : 'bg-gradient-to-r from-[#FF5F05] to-[#FF7A3D]',
+                    )}
+                    style={{ width: `${(count / maxCount) * 100}%` }}
+                  />
+                </span>
               )}
             </button>
           );

@@ -10,9 +10,11 @@ import { useLocalize } from '~/hooks';
 export default function AttachFileButton({
   roomId,
   disabled,
+  withLabel = false,
 }: {
   roomId: string;
   disabled: boolean;
+  withLabel?: boolean;
 }) {
   const localize = useLocalize();
   const { showToast } = useToastContext();
@@ -59,7 +61,8 @@ export default function AttachFileButton({
       />
       <Button
         variant="outline"
-        size="icon"
+        size={withLabel ? 'sm' : 'icon'}
+        className={withLabel ? 'w-full gap-2' : undefined}
         disabled={disabled || isBusy}
         onClick={() => inputRef.current?.click()}
         aria-label={localize('com_ui_brainstorm_attach')}
@@ -69,6 +72,7 @@ export default function AttachFileButton({
         ) : (
           <Paperclip className="size-4" aria-hidden="true" />
         )}
+        {withLabel && localize('com_ui_brainstorm_attach')}
       </Button>
     </>
   );

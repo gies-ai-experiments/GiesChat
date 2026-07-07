@@ -46,6 +46,8 @@ export interface RoomListItem {
   title: string;
   archived: boolean;
   participantCount: number;
+  messageCount7d: number;
+  fileCount: number;
   lastMessageAt?: Date;
 }
 
@@ -132,7 +134,8 @@ export async function getMyRooms(userId: string): Promise<RoomListItem[]> {
   if (roomIds.length === 0) {
     return [];
   }
-  const [rooms, counts, lastMessages] = await Promise.all([
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [rooms, counts, messageStats] = await Promise.all([
     Room()
       .find({ roomId: { $in: roomIds } })
       .lean<IRoom[]>(),
@@ -140,20 +143,36 @@ export async function getMyRooms(userId: string): Promise<RoomListItem[]> {
       { $match: { roomId: { $in: roomIds } } },
       { $group: { _id: '$roomId', count: { $sum: 1 } } },
     ]),
-    RoomMessage().aggregate<{ _id: string; lastMessageAt: Date }>([
+    RoomMessage().aggregate<{ _id: string; lastMessageAt: Date; messageCount7d: number }>([
       { $match: { roomId: { $in: roomIds } } },
-      { $group: { _id: '$roomId', lastMessageAt: { $max: '$createdAt' } } },
+      {
+        $group: {
+          _id: '$roomId',
+          lastMessageAt: { $max: '$createdAt' },
+          messageCount7d: {
+            $sum: {
+              $cond: [
+                { $and: [{ $gte: ['$createdAt', weekAgo] }, { $ne: ['$kind', 'system'] }] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
     ]),
   ]);
   const countByRoom = new Map(counts.map((c) => [c._id, c.count]));
-  const lastByRoom = new Map(lastMessages.map((m) => [m._id, m.lastMessageAt]));
+  const statsByRoom = new Map(messageStats.map((m) => [m._id, m]));
   return rooms
     .map((room) => ({
       roomId: room.roomId,
       title: room.title,
       archived: room.archived,
       participantCount: countByRoom.get(room.roomId) ?? 0,
-      lastMessageAt: lastByRoom.get(room.roomId),
+      messageCount7d: statsByRoom.get(room.roomId)?.messageCount7d ?? 0,
+      fileCount: room.fileIds?.length ?? 0,
+      lastMessageAt: statsByRoom.get(room.roomId)?.lastMessageAt,
     }))
     .sort((a, b) => (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0));
 }

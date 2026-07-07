@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { extractEnvVariable } from 'librechat-data-provider';
+import { AI_MENTION_PATTERN, extractEnvVariable } from 'librechat-data-provider';
 import { logger } from '@librechat/data-schemas';
 import type { Model } from 'mongoose';
 import type { AppConfig, IAgent, IRoom, IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
@@ -15,7 +15,6 @@ import {
 } from './service';
 import { publish } from './broadcast';
 
-export const AI_MENTION_PATTERN: RegExp = /(^|[^\w.@-])@ai\b/i;
 const TRANSCRIPT_MESSAGE_LIMIT = 30;
 const CONTEXT_PROMPT_CAP = 20000;
 

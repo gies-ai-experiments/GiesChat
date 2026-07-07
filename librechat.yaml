@@ -3,6 +3,8 @@ cache: true
 
 interface:
   brainstormRooms: false
+  memories: false
+  prompts: false
   agents:
     use: true
     create: false

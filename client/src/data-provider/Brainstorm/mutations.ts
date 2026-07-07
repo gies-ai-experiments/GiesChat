@@ -154,10 +154,10 @@ export const useSummarizeRoomMutation = (
   );
 };
 
-export const useArchiveRoomMutation = (roomId: string): UseMutationResult<TRoom, unknown, void> => {
+export const useArchiveRoomMutation = (): UseMutationResult<TRoom, unknown, string> => {
   const queryClient = useQueryClient();
-  return useMutation(() => dataService.archiveRoom(roomId), {
-    onSuccess: () => {
+  return useMutation((roomId: string) => dataService.archiveRoom(roomId), {
+    onSuccess: (_room, roomId) => {
       queryClient.invalidateQueries([QueryKeys.room, roomId]);
       queryClient.invalidateQueries([QueryKeys.rooms]);
     },

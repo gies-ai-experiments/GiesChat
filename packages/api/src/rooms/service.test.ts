@@ -107,7 +107,10 @@ describe('rooms service', () => {
     expect(rooms).toHaveLength(2);
     expect(rooms[0].title).toBe('Busy');
     expect(rooms[0].participantCount).toBe(1);
+    expect(rooms[0].messageCount7d).toBe(1);
+    expect(rooms[0].fileCount).toBe(0);
     expect(rooms[1].title).toBe('Quiet');
+    expect(rooms[1].messageCount7d).toBe(0);
   });
 
   it('snapshot counts unread then resets lastReadAt', async () => {
