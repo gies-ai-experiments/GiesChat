@@ -324,6 +324,18 @@ html {
 
 @font-face {
   font-display: swap;
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 600 700;
+  src: url('$fonts/montserrat-latin-600-700.woff2') format('woff2');
+}
+
+.font-display {
+  font-family: Montserrat, system-ui, sans-serif;
+}
+
+@font-face {
+  font-display: swap;
   font-family: Inter;
   font-style: normal;
   font-weight: 400;

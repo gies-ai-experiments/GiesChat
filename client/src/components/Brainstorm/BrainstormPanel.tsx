@@ -1,26 +1,39 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Archive, Plus, Users } from 'lucide-react';
+import { Archive, LayoutGrid, Plus, Users } from 'lucide-react';
 import { Button, Spinner } from '@librechat/client';
 import { useGetRoomsQuery } from '~/data-provider';
 import { useLocalize } from '~/hooks';
-import NewRoomDialog from './NewRoomDialog';
 import { cn } from '~/utils';
 
 export default function BrainstormPanel() {
   const localize = useLocalize();
   const navigate = useNavigate();
-  const [dialogOpen, setDialogOpen] = useState(false);
   const { data: rooms, isLoading } = useGetRoomsQuery();
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface-primary-alt px-3 py-4 text-text-primary">
       <div className="flex items-center justify-between px-1 pb-3">
         <h2 className="text-lg font-semibold">{localize('com_ui_brainstorm')}</h2>
-        <Button variant="outline" size="sm" className="gap-1" onClick={() => setDialogOpen(true)}>
-          <Plus className="size-4" aria-hidden="true" />
-          {localize('com_ui_brainstorm_new_room')}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            title={localize('com_ui_brainstorm_dashboard')}
+            aria-label={localize('com_ui_brainstorm_dashboard')}
+            onClick={() => navigate('/brainstorm')}
+          >
+            <LayoutGrid className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={() => navigate('/brainstorm/new')}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            {localize('com_ui_brainstorm_new_room')}
+          </Button>
+        </div>
       </div>
 
       {isLoading && (
@@ -53,8 +66,6 @@ export default function BrainstormPanel() {
           </button>
         ))}
       </div>
-
-      <NewRoomDialog open={dialogOpen} setOpen={setDialogOpen} />
     </div>
   );
 }

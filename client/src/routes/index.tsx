@@ -13,6 +13,7 @@ import { OAuthSuccess, OAuthError } from '~/components/OAuth';
 import { AuthContextProvider } from '~/hooks/AuthContext';
 import WithRum from '~/lib/rum/WithRum';
 import RouteErrorBoundary from './RouteErrorBoundary';
+import DashboardRoute from './Layouts/Dashboard';
 import StartupLayout from './Layouts/Startup';
 import LoginLayout from './Layouts/Login';
 import dashboardRoutes from './Dashboard';
@@ -52,6 +53,16 @@ const loadProjectWorkspace = () =>
 
 const loadBrainstormRoom = () =>
   import('~/components/Brainstorm/RoomPage').then((m) => ({
+    Component: m.default,
+  }));
+
+const loadBrainstormOverview = () =>
+  import('~/components/Brainstorm/Dashboard/Overview').then((m) => ({
+    Component: m.default,
+  }));
+
+const loadBrainstormCreate = () =>
+  import('~/components/Brainstorm/Dashboard/Create').then((m) => ({
     Component: m.default,
   }));
 
@@ -122,6 +133,20 @@ export const router = createBrowserRouter(
           ],
         },
         dashboardRoutes,
+        {
+          path: 'brainstorm',
+          element: <DashboardRoute />,
+          children: [
+            {
+              index: true,
+              lazy: loadBrainstormOverview,
+            },
+            {
+              path: 'new',
+              lazy: loadBrainstormCreate,
+            },
+          ],
+        },
         {
           path: '/',
           element: <Root />,

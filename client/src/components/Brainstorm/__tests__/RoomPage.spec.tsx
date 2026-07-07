@@ -10,6 +10,11 @@ let mockSnapshotState: { data?: TRoomSnapshot; isLoading: boolean; isError: bool
 
 jest.mock('react-router-dom', () => ({
   useParams: () => ({ roomId: 'room-1' }),
+  Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 jest.mock('~/hooks', () => ({
