@@ -11,6 +11,8 @@ import {
   archiveRoom,
   attachFile,
   detachFile,
+  assertOwner,
+  createAppMessage,
   MESSAGE_TEXT_CAP,
 } from './service';
 import { checkLimit, resetLimits } from './limits';
@@ -177,5 +179,35 @@ describe('room files', () => {
     await expect(
       attachFile({ roomId: room.roomId, userId: owner, fileId: 'f1' }),
     ).rejects.toMatchObject({ code: 'room_archived' });
+  });
+});
+
+describe('assertOwner', () => {
+  it('passes for the owner and rejects a non-member', async () => {
+    const room = await createRoom({ userId: owner, name: 'Ash', title: 'T' });
+    await expect(assertOwner(room.roomId, owner)).resolves.toBeDefined();
+    await expect(assertOwner(room.roomId, stranger)).rejects.toMatchObject({ code: 'not_member' });
+  });
+
+  it('rejects a member who is not the owner', async () => {
+    const room = await createRoom({ userId: owner, name: 'Ash', title: 'T' });
+    await joinRoom({ roomId: room.roomId, userId: member, name: 'Sam' });
+    await expect(assertOwner(room.roomId, member)).rejects.toMatchObject({ code: 'not_owner' });
+  });
+});
+
+describe('createAppMessage', () => {
+  it('persists an app-kind message with the url', async () => {
+    const room = await createRoom({ userId: owner, name: 'Ash', title: 'T' });
+    const msg = await createAppMessage(
+      room.roomId,
+      'CampusPlate is live',
+      'https://x.replit.dev/',
+      owner,
+      'Ash',
+    );
+    expect(msg.kind).toBe('app');
+    expect(msg.appUrl).toBe('https://x.replit.dev/');
+    expect(msg.authorName).toBe('Ash');
   });
 });
