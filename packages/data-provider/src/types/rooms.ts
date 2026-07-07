@@ -2,7 +2,7 @@ import type { TFile } from './files';
 
 export const AI_MENTION_PATTERN: RegExp = /(^|[^\w.@-])@ai\b/i;
 
-export type TRoomMessageKind = 'user' | 'ai' | 'system';
+export type TRoomMessageKind = 'user' | 'ai' | 'system' | 'app';
 export type TRoomPollStatus = 'open' | 'closed';
 export type TRoomParticipantRole = 'owner' | 'member';
 
@@ -44,6 +44,7 @@ export type TRoomMessage = {
   authorName: string;
   kind: TRoomMessageKind;
   text: string;
+  appUrl?: string;
   createdAt?: string;
 };
 

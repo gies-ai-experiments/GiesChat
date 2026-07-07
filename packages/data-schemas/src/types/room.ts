@@ -40,7 +40,7 @@ export type IRoomParticipant = RoomParticipant &
     updatedAt?: Date;
   };
 
-export type RoomMessageKind = 'user' | 'ai' | 'system';
+export type RoomMessageKind = 'user' | 'ai' | 'system' | 'app';
 
 export type RoomMessage = {
   roomId: string;
@@ -51,6 +51,7 @@ export type RoomMessage = {
   authorName: string;
   kind: RoomMessageKind;
   text: string;
+  appUrl?: string;
 };
 
 export type IRoomMessage = RoomMessage &
