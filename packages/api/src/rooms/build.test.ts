@@ -30,6 +30,7 @@ describe('buildDraftMessages', () => {
     expect(messages[1].content).toContain('Food Waste');
     expect(messages[1].content).toContain('reduce campus food waste');
     expect(messages[1].content).toContain('Sam: free food alerts');
+    expect(messages[1].content).toContain('Alerts');
     expect(messages[1].content).not.toContain('joined');
   });
 });
@@ -42,7 +43,12 @@ const sseResponse = (text: string): Response => {
 const appConfig = {
   endpoints: {
     custom: [
-      { name: 'Azure OpenAI', apiKey: 'k', baseURL: 'http://llm.test/v1', models: { default: ['gpt-5.4'] } },
+      {
+        name: 'Azure OpenAI',
+        apiKey: 'k',
+        baseURL: 'http://llm.test/v1',
+        models: { default: ['gpt-5.4'] },
+      },
     ],
   },
 } as unknown as AppConfig;
@@ -64,7 +70,8 @@ describe('draftBuildPrompt', () => {
     const uid = new mongoose.Types.ObjectId().toHexString();
     const room = await createRoom({ userId: uid, name: 'Ash', title: 'Food Waste' });
     await postMessage({ roomId: room.roomId, userId: uid, name: 'Ash', text: 'free food alerts' });
-    const fetchImpl: FetchImpl = async () => sseResponse('  Build CampusPlate, a free-food alert app.  ');
+    const fetchImpl: FetchImpl = async () =>
+      sseResponse('  Build CampusPlate, a free-food alert app.  ');
     const draft = await draftBuildPrompt({ roomId: room.roomId, appConfig, fetchImpl });
     expect(draft).toBe('Build CampusPlate, a free-food alert app.');
   });

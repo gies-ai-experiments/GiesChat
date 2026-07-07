@@ -86,17 +86,19 @@ export function buildRoomMessages(params: {
   ];
 }
 
-const voteChoices = (votes: IRoomPoll['votes']): number[] =>
+export const voteChoices = (votes: IRoomPoll['votes']): number[] =>
   votes instanceof Map ? [...votes.values()] : Object.values(votes ?? {});
+
+export const countVotes = (poll: IRoomPoll): number[] => {
+  const choices = voteChoices(poll.votes);
+  return poll.options.map((_, idx) => choices.filter((choice) => choice === idx).length);
+};
 
 const formatPollResults = (polls: IRoomPoll[]): string =>
   polls
     .filter((p) => p.status === 'closed')
     .map((poll) => {
-      const choices = voteChoices(poll.votes);
-      const counts = poll.options.map(
-        (option, idx) => `${option}: ${choices.filter((choice) => choice === idx).length}`,
-      );
+      const counts = countVotes(poll).map((count, idx) => `${poll.options[idx]}: ${count}`);
       return `Poll "${poll.question}" — ${counts.join(', ')}`;
     })
     .join('\n');

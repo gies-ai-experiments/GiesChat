@@ -1,11 +1,7 @@
 import type { AppConfig, IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
+import type { ChatCompletionMessage, FetchImpl } from './ai';
+import { resolveRoomEndpoint, streamChatCompletion, countVotes, voteChoices } from './ai';
 import { getRoom, getRecentMessages, getClosedPolls } from './service';
-import {
-  resolveRoomEndpoint,
-  streamChatCompletion,
-  type ChatCompletionMessage,
-  type FetchImpl,
-} from './ai';
 
 const DRAFT_HISTORY_LIMIT = 200;
 const DRAFT_CONTEXT_CAP = 8000;
@@ -16,15 +12,11 @@ const DRAFT_SYSTEM =
   'its purpose, the core features the group agreed on, and any stack or styling preferences ' +
   'they mentioned. No preamble, no bullet lists, no questions.';
 
-const voteChoices = (votes: IRoomPoll['votes']): number[] =>
-  votes instanceof Map ? [...votes.values()] : Object.values(votes ?? {});
-
 const winningOption = (poll: IRoomPoll): string | null => {
-  const choices = voteChoices(poll.votes);
-  if (choices.length === 0) {
+  if (voteChoices(poll.votes).length === 0) {
     return null;
   }
-  const counts = poll.options.map((_, idx) => choices.filter((c) => c === idx).length);
+  const counts = countVotes(poll);
   let best = 0;
   for (let i = 1; i < counts.length; i += 1) {
     if (counts[i] > counts[best]) {
