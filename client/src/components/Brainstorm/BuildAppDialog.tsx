@@ -17,6 +17,21 @@ const STACK_TYPES: TRoomBuildStackType[] = [
   'animation',
 ];
 
+const CLARIFICATION_QUESTIONS = [
+  {
+    id: 'users',
+    label: 'com_ui_brainstorm_build_question_users',
+  },
+  {
+    id: 'features',
+    label: 'com_ui_brainstorm_build_question_features',
+  },
+  {
+    id: 'style',
+    label: 'com_ui_brainstorm_build_question_style',
+  },
+] as const;
+
 export default function BuildAppDialog({
   roomId,
   open,
@@ -35,6 +50,13 @@ export default function BuildAppDialog({
   const [prompt, setPrompt] = useState('');
   const [stackType, setStackType] = useState<TRoomBuildStackType>('react_website');
   const [requested, setRequested] = useState(false);
+  const [answers, setAnswers] = useState<
+    Record<(typeof CLARIFICATION_QUESTIONS)[number]['id'], string>
+  >({
+    users: '',
+    features: '',
+    style: '',
+  });
 
   const connected = connectionStatus?.replit?.connectionState === 'connected';
 
@@ -42,6 +64,7 @@ export default function BuildAppDialog({
     if (!open) {
       setRequested(false);
       setPrompt('');
+      setAnswers({ users: '', features: '', style: '' });
       return;
     }
     if (open && connected && !requested) {
@@ -63,8 +86,15 @@ export default function BuildAppDialog({
     if (prompt.trim().length === 0) {
       return;
     }
+    const clarifiedPrompt = [
+      prompt.trim(),
+      'Additional answers from the app owner:',
+      ...CLARIFICATION_QUESTIONS.map(
+        (question) => `- ${localize(question.label)} ${answers[question.id].trim()}`,
+      ),
+    ].join('\n\n');
     start.mutate(
-      { prompt: prompt.trim(), stackType },
+      { prompt: clarifiedPrompt, stackType },
       {
         onSuccess: onClose,
         onError: () => {
@@ -74,6 +104,10 @@ export default function BuildAppDialog({
       },
     );
   };
+
+  const canStart =
+    prompt.trim().length > 0 &&
+    CLARIFICATION_QUESTIONS.every((question) => answers[question.id].trim().length > 0);
 
   return (
     <div
@@ -130,6 +164,30 @@ export default function BuildAppDialog({
               placeholder={draft.isLoading ? '…' : ''}
               className="mt-3 h-[150px] w-full resize-y rounded-lg border border-[#E5E7EB] p-3 text-sm text-text-primary dark:border-border-light dark:bg-surface-secondary"
             />
+            <div className="mt-4 space-y-3">
+              <div>
+                <h4 className="text-sm font-bold text-text-primary">
+                  {localize('com_ui_brainstorm_build_questions_title')}
+                </h4>
+                <p className="mt-1 text-xs text-text-secondary">
+                  {localize('com_ui_brainstorm_build_questions_desc')}
+                </p>
+              </div>
+              {CLARIFICATION_QUESTIONS.map((question) => (
+                <label key={question.id} className="block text-sm font-semibold text-text-primary">
+                  {localize(question.label)}
+                  <input
+                    type="text"
+                    required
+                    value={answers[question.id]}
+                    onChange={(e) =>
+                      setAnswers((current) => ({ ...current, [question.id]: e.target.value }))
+                    }
+                    className="mt-1 w-full rounded-lg border border-border-light bg-surface-primary px-3 py-2 text-sm font-normal text-text-primary"
+                  />
+                </label>
+              ))}
+            </div>
             <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
               {localize('com_ui_brainstorm_build_type_label')}
               <select
@@ -161,7 +219,7 @@ export default function BuildAppDialog({
               <button
                 type="button"
                 onClick={startBuild}
-                disabled={draft.isLoading || start.isLoading || prompt.trim().length === 0}
+                disabled={draft.isLoading || start.isLoading || !canStart}
                 className="flex items-center gap-2 rounded-lg bg-[#FF5F05] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-60"
               >
                 {start.isLoading && <Spinner className="size-4" />}

@@ -39,12 +39,34 @@ describe('BuildAppDialog', () => {
     await waitFor(() => expect(mockDraftMutate).toHaveBeenCalled());
     const textarea = await screen.findByLabelText('com_ui_brainstorm_build_prompt_label');
     expect((textarea as HTMLTextAreaElement).value).toContain('CampusPlate');
-    await userEvent.click(screen.getByText('com_ui_brainstorm_build_start'));
+    const startButton = screen.getByText('com_ui_brainstorm_build_start');
+    expect(startButton).toBeDisabled();
+    await userEvent.type(
+      screen.getByLabelText('com_ui_brainstorm_build_question_users'),
+      'Students',
+    );
+    await userEvent.type(
+      screen.getByLabelText('com_ui_brainstorm_build_question_features'),
+      'Menus and meal planning',
+    );
+    await userEvent.type(screen.getByLabelText('com_ui_brainstorm_build_question_style'), 'Modern');
+    expect(startButton).toBeEnabled();
+    await userEvent.click(startButton);
     expect(mockStartMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         prompt: expect.stringContaining('CampusPlate'),
         stackType: 'react_website',
       }),
+      expect.anything(),
+    );
+    expect(mockStartMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: expect.stringContaining('Additional answers from the app owner:'),
+      }),
+      expect.anything(),
+    );
+    expect(mockStartMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: expect.stringContaining('Students') }),
       expect.anything(),
     );
     expect(onClose).toHaveBeenCalled();
