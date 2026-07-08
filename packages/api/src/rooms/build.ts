@@ -189,10 +189,11 @@ export async function runAppBuild(params: {
       }
     }
     if (!replId) {
+      const detail = created.trim().slice(0, 800);
       await say(
         roomId,
-        'The app was requested on Replit, but I could not confirm its build id. ' +
-          'Check your Replit workspace — it may still be building.',
+        'The app could not be created on Replit — no build id came back. ' +
+          `Replit's response was:\n\n${detail || '(empty response)'}`,
       );
       return;
     }

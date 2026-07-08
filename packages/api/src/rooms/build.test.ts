@@ -209,6 +209,29 @@ describe('runAppBuild', () => {
     expect(msgs.some((m: { text: string }) => /paused|manual approval/i.test(m.text))).toBe(true);
   });
 
+  it('surfaces the real Replit response when create returns no build id', async () => {
+    const { createRoom } = await import('./service');
+    const uid = new mongoose.Types.ObjectId().toHexString();
+    const room = await createRoom({ userId: uid, name: 'Ash', title: 'T' });
+    const callTool: ReplitToolCaller = async (toolName) =>
+      toolName === 'create_app_from_prompt'
+        ? '{"error":"invalid_argument","message":"unknown field: type"}'
+        : 'no match';
+    await runAppBuild({
+      roomId: room.roomId,
+      ownerId: uid,
+      ownerName: 'Ash',
+      prompt: 'p',
+      stackType: 'react_website',
+      callTool,
+      opts: { pollIntervalMs: 0, maxPolls: 2, sleepImpl: nap },
+    });
+    const msgs = await appMessages(room.roomId);
+    expect(msgs.some((m: { kind: string }) => m.kind === 'app')).toBe(false);
+    expect(msgs.some((m: { text: string }) => /unknown field: type/.test(m.text))).toBe(true);
+    expect(isBuildLocked(room.roomId)).toBe(false);
+  });
+
   it('reports a friendly message when create fails', async () => {
     const { createRoom } = await import('./service');
     const uid = new mongoose.Types.ObjectId().toHexString();
