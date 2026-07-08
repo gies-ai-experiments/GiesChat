@@ -33,15 +33,15 @@ function RailLink({
         cn(
           'flex items-center gap-3 rounded-[9px] border-l-[3px] px-3 py-2.5 text-sm font-medium transition-colors duration-150',
           isActive
-            ? 'border-[#FF5F05] bg-[#FF5F05]/15 text-white'
-            : 'border-transparent text-white/70 hover:bg-white/5 hover:text-white',
+            ? 'border-transparent bg-surface-active text-text-primary'
+            : 'border-transparent text-text-secondary hover:bg-surface-hover hover:text-text-primary',
         )
       }
     >
       {({ isActive }) => (
         <>
           <Icon
-            className={cn('size-[18px]', isActive ? 'text-[#FF5F05]' : 'opacity-85')}
+            className={cn('size-[18px]', isActive ? 'text-text-primary' : 'text-text-secondary')}
             aria-hidden={true}
           />
           {label}
@@ -72,8 +72,8 @@ function MobileLink({
         cn(
           'flex size-9 items-center justify-center rounded-lg transition-colors',
           isActive
-            ? 'bg-[#FF5F05]/10 text-[#FF5F05]'
-            : 'text-[#64748B] hover:bg-[#EEF1F6] dark:text-text-secondary dark:hover:bg-surface-tertiary',
+            ? 'bg-surface-active text-text-primary'
+            : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary',
         )
       }
     >
@@ -88,17 +88,17 @@ export default function Shell({ title, children }: { title: string; children: Re
   const name = user?.name ?? user?.username ?? '';
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-[#EEF1F6] text-text-primary dark:bg-surface-secondary">
-      <aside className="hidden w-[248px] shrink-0 flex-col bg-gradient-to-b from-[#14305C] to-[#0E2147] px-4 py-[22px] text-white md:flex">
+    <div className="flex h-dvh w-full overflow-hidden bg-surface-secondary-alt text-text-primary">
+      <aside className="hidden w-[248px] shrink-0 flex-col border-r border-border-light bg-surface-primary px-4 py-[22px] text-text-primary md:flex">
         <div className="flex items-center gap-2.5 px-2 pb-[22px] pt-1">
-          <span className="flex size-[30px] items-center justify-center rounded-lg bg-[#FF5F05]">
+          <span className="flex size-[30px] items-center justify-center rounded-lg bg-surface-tertiary text-text-secondary">
             <MessagesSquare className="size-4" aria-hidden="true" />
           </span>
-          <span className="font-display text-[19px] font-bold tracking-[-0.02em]">
+          <span className="text-[19px] font-bold tracking-[-0.02em]">
             {localize('com_ui_brainstorm')}
           </span>
         </div>
-        <div className="px-2.5 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/[0.38]">
+        <div className="px-2.5 pb-1.5 pt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
           {localize('com_ui_brainstorm_workspace')}
         </div>
         <nav className="grid gap-1" aria-label={localize('com_ui_brainstorm_workspace')}>
@@ -116,19 +116,21 @@ export default function Shell({ title, children }: { title: string; children: Re
           <RailLink to="/c/new" icon={Undo2} label={localize('com_ui_brainstorm_back_to_chat')} />
         </nav>
         <div className="mt-auto pt-[18px]">
-          <div className="mb-2.5 flex items-center gap-2.5 rounded-[10px] bg-white/5 p-2.5">
-            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-[#FF5F05] text-[13px] font-bold">
+          <div className="mb-2.5 flex items-center gap-2.5 rounded-[10px] bg-surface-tertiary p-2.5">
+            <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-surface-primary text-[13px] font-bold text-text-primary">
               {initialsOf(name)}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-[13px] font-semibold">{name}</span>
-              <span className="block truncate text-[11px] text-white/50">{user?.email ?? ''}</span>
+              <span className="block truncate text-[11px] text-text-secondary">
+                {user?.email ?? ''}
+              </span>
             </span>
           </div>
           <button
             type="button"
             onClick={() => logout()}
-            className="w-full rounded-[9px] border border-white/[0.16] bg-white/[0.08] py-[9px] text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/[0.14] hover:text-white"
+            className="w-full rounded-[9px] border border-border-light bg-surface-primary py-[9px] text-[13px] font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
           >
             {localize('com_nav_log_out')}
           </button>
@@ -136,18 +138,16 @@ export default function Shell({ title, children }: { title: string; children: Re
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-[#E3E7ED] bg-white px-4 py-4 dark:border-border-light dark:bg-surface-primary sm:px-7">
-          <h1 className="font-display text-lg font-bold text-[#13294B] dark:text-text-primary">
-            {title}
-          </h1>
+        <header className="flex items-center justify-between border-b border-border-light bg-surface-primary px-4 py-4 sm:px-7">
+          <h1 className="text-lg font-bold text-text-primary">{title}</h1>
           <div className="flex items-center gap-3.5">
             {name !== '' && (
-              <span className="hidden text-[13px] text-[#6B7280] dark:text-text-secondary md:block">
+              <span className="hidden text-[13px] text-text-secondary md:block">
                 {localize('com_ui_brainstorm_welcome_back', { name })}
               </span>
             )}
             <span
-              className="hidden size-9 items-center justify-center rounded-full bg-[#13294B] text-sm font-bold text-white dark:bg-surface-tertiary dark:text-text-primary md:flex"
+              className="hidden size-9 items-center justify-center rounded-full bg-surface-tertiary text-sm font-bold text-text-primary md:flex"
               aria-hidden="true"
             >
               {initialsOf(name)}

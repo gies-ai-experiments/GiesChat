@@ -40,28 +40,25 @@ export function FilesPanel({
   const localize = useLocalize();
   return (
     <div className="flex h-full flex-col gap-2">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#6B7280] dark:text-text-secondary">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-text-secondary">
         {localize('com_ui_brainstorm_files')}
       </h2>
       <ul className="min-h-0 flex-1">
         {files.map((file) => (
           <li key={file.file_id} className="flex items-center gap-2 py-1.5 text-[13px]">
-            <FileText
-              className="size-3.5 shrink-0 text-[#6B7280] dark:text-text-secondary"
-              aria-hidden="true"
-            />
+            <FileText className="size-3.5 shrink-0 text-text-secondary" aria-hidden="true" />
             <span className="min-w-0 flex-1 truncate">{file.filename}</span>
             {isOwner && (
               <RemoveButton
                 fileId={file.file_id}
                 roomId={roomId}
-                className="shrink-0 text-[#6B7280] hover:text-[#991B1B] dark:text-text-secondary"
+                className="shrink-0 text-text-secondary hover:text-text-primary"
               />
             )}
           </li>
         ))}
         {files.length === 0 && (
-          <li className="py-2 text-[13px] text-[#6B7280] dark:text-text-secondary">
+          <li className="py-2 text-[13px] text-text-secondary">
             {localize('com_ui_brainstorm_files_empty')}
           </li>
         )}
@@ -85,11 +82,11 @@ export default function FilesRow({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-[#E5E7EB] bg-white px-4 py-2 dark:border-border-light dark:bg-surface-primary">
+    <div className="flex flex-wrap items-center gap-2 border-b border-border-light bg-surface-primary px-4 py-2">
       {files.map((file) => (
         <span
           key={file.file_id}
-          className="flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-white px-3 py-1 text-xs dark:border-border-light dark:bg-surface-primary"
+          className="flex items-center gap-1.5 rounded-full border border-border-light bg-surface-primary px-3 py-1 text-xs"
         >
           <FileText className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="max-w-40 truncate">{file.filename}</span>

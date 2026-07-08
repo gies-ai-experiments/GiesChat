@@ -116,7 +116,7 @@ export default function Message(props: TMessageProps) {
             )}
           >
             {!hasParallelContent && (
-              <div className="relative flex flex-shrink-0 flex-col items-center">
+              <div className="relative hidden flex-shrink-0 flex-col items-center">
                 <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full pt-0.5">
                   <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
                 </div>
@@ -130,7 +130,7 @@ export default function Message(props: TMessageProps) {
               )}
             >
               {!hasParallelContent && (
-                <h2 className={cn('select-none font-semibold text-text-primary', fontSize)}>
+                <h2 className={cn('sr-only select-none font-semibold text-text-primary', fontSize)}>
                   <span className="sr-only">
                     {getHeaderPrefixForScreenReader(message, localize)}
                   </span>

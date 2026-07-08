@@ -11,13 +11,13 @@ import Shell from './Shell';
 const CONTEXT_CAP = 20000;
 
 const fieldClass =
-  'rounded-md border border-[#D1D5DB] bg-white p-2 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#FF5F05] focus:outline-none focus:ring-2 focus:ring-[#FF5F05]/20 dark:border-border-light dark:bg-surface-primary dark:text-text-primary';
+  'rounded-md border border-border-light bg-surface-primary p-2 text-sm text-text-primary placeholder:text-text-secondary focus:border-surface-submit focus:outline-none focus:ring-2 focus:ring-surface-submit/20';
 
 function FieldLabel({ label, hint }: { label: string; hint?: string }) {
   return (
-    <span className="text-[13px] text-[#374151] dark:text-text-primary">
+    <span className="text-[13px] text-text-primary">
       {label}
-      {hint != null && <span className="text-[#888888] dark:text-text-secondary"> ({hint})</span>}
+      {hint != null && <span className="text-text-secondary"> ({hint})</span>}
     </span>
   );
 }
@@ -58,11 +58,11 @@ export default function Create() {
 
   return (
     <Shell title={localize('com_ui_brainstorm_create_room')}>
-      <div className="rounded-[14px] border border-[#E6EAF0] bg-white shadow-[0_1px_2px_rgba(16,33,71,0.04)] dark:border-border-light dark:bg-surface-primary">
-        <div className="border-b border-[#EEF1F5] px-5 py-[18px] dark:border-border-light">
-          <h2 className="font-display text-base font-bold text-[#13294B] dark:text-text-primary">
+      <div className="rounded-[14px] border border-border-light bg-surface-primary shadow-[0_1px_2px_rgba(16,33,71,0.04)]">
+        <div className="border-b border-border-light px-5 py-[18px]">
+          <h2 className="text-base font-bold text-text-primary">
             {localize('com_ui_brainstorm_create_title')}{' '}
-            <span className="font-sans text-xs font-medium text-[#6B7280] dark:text-text-secondary">
+            <span className="font-sans text-xs font-medium text-text-secondary">
               {localize('com_ui_brainstorm_create_subtitle')}
             </span>
           </h2>
@@ -113,7 +113,7 @@ export default function Create() {
                   hint={localize('com_ui_brainstorm_optional')}
                 />
               </label>
-              <span className="text-xs tabular-nums text-[#888888] dark:text-text-secondary">
+              <span className="text-xs tabular-nums text-text-secondary">
                 {contextText.length.toLocaleString()} / {CONTEXT_CAP.toLocaleString()}
               </span>
             </div>
@@ -128,14 +128,12 @@ export default function Create() {
             />
           </div>
 
-          <p className="text-xs text-[#888888] dark:text-text-secondary">
-            {localize('com_ui_brainstorm_create_note')}
-          </p>
+          <p className="text-xs text-text-secondary">{localize('com_ui_brainstorm_create_note')}</p>
 
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex w-fit items-center gap-2 rounded-md bg-[#1F2937] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#111827] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] dark:disabled:bg-surface-tertiary"
+            className="flex w-fit items-center gap-2 rounded-md bg-surface-submit px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-surface-submit-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             {createRoom.isLoading && <Spinner className="size-4" />}
             {localize('com_ui_brainstorm_create')}

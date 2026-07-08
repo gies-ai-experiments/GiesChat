@@ -111,14 +111,14 @@ export default function BuildAppDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#13294B]/40 p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-[560px] max-w-full rounded-xl bg-white p-6 shadow-2xl dark:bg-surface-primary">
+      <div className="w-[560px] max-w-full rounded-xl bg-surface-dialog p-6 shadow-2xl">
         {!connected ? (
           <div className="text-center">
-            <h3 className="font-display text-lg font-bold text-[#13294B] dark:text-text-primary">
+            <h3 className="text-lg font-bold text-text-primary">
               {localize('com_ui_brainstorm_build_connect_title')}
             </h3>
             <p className="mx-auto mt-2 max-w-[40ch] text-sm text-text-secondary">
@@ -127,7 +127,7 @@ export default function BuildAppDialog({
             <button
               type="button"
               onClick={() => initializeServer('replit')}
-              className="mt-4 rounded-lg bg-[#13294B] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90"
+              className="mt-4 rounded-lg bg-surface-submit px-5 py-2.5 text-sm font-bold text-white hover:bg-surface-submit-hover"
             >
               <span>{localize('com_ui_brainstorm_build_connect_action')}</span>
               <span aria-hidden="true"> →</span>
@@ -147,7 +147,7 @@ export default function BuildAppDialog({
           </div>
         ) : (
           <>
-            <h3 className="font-display text-lg font-bold text-[#13294B] dark:text-text-primary">
+            <h3 className="text-lg font-bold text-text-primary">
               {localize('com_ui_brainstorm_build_title')}
             </h3>
             <p className="mt-1 text-sm text-text-secondary">
@@ -162,7 +162,7 @@ export default function BuildAppDialog({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={draft.isLoading ? '…' : ''}
-              className="mt-3 h-[150px] w-full resize-y rounded-lg border border-[#E5E7EB] p-3 text-sm text-text-primary dark:border-border-light dark:bg-surface-secondary"
+              className="mt-3 h-[150px] w-full resize-y rounded-lg border border-border-light bg-surface-primary p-3 text-sm text-text-primary"
             />
             <div className="mt-4 space-y-3">
               <div>
@@ -194,7 +194,7 @@ export default function BuildAppDialog({
                 aria-label={localize('com_ui_brainstorm_build_type_label')}
                 value={stackType}
                 onChange={(e) => setStackType(e.target.value as TRoomBuildStackType)}
-                className="rounded-lg border border-[#E5E7EB] px-2.5 py-1.5 text-sm dark:border-border-light dark:bg-surface-secondary"
+                className="rounded-lg border border-border-light bg-surface-primary px-2.5 py-1.5 text-sm"
               >
                 {STACK_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -212,7 +212,7 @@ export default function BuildAppDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-[#E5E7EB] px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-gray-50 dark:border-border-light"
+                className="rounded-lg border border-border-light px-4 py-2.5 text-sm font-semibold text-text-primary hover:bg-surface-hover"
               >
                 {localize('com_ui_brainstorm_build_cancel')}
               </button>
@@ -220,7 +220,7 @@ export default function BuildAppDialog({
                 type="button"
                 onClick={startBuild}
                 disabled={draft.isLoading || start.isLoading || !canStart}
-                className="flex items-center gap-2 rounded-lg bg-[#FF5F05] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-60"
+                className="flex items-center gap-2 rounded-lg bg-surface-submit px-5 py-2.5 text-sm font-bold text-white hover:bg-surface-submit-hover disabled:opacity-60"
               >
                 {start.isLoading && <Spinner className="size-4" />}
                 {localize('com_ui_brainstorm_build_start')}

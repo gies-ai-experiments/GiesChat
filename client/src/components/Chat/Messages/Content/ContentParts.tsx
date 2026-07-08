@@ -404,21 +404,32 @@ const ContentParts = memo(function ContentParts({
         {groupedParts.map((group) => {
           if (group.type === 'single') {
             const { part, idx } = group.part;
-            return renderPart(part, idx, idx === lastContentIdx);
+            const node = renderPart(part, idx, idx === lastContentIdx);
+            // GiesChat: keep tool-call cards out of the chat view. Rendered but hidden so
+            // ponytail: their state/effects still run; this also hides image-gen/HITL tool output.
+            if (part.type === ContentTypes.TOOL_CALL) {
+              return (
+                <div key={`tool-hidden-${messageId}-${idx}`} className="hidden">
+                  {node}
+                </div>
+              );
+            }
+            return node;
           }
           const { groupId } = group;
           return (
-            <ToolCallGroup
-              key={`tool-group-${groupId}`}
-              parts={group.parts}
-              isSubmitting={effectiveIsSubmitting}
-              isLast={group.parts.some((p) => p.idx === lastContentIdx)}
-              renderPart={renderGroupedPart}
-              lastContentIdx={lastContentIdx}
-              groupAttachments={group.groupAttachments}
-              initialExpansionState={toolGroupExpansionRef.current.get(groupId)}
-              onExpansionChange={(state) => handleGroupExpansionChange(groupId, state)}
-            />
+            <div key={`tool-group-${groupId}`} className="hidden">
+              <ToolCallGroup
+                parts={group.parts}
+                isSubmitting={effectiveIsSubmitting}
+                isLast={group.parts.some((p) => p.idx === lastContentIdx)}
+                renderPart={renderGroupedPart}
+                lastContentIdx={lastContentIdx}
+                groupAttachments={group.groupAttachments}
+                initialExpansionState={toolGroupExpansionRef.current.get(groupId)}
+                onExpansionChange={(state) => handleGroupExpansionChange(groupId, state)}
+              />
+            </div>
           );
         })}
       </SearchContext.Provider>

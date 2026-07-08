@@ -2580,19 +2580,8 @@ html {
 
 .user-turn .message-content {
   align-self: flex-start;
-  border: 1px solid var(--illini-blue-border);
-  border-left: 4px solid var(--illini-orange);
-  border-radius: 1rem;
-  background: linear-gradient(135deg, var(--illini-blue) 0%, #1d3a65 100%);
-  color: var(--white);
-  padding: 0.75rem 0.875rem;
-  box-shadow: 0 10px 24px rgba(19, 41, 75, 0.14);
-}
-
-.dark .user-turn .message-content {
-  border-color: rgba(255, 95, 5, 0.45);
-  background: linear-gradient(135deg, #13294b 0%, #0d1d35 100%);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  color: var(--illini-orange);
+  font-weight: 600;
 }
 
 .user-turn .message-content :where(p, li, strong, em, code, pre) {
@@ -2602,6 +2591,35 @@ html {
 .agent-turn .message-content {
   border-left: 3px solid var(--illini-orange);
   padding-left: 0.875rem;
+  font-weight: 600;
+}
+
+.agent-turn .message-content :where(code, pre) {
+  font-weight: 400;
+}
+
+/* Person / robot marker in the left gutter (avatar slot stays hidden) */
+.user-turn,
+.agent-turn {
+  position: relative;
+  padding-left: 2.25rem;
+}
+
+.user-turn::before,
+.agent-turn::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.user-turn::before {
+  content: '🧑';
+}
+
+.agent-turn::before {
+  content: '🤖';
 }
 
 .agent-turn .message-content:empty {

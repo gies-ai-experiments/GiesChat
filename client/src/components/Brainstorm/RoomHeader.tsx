@@ -10,7 +10,7 @@ import { NotificationSeverity } from '~/common';
 import { cn } from '~/utils';
 
 const secondaryBtn =
-  'flex items-center gap-2 rounded-lg bg-white/10 px-3.5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-60';
+  'flex items-center gap-2 rounded-lg border border-border-light bg-surface-primary px-3.5 py-2 text-[13px] font-semibold text-text-primary transition-colors hover:bg-surface-hover disabled:opacity-60';
 
 export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: boolean }) {
   const localize = useLocalize();
@@ -37,13 +37,16 @@ export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: bo
   };
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 bg-[#13294B] px-4 py-3 text-white sm:px-5">
+    <header className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 border-b border-border-light bg-surface-primary px-4 py-3 text-text-primary sm:px-5">
       <div className="min-w-0">
-        <Link to="/brainstorm" className="text-xs text-white/85 hover:text-white hover:underline">
+        <Link
+          to="/brainstorm"
+          className="text-xs text-text-secondary hover:text-text-primary hover:underline"
+        >
           ← {localize('com_ui_brainstorm_back_to_dashboard')}
         </Link>
-        <div className="text-xs text-white/75">{localize('com_ui_brainstorm')}</div>
-        <h1 className="font-display min-w-0 truncate text-lg font-bold sm:text-xl">{room.title}</h1>
+        <div className="text-xs text-text-secondary">{localize('com_ui_brainstorm')}</div>
+        <h1 className="min-w-0 truncate text-lg font-bold sm:text-xl">{room.title}</h1>
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -82,7 +85,7 @@ export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: bo
           onClick={() => copyInvite(setIsCopying)}
           className={cn(
             'flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-semibold text-white transition-colors',
-            isCopying ? 'bg-[#166534]' : 'bg-[#FF5F05] hover:opacity-90',
+            isCopying ? 'bg-[#166534]' : 'bg-surface-submit hover:bg-surface-submit-hover',
           )}
         >
           {isCopying ? (

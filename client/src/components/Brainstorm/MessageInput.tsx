@@ -79,11 +79,11 @@ export default function MessageInput({ roomId, disabled }: { roomId: string; dis
   const aiWillRespond = !disabled && AI_MENTION_PATTERN.test(text);
 
   return (
-    <div className="border-t border-border-light px-4 py-3">
+    <div className="px-4 pb-4 pt-2">
       {aiWillRespond && (
         <div className="pb-2" role="status">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF5F05] px-2 py-[3px] text-xs font-semibold text-white">
-            <span className="size-1.5 rounded-full bg-white" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-tertiary px-2 py-[3px] text-xs font-semibold text-text-secondary">
+            <span className="size-1.5 rounded-full bg-surface-submit" aria-hidden="true" />
             {localize('com_ui_brainstorm_ai_will_respond')}
           </span>
         </div>
@@ -92,11 +92,10 @@ export default function MessageInput({ roomId, disabled }: { roomId: string; dis
         <AttachFileButton roomId={roomId} disabled={disabled} />
         <div
           className={cn(
-            'relative flex-1 rounded-lg border transition-[border-color,box-shadow] duration-100',
+            'relative flex-1 rounded-2xl border bg-surface-primary transition-[border-color,box-shadow] duration-150',
             aiWillRespond
-              ? 'border-[#FF5F05] shadow-[0_0_0_3px_rgba(255,95,5,0.15)]'
-              : 'border-border-light',
-            'bg-surface-primary',
+              ? 'border-[var(--illini-orange)] shadow-[0_0_0_3px_rgba(255,95,5,0.15)]'
+              : 'border-[var(--illini-blue-border)] focus-within:border-[var(--illini-orange)] focus-within:shadow-[0_0_0_3px_rgba(255,95,5,0.15)]',
           )}
         >
           <div
@@ -106,7 +105,10 @@ export default function MessageInput({ roomId, disabled }: { roomId: string; dis
           >
             {splitAiMentions(text).map((segment, i) =>
               segment.mention ? (
-                <span key={i} className="text-[#FF5F05] [-webkit-text-stroke:0.5px_#FF5F05]">
+                <span
+                  key={i}
+                  className="text-[color:var(--surface-submit)] [-webkit-text-stroke:0.5px_var(--surface-submit)]"
+                >
                   {segment.text}
                 </span>
               ) : (
@@ -133,7 +135,7 @@ export default function MessageInput({ roomId, disabled }: { roomId: string; dis
             maxRows={6}
             placeholder={localize('com_ui_brainstorm_input_placeholder')}
             aria-label={localize('com_ui_brainstorm_input_placeholder')}
-            className="relative block w-full resize-none bg-transparent px-3 py-2 text-sm text-transparent caret-[color:var(--text-primary)] placeholder:text-[#94A3B8] focus:outline-none"
+            className="relative block w-full resize-none bg-transparent px-3 py-2 text-sm text-transparent caret-[color:var(--text-primary)] placeholder:text-text-secondary focus:outline-none"
           />
         </div>
         <button
@@ -141,7 +143,7 @@ export default function MessageInput({ roomId, disabled }: { roomId: string; dis
           onClick={submit}
           disabled={disabled || text.trim().length === 0}
           aria-label={localize('com_ui_brainstorm_send')}
-          className="flex items-center gap-2 rounded-lg bg-[#FF5F05] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-surface-submit px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-surface-submit-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           <SendHorizontal className="size-4" aria-hidden="true" />
           {localize('com_ui_brainstorm_send')}
