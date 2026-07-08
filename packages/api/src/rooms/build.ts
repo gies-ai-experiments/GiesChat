@@ -130,6 +130,8 @@ const DEFAULT_POLL_INTERVAL_MS = 45_000;
 const DEFAULT_MAX_POLLS = 16;
 const realSleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
+// ponytail: in-memory lock, single-container only (same ceiling as the SSE
+// broadcast registry); move to Redis if rooms ever run multi-instance.
 const buildLocks = new Set<string>();
 export const isBuildLocked = (roomId: string): boolean => buildLocks.has(roomId);
 export const releaseBuildLock = (roomId: string): void => {

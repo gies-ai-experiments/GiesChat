@@ -310,7 +310,9 @@ router.get('/:roomId/stream', async (req, res) => {
 router.post('/:roomId/build/draft', async (req, res) => {
   try {
     await assertOwner(req.params.roomId, req.user.id);
-    if (!checkLimit(`${req.user.id}:build`, ROOM_BUILD_LIMIT.max, ROOM_BUILD_LIMIT.windowMs)) {
+    if (
+      !checkLimit(`${req.user.id}:build-draft`, ROOM_BUILD_LIMIT.max, ROOM_BUILD_LIMIT.windowMs)
+    ) {
       return res.status(429).json({ error: 'rate_limited' });
     }
     const appConfig = await getAppConfig({ role: req.user.role, userId: req.user.id });
@@ -337,6 +339,9 @@ const STACK_TYPES = new Set([
 router.post('/:roomId/build', async (req, res) => {
   try {
     await assertOwner(req.params.roomId, req.user.id);
+    if (!checkLimit(`${req.user.id}:build`, ROOM_BUILD_LIMIT.max, ROOM_BUILD_LIMIT.windowMs)) {
+      return res.status(429).json({ error: 'rate_limited' });
+    }
     const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
     const stackType =
       typeof req.body?.stackType === 'string' ? req.body.stackType : 'react_website';
@@ -352,7 +357,7 @@ router.post('/:roomId/build', async (req, res) => {
       return res.status(409).json({ error: 'build_in_progress' });
     }
 
-    const mcpManager = getMCPManager(req.user.id);
+    const mcpManager = getMCPManager();
     const flowManager = getFlowStateManager(getLogStores(CacheKeys.FLOWS));
     const callTool = async (toolName, args) => {
       const [text] = await mcpManager.callTool({
