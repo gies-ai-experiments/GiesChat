@@ -919,6 +919,7 @@
   "com_ui_brainstorm_build_type_label": "App type",
   "com_ui_brainstorm_build_fine_print": "Builds on your Replit account and spends your Agent credits — usually takes a few minutes.",
   "com_ui_brainstorm_build_start": "Start build",
+  "com_ui_brainstorm_build_start_error": "Couldn't start the build. Try again in a moment.",
   "com_ui_brainstorm_build_cancel": "Cancel",
   "com_ui_brainstorm_build_connect_title": "Connect your Replit account",
   "com_ui_brainstorm_build_connect_desc": "Apps build on your own Replit account. You'll be sent to Replit to sign in, then brought back to this room.",

@@ -21,15 +21,21 @@ jest.mock('~/hooks', () => ({
 jest.mock('~/hooks/MCP', () => ({
   useMCPServerManager: () => ({ initializeServer: mockInitializeServer }),
 }));
+jest.mock('@librechat/client', () => ({
+  Spinner: () => null,
+  useToastContext: () => ({ showToast: jest.fn() }),
+}));
 
 describe('BuildAppDialog', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('drafts a prompt when connected and starts a build', async () => {
+  it('drafts a prompt when connected and starts a build, then closes', async () => {
+    const onClose = jest.fn();
     mockDraftMutate.mockImplementation((_v, opts) =>
       opts.onSuccess({ prompt: 'Build CampusPlate' }),
     );
-    render(<BuildAppDialog roomId="r1" open onClose={jest.fn()} />);
+    mockStartMutate.mockImplementation((_v, opts) => opts.onSuccess());
+    render(<BuildAppDialog roomId="r1" open onClose={onClose} />);
     await waitFor(() => expect(mockDraftMutate).toHaveBeenCalled());
     const textarea = await screen.findByLabelText('com_ui_brainstorm_build_prompt_label');
     expect((textarea as HTMLTextAreaElement).value).toContain('CampusPlate');
@@ -41,6 +47,7 @@ describe('BuildAppDialog', () => {
       }),
       expect.anything(),
     );
+    expect(onClose).toHaveBeenCalled();
   });
 
   it('shows the connect state when Replit is not connected', async () => {

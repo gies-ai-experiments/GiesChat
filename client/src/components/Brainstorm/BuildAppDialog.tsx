@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Spinner } from '@librechat/client';
+import { Spinner, useToastContext } from '@librechat/client';
 import type { TRoomBuildStackType } from 'librechat-data-provider';
 import { useLocalize, useMCPConnectionStatus } from '~/hooks';
 import { useMCPServerManager } from '~/hooks/MCP';
@@ -27,6 +27,7 @@ export default function BuildAppDialog({
   onClose: () => void;
 }) {
   const localize = useLocalize();
+  const { showToast } = useToastContext();
   const { connectionStatus } = useMCPConnectionStatus({ enabled: open });
   const { initializeServer } = useMCPServerManager();
   const draft = useDraftRoomBuildMutation(roomId);
@@ -45,7 +46,11 @@ export default function BuildAppDialog({
     }
     if (open && connected && !requested) {
       setRequested(true);
-      draft.mutate(undefined, { onSuccess: (data) => setPrompt(data.prompt) });
+      draft.mutate(undefined, {
+        onSuccess: (data) => setPrompt(data.prompt),
+        onError: () =>
+          showToast({ message: localize('com_ui_brainstorm_build_draft_error'), status: 'error' }),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, connected]);
@@ -58,7 +63,16 @@ export default function BuildAppDialog({
     if (prompt.trim().length === 0) {
       return;
     }
-    start.mutate({ prompt: prompt.trim(), stackType }, { onSuccess: onClose, onError: onClose });
+    start.mutate(
+      { prompt: prompt.trim(), stackType },
+      {
+        onSuccess: onClose,
+        onError: () => {
+          showToast({ message: localize('com_ui_brainstorm_build_start_error'), status: 'error' });
+          onClose();
+        },
+      },
+    );
   };
 
   return (
