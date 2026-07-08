@@ -243,7 +243,10 @@ export async function runAppBuild(params: {
         'Clicking Build again starts a new app and spends more credits.',
     );
   } catch {
-    await say(roomId, 'The build was interrupted. Check your Replit account, then try again.');
+    await say(
+      roomId,
+      'The build was interrupted. Check your Replit account, then try again.',
+    ).catch(() => undefined);
   } finally {
     releaseBuildLock(roomId);
   }
