@@ -118,3 +118,23 @@ export type TRoomAiDeltaEvent = {
   messageId: string;
   delta: string;
 };
+
+export type TRoomBuildStackType =
+  | 'react_website'
+  | 'mobile_app'
+  | 'data_visualization'
+  | 'slides'
+  | '3d_game'
+  | 'document'
+  | 'spreadsheet'
+  | 'design'
+  | 'animation';
+
+export type TDraftRoomBuildResponse = {
+  prompt: string;
+};
+
+export type TStartRoomBuildRequest = {
+  prompt: string;
+  stackType: TRoomBuildStackType;
+};

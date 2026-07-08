@@ -91,6 +91,17 @@ export function archiveRoom(roomId: string): Promise<rooms.TRoom> {
   return request.patch(endpoints.roomArchive(roomId), {});
 }
 
+export function draftRoomBuild(roomId: string): Promise<rooms.TDraftRoomBuildResponse> {
+  return request.post(endpoints.roomBuildDraft(roomId), {});
+}
+
+export function startRoomBuild(
+  roomId: string,
+  payload: rooms.TStartRoomBuildRequest,
+): Promise<{ status: 'building' }> {
+  return request.post(endpoints.roomBuild(roomId), payload);
+}
+
 export function attachRoomFile(roomId: string, fileId: string): Promise<rooms.TRoom> {
   return request.post(endpoints.roomFiles(roomId), { fileId });
 }
