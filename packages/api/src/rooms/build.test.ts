@@ -135,9 +135,9 @@ describe('runAppBuild', () => {
     const { createRoom } = await import('./service');
     const uid = new mongoose.Types.ObjectId().toHexString();
     const room = await createRoom({ userId: uid, name: 'Ash', title: 'T' });
-    const calls: string[] = [];
-    const callTool: ReplitToolCaller = async (toolName) => {
-      calls.push(toolName);
+    const calls: Array<{ tool: string; args: Record<string, unknown> }> = [];
+    const callTool: ReplitToolCaller = async (toolName, args) => {
+      calls.push({ tool: toolName, args });
       if (toolName === 'create_app_from_prompt') {
         return '{"replId":"abc-1","phase":"building","replUrl":"https://replit.com/@ash/x"}';
       }
@@ -156,7 +156,34 @@ describe('runAppBuild', () => {
     const app = msgs.find((m: { kind: string }) => m.kind === 'app');
     expect(app).toBeDefined();
     expect((app as { appUrl: string }).appUrl).toBe('https://campusplate.replit.dev/');
-    expect(calls[0]).toBe('create_app_from_prompt');
+    expect(calls[0].tool).toBe('create_app_from_prompt');
+    expect(calls[0].args).toEqual({
+      appDescription: 'Build CampusPlate',
+      app_stack: 'react_website',
+    });
+    expect(isBuildLocked(room.roomId)).toBe(false);
+  });
+
+  it('surfaces the real Replit response when ask_question rejects the args', async () => {
+    const { createRoom } = await import('./service');
+    const uid = new mongoose.Types.ObjectId().toHexString();
+    const room = await createRoom({ userId: uid, name: 'Ash', title: 'T' });
+    const callTool: ReplitToolCaller = async (toolName) =>
+      toolName === 'create_app_from_prompt'
+        ? '{"replId":"abc-1"}'
+        : 'MCP error -32602: Input validation error: Invalid arguments for tool ask_question';
+    await runAppBuild({
+      roomId: room.roomId,
+      ownerId: uid,
+      ownerName: 'Ash',
+      prompt: 'p',
+      stackType: 'react_website',
+      callTool,
+      opts: { pollIntervalMs: 0, maxPolls: 5, sleepImpl: nap },
+    });
+    const msgs = await appMessages(room.roomId);
+    expect(msgs.some((m: { kind: string }) => m.kind === 'app')).toBe(false);
+    expect(msgs.some((m: { text: string }) => /Input validation error/.test(m.text))).toBe(true);
     expect(isBuildLocked(room.roomId)).toBe(false);
   });
 

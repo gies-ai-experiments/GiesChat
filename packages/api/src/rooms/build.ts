@@ -97,10 +97,15 @@ const REPL_ID_RE = /"?repl_?id"?\s*[:=]\s*"?([A-Za-z0-9._-]+)"?/i;
 const URL_RE = /https?:\/\/[^\s"'<>)]+/g;
 const PAUSED_RE =
   /\b(plan mode|paused|awaiting approval|waiting for approval)\b|"phase"\s*:\s*"paused"/i;
+const TOOL_ERROR_RE = /MCP error -?\d+|Input validation error/i;
 
 export function extractReplId(toolText: string): string | null {
   const match = toolText.match(REPL_ID_RE);
   return match ? match[1] : null;
+}
+
+export function isToolError(toolText: string): boolean {
+  return TOOL_ERROR_RE.test(toolText);
 }
 
 export function extractPreviewUrl(toolText: string): string | null {
@@ -169,7 +174,10 @@ export async function runAppBuild(params: {
 
     let created: string;
     try {
-      created = await callTool('create_app_from_prompt', { prompt, type: stackType });
+      created = await callTool('create_app_from_prompt', {
+        appDescription: prompt,
+        app_stack: stackType,
+      });
     } catch (error) {
       await say(
         roomId,
@@ -211,6 +219,14 @@ export async function runAppBuild(params: {
       if (url) {
         await createAppMessage(roomId, `The app is live: ${url}`, url, ownerId, ownerName).then(
           (msg) => publish(roomId, 'message', msg),
+        );
+        return;
+      }
+      if (isToolError(status)) {
+        await say(
+          roomId,
+          "The app was created, but checking its build status on Replit failed. Replit's response was:\n\n" +
+            `${status.trim().slice(0, 800)}`,
         );
         return;
       }
