@@ -9,6 +9,13 @@ jest.mock('~/models', () => ({
   getFiles: jest.fn(async () => []),
 }));
 
+jest.mock('~/config', () => ({
+  getMCPManager: () => ({ callTool: jest.fn(async () => ['', undefined]) }),
+  getFlowStateManager: () => ({}),
+}));
+
+jest.mock('~/cache', () => ({ getLogStores: () => ({}) }));
+
 const { PassThrough } = require('stream');
 const request = require('supertest');
 const express = require('express');
@@ -132,5 +139,38 @@ describe('/api/rooms', () => {
       await request(app).post('/api/rooms').send({ title: `Room ${i}` }).expect(201);
     }
     await request(app).post('/api/rooms').send({ title: 'Sixth' }).expect(429);
+  });
+});
+
+describe('build routes', () => {
+  it('requires ownership to draft', async () => {
+    const app = createApp(owner);
+    const created = await request(app).post('/api/rooms').send({ title: 'T' }).expect(201);
+    const roomId = created.body.roomId;
+
+    const memberApp = createApp(member);
+    await request(memberApp).post(`/api/rooms/${roomId}/join`).expect(200);
+    await request(memberApp).post(`/api/rooms/${roomId}/build/draft`).expect(403);
+  });
+
+  it('rejects a non-owner starting a build', async () => {
+    const app = createApp(owner);
+    const created = await request(app).post('/api/rooms').send({ title: 'T' }).expect(201);
+    const roomId = created.body.roomId;
+    const memberApp = createApp(member);
+    await request(memberApp).post(`/api/rooms/${roomId}/join`).expect(200);
+    await request(memberApp)
+      .post(`/api/rooms/${roomId}/build`)
+      .send({ prompt: 'x', stackType: 'react_website' })
+      .expect(403);
+  });
+
+  it('validates the start-build payload', async () => {
+    const app = createApp(owner);
+    const created = await request(app).post('/api/rooms').send({ title: 'T' }).expect(201);
+    await request(app)
+      .post(`/api/rooms/${created.body.roomId}/build`)
+      .send({ prompt: '', stackType: 'react_website' })
+      .expect(400);
   });
 });

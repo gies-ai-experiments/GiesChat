@@ -1,4 +1,5 @@
 const express = require('express');
+const { CacheKeys } = require('librechat-data-provider');
 const {
   RoomError,
   createRoom,
@@ -9,6 +10,7 @@ const {
   archiveRoom,
   postSystemMessage,
   assertMember,
+  assertOwner,
   touchLastSeen,
   subscribe,
   publish,
@@ -17,6 +19,7 @@ const {
   ROOM_CREATE_LIMIT,
   ROOM_MESSAGE_LIMIT,
   ROOM_SUMMARIZE_LIMIT,
+  ROOM_BUILD_LIMIT,
   detectAiMention,
   runAiReply,
   summarizeRoom,
@@ -27,11 +30,16 @@ const {
   votePoll,
   closePoll,
   toPollView,
+  draftBuildPrompt,
+  runAppBuild,
+  isBuildLocked,
 } = require('@librechat/api');
 const { logger } = require('@librechat/data-schemas');
 const { getAppConfig } = require('~/server/services/Config/app');
+const { getMCPManager, getFlowStateManager } = require('~/config');
 const requireJwtAuth = require('~/server/middleware/requireJwtAuth');
-const { getFiles } = require('~/models');
+const { getFiles, findToken, createToken, updateToken, deleteTokens } = require('~/models');
+const { getLogStores } = require('~/cache');
 
 const router = express.Router();
 router.use(requireJwtAuth);
@@ -296,6 +304,81 @@ router.get('/:roomId/stream', async (req, res) => {
     });
   } catch (error) {
     return handleRoomError(res, error, 'stream');
+  }
+});
+
+router.post('/:roomId/build/draft', async (req, res) => {
+  try {
+    await assertOwner(req.params.roomId, req.user.id);
+    if (!checkLimit(`${req.user.id}:build`, ROOM_BUILD_LIMIT.max, ROOM_BUILD_LIMIT.windowMs)) {
+      return res.status(429).json({ error: 'rate_limited' });
+    }
+    const appConfig = await getAppConfig({ role: req.user.role, userId: req.user.id });
+    const prompt = await draftBuildPrompt({ roomId: req.params.roomId, appConfig });
+    return res.json({ prompt });
+  } catch (error) {
+    return handleRoomError(res, error, 'build-draft');
+  }
+});
+
+/** Must match `TRoomBuildStackType` in packages/data-provider/src/types/rooms.ts. */
+const STACK_TYPES = new Set([
+  'react_website',
+  'mobile_app',
+  'data_visualization',
+  'slides',
+  '3d_game',
+  'document',
+  'spreadsheet',
+  'design',
+  'animation',
+]);
+
+router.post('/:roomId/build', async (req, res) => {
+  try {
+    await assertOwner(req.params.roomId, req.user.id);
+    const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
+    const stackType =
+      typeof req.body?.stackType === 'string' ? req.body.stackType : 'react_website';
+    if (prompt.length === 0 || prompt.length > 8000 || !STACK_TYPES.has(stackType)) {
+      return res.status(400).json({ error: 'invalid_build_request' });
+    }
+    if (isBuildLocked(req.params.roomId)) {
+      const note = await postSystemMessage(
+        req.params.roomId,
+        'A build is already running — one at a time.',
+      );
+      publish(req.params.roomId, 'message', note);
+      return res.status(409).json({ error: 'build_in_progress' });
+    }
+
+    const mcpManager = getMCPManager(req.user.id);
+    const flowManager = getFlowStateManager(getLogStores(CacheKeys.FLOWS));
+    const callTool = async (toolName, args) => {
+      const [text] = await mcpManager.callTool({
+        serverName: 'replit',
+        toolName,
+        provider: 'openai',
+        toolArguments: args,
+        user: req.user,
+        flowManager,
+        tokenMethods: { findToken, createToken, updateToken, deleteTokens },
+      });
+      return typeof text === 'string' ? text : JSON.stringify(text);
+    };
+
+    runAppBuild({
+      roomId: req.params.roomId,
+      ownerId: req.user.id,
+      ownerName: displayName(req.user),
+      prompt,
+      stackType,
+      callTool,
+    }).catch((error) => logger.error('[rooms] app build failed', error));
+
+    return res.status(202).json({ status: 'building' });
+  } catch (error) {
+    return handleRoomError(res, error, 'build');
   }
 });
 
