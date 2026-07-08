@@ -2,7 +2,7 @@ import type { TFile } from './files';
 
 export const AI_MENTION_PATTERN: RegExp = /(^|[^\w.@-])@ai\b/i;
 
-export type TRoomMessageKind = 'user' | 'ai' | 'system';
+export type TRoomMessageKind = 'user' | 'ai' | 'system' | 'app';
 export type TRoomPollStatus = 'open' | 'closed';
 export type TRoomParticipantRole = 'owner' | 'member';
 
@@ -44,6 +44,7 @@ export type TRoomMessage = {
   authorName: string;
   kind: TRoomMessageKind;
   text: string;
+  appUrl?: string;
   createdAt?: string;
 };
 
@@ -116,4 +117,24 @@ export type TRoomTypingEvent = {
 export type TRoomAiDeltaEvent = {
   messageId: string;
   delta: string;
+};
+
+export type TRoomBuildStackType =
+  | 'react_website'
+  | 'mobile_app'
+  | 'data_visualization'
+  | 'slides'
+  | '3d_game'
+  | 'document'
+  | 'spreadsheet'
+  | 'design'
+  | 'animation';
+
+export type TDraftRoomBuildResponse = {
+  prompt: string;
+};
+
+export type TStartRoomBuildRequest = {
+  prompt: string;
+  stackType: TRoomBuildStackType;
 };

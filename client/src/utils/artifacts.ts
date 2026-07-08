@@ -346,27 +346,7 @@ export function isCodeOnlyArtifact(type: string | null | undefined): boolean {
 
 export const EXTERNAL_URL_FILE_KEY = 'content.url';
 
-const EXTERNAL_URL_ALLOWED_HOSTS = ['replit.app', 'replit.dev', 'repl.co'];
-
-/** Validates model-emitted external-url artifact content before it reaches an iframe src. */
-export function getAllowedExternalUrl(content: string | null | undefined): string | null {
-  const trimmed = (content ?? '').trim();
-  if (!trimmed) {
-    return null;
-  }
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== 'https:') {
-      return null;
-    }
-    const allowed = EXTERNAL_URL_ALLOWED_HOSTS.some(
-      (host) => url.hostname === host || url.hostname.endsWith(`.${host}`),
-    );
-    return allowed ? url.href : null;
-  } catch {
-    return null;
-  }
-}
+export { getAllowedExternalUrl } from 'librechat-data-provider';
 
 /**
  * Extension → fenced-code-block language hint for the CODE bucket. The

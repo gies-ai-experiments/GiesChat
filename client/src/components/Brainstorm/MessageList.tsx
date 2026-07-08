@@ -3,6 +3,7 @@ import type { TRoomMessage } from 'librechat-data-provider';
 import MarkdownLite from '~/components/Chat/Messages/Content/MarkdownLite';
 import { getMessageTimestamp } from '~/utils/messages';
 import { cn } from '~/utils';
+import AppCard from './AppCard';
 
 export default function MessageList({ messages }: { messages: TRoomMessage[] }) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -24,6 +25,9 @@ export default function MessageList({ messages }: { messages: TRoomMessage[] }) 
               {message.text}
             </div>
           );
+        }
+        if (message.kind === 'app') {
+          return <AppCard key={message.messageId} message={message} />;
         }
         const isAi = message.kind === 'ai';
         const timestamp = getMessageTimestamp(message.createdAt);

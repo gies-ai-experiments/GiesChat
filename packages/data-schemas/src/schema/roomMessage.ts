@@ -23,12 +23,15 @@ const roomMessageSchema: Schema<IRoomMessage> = new Schema<IRoomMessage>(
     },
     kind: {
       type: String,
-      enum: ['user', 'ai', 'system'],
+      enum: ['user', 'ai', 'system', 'app'],
       default: 'user',
     },
     text: {
       type: String,
       default: '',
+    },
+    appUrl: {
+      type: String,
     },
   },
   {

@@ -9,6 +9,7 @@ export interface RateLimitRule {
 export const ROOM_CREATE_LIMIT: RateLimitRule = { max: 5, windowMs: 10 * 60 * 1000 };
 export const ROOM_MESSAGE_LIMIT: RateLimitRule = { max: 60, windowMs: 60 * 1000 };
 export const ROOM_SUMMARIZE_LIMIT: RateLimitRule = { max: 3, windowMs: 5 * 60 * 1000 };
+export const ROOM_BUILD_LIMIT: RateLimitRule = { max: 3, windowMs: 30 * 60 * 1000 };
 
 export function checkLimit(key: string, max: number, windowMs: number): boolean {
   const now = Date.now();

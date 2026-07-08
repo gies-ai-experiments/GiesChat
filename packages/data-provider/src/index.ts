@@ -8,6 +8,7 @@ export * from './file-config';
 export * from './messages';
 /* artifacts  */
 export * from './artifacts';
+export * from './externalUrl';
 /* schema helpers  */
 export * from './parsers';
 /* custom/dynamic configurations  */

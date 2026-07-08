@@ -86,6 +86,8 @@ export const roomPollVote = (roomId: string, pollId: string) =>
   `${roomPolls(roomId)}/${encodeURIComponent(pollId)}/vote`;
 export const roomPollClose = (roomId: string, pollId: string) =>
   `${roomPolls(roomId)}/${encodeURIComponent(pollId)}/close`;
+export const roomBuildDraft = (roomId: string) => `${room(roomId)}/build/draft`;
+export const roomBuild = (roomId: string) => `${room(roomId)}/build`;
 
 const shareRoot = `${BASE_URL}/api/share`;
 export const shareMessages = (shareId: string) => `${shareRoot}/${shareId}`;

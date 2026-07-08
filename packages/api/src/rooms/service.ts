@@ -102,6 +102,14 @@ export async function assertMember(roomId: string, userId: string): Promise<IRoo
   return participant;
 }
 
+export async function assertOwner(roomId: string, userId: string): Promise<IRoomParticipant> {
+  const participant = await assertMember(roomId, userId);
+  if (participant.role !== 'owner') {
+    throw new RoomError('not_owner');
+  }
+  return participant;
+}
+
 export async function joinRoom(params: {
   roomId: string;
   userId: string;
@@ -267,6 +275,24 @@ export async function createAiMessage(roomId: string, text: string): Promise<IRo
     authorName: 'AI',
     kind: 'ai',
     text,
+  });
+}
+
+export async function createAppMessage(
+  roomId: string,
+  text: string,
+  appUrl: string,
+  authorId: string,
+  authorName: string,
+): Promise<IRoomMessage> {
+  return RoomMessage().create({
+    roomId,
+    messageId: nanoid(21),
+    authorId,
+    authorName,
+    kind: 'app',
+    text,
+    appUrl,
   });
 }
 
