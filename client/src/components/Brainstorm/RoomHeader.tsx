@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Archive, Copy, CopyCheck, Sparkles } from 'lucide-react';
+import { Archive, Copy, CopyCheck, Hammer, Sparkles } from 'lucide-react';
 import { Spinner, useToastContext } from '@librechat/client';
 import type { TRoom } from 'librechat-data-provider';
+import BuildAppDialog from './BuildAppDialog';
 import { useCopyToClipboard, useLocalize } from '~/hooks';
 import { useArchiveRoomMutation, useSummarizeRoomMutation } from '~/data-provider';
 import { NotificationSeverity } from '~/common';
@@ -14,6 +15,7 @@ const secondaryBtn =
 export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: boolean }) {
   const localize = useLocalize();
   const { showToast } = useToastContext();
+  const [buildOpen, setBuildOpen] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const inviteUrl = `${window.location.origin}/brainstorm/${room.roomId}`;
   const copyInvite = useCopyToClipboard({ text: inviteUrl });
@@ -58,6 +60,12 @@ export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: bo
           {localize('com_ui_brainstorm_summarize')}
         </button>
         {isOwner && !room.archived && (
+          <button type="button" className={secondaryBtn} onClick={() => setBuildOpen(true)}>
+            <Hammer className="size-4" aria-hidden="true" />
+            {localize('com_ui_brainstorm_build_app')}
+          </button>
+        )}
+        {isOwner && !room.archived && (
           <button
             type="button"
             className={secondaryBtn}
@@ -85,6 +93,9 @@ export default function RoomHeader({ room, isOwner }: { room: TRoom; isOwner: bo
           {localize('com_ui_brainstorm_copy_invite')}
         </button>
       </div>
+      {isOwner && (
+        <BuildAppDialog roomId={room.roomId} open={buildOpen} onClose={() => setBuildOpen(false)} />
+      )}
     </header>
   );
 }

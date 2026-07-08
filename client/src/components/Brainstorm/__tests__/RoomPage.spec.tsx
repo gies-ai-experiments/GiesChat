@@ -21,6 +21,9 @@ jest.mock('~/hooks', () => ({
   useLocalize: () => (key: string) => key,
   useAuthContext: () => ({ user: { id: 'user-1' } }),
   useCopyToClipboard: () => jest.fn(),
+  useMCPConnectionStatus: () => ({
+    connectionStatus: { replit: { connectionState: 'connected' } },
+  }),
 }));
 
 jest.mock('~/data-provider', () => ({
@@ -37,11 +40,22 @@ jest.mock('~/data-provider', () => ({
   useCreateRoomPollMutation: () => ({ mutate: jest.fn(), isLoading: false }),
   useVoteRoomPollMutation: () => ({ mutate: jest.fn(), isLoading: false }),
   useCloseRoomPollMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useDraftRoomBuildMutation: () => ({ mutate: jest.fn(), isLoading: false }),
+  useStartRoomBuildMutation: () => ({ mutate: jest.fn(), isLoading: false }),
 }));
 
 jest.mock('~/components/Chat/Messages/Content/MarkdownLite', () => ({
   __esModule: true,
   default: ({ content }: { content: string }) => <div>{content}</div>,
+}));
+
+jest.mock('~/hooks/MCP', () => ({
+  useMCPServerManager: () => ({ initializeServer: jest.fn() }),
+}));
+
+jest.mock('@librechat/client', () => ({
+  ...(jest.requireActual('@librechat/client') as Record<string, unknown>),
+  useToastContext: () => ({ showToast: jest.fn() }),
 }));
 
 const snapshot: TRoomSnapshot = {
