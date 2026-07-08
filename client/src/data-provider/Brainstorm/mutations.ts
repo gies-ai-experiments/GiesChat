@@ -12,6 +12,8 @@ import type {
   TSummarizeRoomRequest,
   TCreateRoomPollRequest,
   TSummarizeRoomResponse,
+  TStartRoomBuildRequest,
+  TDraftRoomBuildResponse,
 } from 'librechat-data-provider';
 
 export const appendRoomMessage = (
@@ -163,3 +165,13 @@ export const useArchiveRoomMutation = (): UseMutationResult<TRoom, unknown, stri
     },
   });
 };
+
+export const useDraftRoomBuildMutation = (
+  roomId: string,
+): UseMutationResult<TDraftRoomBuildResponse, unknown, void> =>
+  useMutation(() => dataService.draftRoomBuild(roomId));
+
+export const useStartRoomBuildMutation = (
+  roomId: string,
+): UseMutationResult<{ status: 'building' }, unknown, TStartRoomBuildRequest> =>
+  useMutation((payload: TStartRoomBuildRequest) => dataService.startRoomBuild(roomId, payload));
