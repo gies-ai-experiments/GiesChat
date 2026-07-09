@@ -2578,14 +2578,30 @@ html {
   line-height: 1.4;
 }
 
+/* User message: right-aligned Illini navy bubble */
+.user-turn {
+  margin-left: auto;
+  width: auto;
+  max-width: min(75%, 42rem);
+}
+
 .user-turn .message-content {
-  align-self: flex-start;
-  color: var(--illini-orange);
+  align-self: flex-end;
+  background: var(--illini-blue);
+  color: #fff;
   font-weight: 600;
+  border-radius: 1.25rem;
+  padding: 0.625rem 1rem;
 }
 
 .user-turn .message-content :where(p, li, strong, em, code, pre) {
   color: inherit;
+}
+
+/* AI response: full width, left-aligned, subtle Illini orange accent */
+.agent-turn {
+  width: 100%;
+  max-width: 100%;
 }
 
 .agent-turn .message-content {
@@ -2596,30 +2612,6 @@ html {
 
 .agent-turn .message-content :where(code, pre) {
   font-weight: 400;
-}
-
-/* Person / robot marker in the left gutter (avatar slot stays hidden) */
-.user-turn,
-.agent-turn {
-  position: relative;
-  padding-left: 2.25rem;
-}
-
-.user-turn::before,
-.agent-turn::before {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 1.15rem;
-  line-height: 1.5;
-}
-
-.user-turn::before {
-  content: '🧑';
-}
-
-.agent-turn::before {
-  content: '🤖';
 }
 
 .agent-turn .message-content:empty {
