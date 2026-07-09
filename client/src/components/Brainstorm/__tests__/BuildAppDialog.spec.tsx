@@ -32,7 +32,10 @@ describe('BuildAppDialog', () => {
   it('drafts a prompt when connected and starts a build, then closes', async () => {
     const onClose = jest.fn();
     mockDraftMutate.mockImplementation((_v, opts) =>
-      opts.onSuccess({ prompt: 'Build CampusPlate' }),
+      opts.onSuccess({
+        prompt: 'Build CampusPlate',
+        questions: ['Who is this app for?', 'What are the must-have features?'],
+      }),
     );
     mockStartMutate.mockImplementation((_v, opts) => opts.onSuccess());
     render(<BuildAppDialog roomId="r1" open onClose={onClose} />);
@@ -41,15 +44,11 @@ describe('BuildAppDialog', () => {
     expect((textarea as HTMLTextAreaElement).value).toContain('CampusPlate');
     const startButton = screen.getByText('com_ui_brainstorm_build_start');
     expect(startButton).toBeDisabled();
+    await userEvent.type(screen.getByLabelText('Who is this app for?'), 'Students');
     await userEvent.type(
-      screen.getByLabelText('com_ui_brainstorm_build_question_users'),
-      'Students',
-    );
-    await userEvent.type(
-      screen.getByLabelText('com_ui_brainstorm_build_question_features'),
+      screen.getByLabelText('What are the must-have features?'),
       'Menus and meal planning',
     );
-    await userEvent.type(screen.getByLabelText('com_ui_brainstorm_build_question_style'), 'Modern');
     expect(startButton).toBeEnabled();
     await userEvent.click(startButton);
     expect(mockStartMutate).toHaveBeenCalledWith(

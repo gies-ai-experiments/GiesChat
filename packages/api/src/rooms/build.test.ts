@@ -75,7 +75,21 @@ describe('draftBuildPrompt', () => {
     await server.stop();
   });
 
-  it('returns the trimmed LLM draft', async () => {
+  it('parses the prompt and tailored questions from the JSON draft', async () => {
+    const { createRoom, postMessage } = await import('./service');
+    const uid = new mongoose.Types.ObjectId().toHexString();
+    const room = await createRoom({ userId: uid, name: 'Ash', title: 'Food Waste' });
+    await postMessage({ roomId: room.roomId, userId: uid, name: 'Ash', text: 'free food alerts' });
+    const fetchImpl: FetchImpl = async () =>
+      sseResponse(
+        '{"prompt":"Build CampusPlate, a free-food alert app.","questions":["Which campuses?","Push or email alerts?"]}',
+      );
+    const draft = await draftBuildPrompt({ roomId: room.roomId, appConfig, fetchImpl });
+    expect(draft.prompt).toBe('Build CampusPlate, a free-food alert app.');
+    expect(draft.questions).toEqual(['Which campuses?', 'Push or email alerts?']);
+  });
+
+  it('falls back to default questions when the draft is not valid JSON', async () => {
     const { createRoom, postMessage } = await import('./service');
     const uid = new mongoose.Types.ObjectId().toHexString();
     const room = await createRoom({ userId: uid, name: 'Ash', title: 'Food Waste' });
@@ -83,7 +97,8 @@ describe('draftBuildPrompt', () => {
     const fetchImpl: FetchImpl = async () =>
       sseResponse('  Build CampusPlate, a free-food alert app.  ');
     const draft = await draftBuildPrompt({ roomId: room.roomId, appConfig, fetchImpl });
-    expect(draft).toBe('Build CampusPlate, a free-food alert app.');
+    expect(draft.prompt).toBe('Build CampusPlate, a free-food alert app.');
+    expect(draft.questions.length).toBeGreaterThan(0);
   });
 });
 

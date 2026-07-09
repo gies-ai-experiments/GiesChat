@@ -1,4 +1,5 @@
 import { getAllowedExternalUrl } from 'librechat-data-provider';
+import type { TDraftRoomBuildResponse } from 'librechat-data-provider';
 import type { AppConfig, IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
 import type { ChatCompletionMessage, FetchImpl } from './ai';
 import {
@@ -15,10 +16,46 @@ const DRAFT_HISTORY_LIMIT = 200;
 const DRAFT_CONTEXT_CAP = 8000;
 
 const DRAFT_SYSTEM =
-  'You turn a group brainstorm discussion into a single, concrete build prompt for an ' +
-  'app-generation agent. Output ONLY the prompt: one paragraph describing the app to build — ' +
-  'its purpose, the core features the group agreed on, and any stack or styling preferences ' +
-  'they mentioned. No preamble, no bullet lists, no questions.';
+  'You turn a group brainstorm discussion into a build plan for an app-generation agent. ' +
+  'Respond with ONLY a JSON object of the shape ' +
+  '{"prompt": string, "questions": string[]}. ' +
+  '"prompt" is one paragraph describing the app to build — its purpose, the core features the ' +
+  'group agreed on, and any stack or styling preferences they mentioned. ' +
+  '"questions" is 2 to 4 short brainstorming questions, tailored to THIS app, whose answers ' +
+  'would most sharpen the build (e.g. unresolved audience, features, data, or style choices). ' +
+  'Do not ask about anything the discussion already settled. No markdown, no code fences.';
+
+const DEFAULT_DRAFT_QUESTIONS = [
+  'Who will use this app, and what is the main thing they need to do with it?',
+  'What are the must-have features for the first version?',
+  'Any preferences for the look, feel, or style?',
+];
+
+function parseDraftResponse(text: string): TDraftRoomBuildResponse {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    try {
+      const parsed = JSON.parse(text.slice(start, end + 1)) as {
+        prompt?: unknown;
+        questions?: unknown;
+      };
+      const prompt = typeof parsed.prompt === 'string' ? parsed.prompt.trim() : '';
+      const questions = Array.isArray(parsed.questions)
+        ? parsed.questions
+            .filter((q): q is string => typeof q === 'string' && q.trim().length > 0)
+            .map((q) => q.trim())
+            .slice(0, 4)
+        : [];
+      if (prompt.length > 0) {
+        return { prompt, questions: questions.length > 0 ? questions : DEFAULT_DRAFT_QUESTIONS };
+      }
+    } catch {
+      // fall through to the plain-text fallback below
+    }
+  }
+  return { prompt: text.trim(), questions: DEFAULT_DRAFT_QUESTIONS };
+}
 
 const winningOption = (poll: IRoomPoll): string | null => {
   if (voteChoices(poll.votes).length === 0) {
@@ -57,7 +94,10 @@ export function buildDraftMessages(params: {
     sections.push(`The group voted for: ${decided.join(', ')}`);
   }
   sections.push(`Discussion:\n${transcript}`);
-  sections.push('Write the build prompt for the app this group wants.');
+  sections.push(
+    'Write the build prompt for the app this group wants, plus the brainstorming questions. ' +
+      'Return only the JSON object.',
+  );
   return [
     { role: 'system', content: DRAFT_SYSTEM },
     { role: 'user', content: sections.join('\n\n') },
@@ -68,7 +108,7 @@ export async function draftBuildPrompt(params: {
   roomId: string;
   appConfig: AppConfig;
   fetchImpl?: FetchImpl;
-}): Promise<string> {
+}): Promise<TDraftRoomBuildResponse> {
   const { roomId, appConfig, fetchImpl } = params;
   const endpoint = resolveRoomEndpoint(appConfig);
   if (!endpoint) {
@@ -90,7 +130,7 @@ export async function draftBuildPrompt(params: {
     fetchImpl,
     onDelta: () => undefined,
   });
-  return text.trim();
+  return parseDraftResponse(text);
 }
 
 const REPL_ID_RE = /"?repl_?id"?\s*[:=]\s*"?([A-Za-z0-9._-]+)"?/i;

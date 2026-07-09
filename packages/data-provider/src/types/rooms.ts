@@ -132,6 +132,7 @@ export type TRoomBuildStackType =
 
 export type TDraftRoomBuildResponse = {
   prompt: string;
+  questions: string[];
 };
 
 export type TStartRoomBuildRequest = {

@@ -316,8 +316,8 @@ router.post('/:roomId/build/draft', async (req, res) => {
       return res.status(429).json({ error: 'rate_limited' });
     }
     const appConfig = await getAppConfig({ role: req.user.role, userId: req.user.id });
-    const prompt = await draftBuildPrompt({ roomId: req.params.roomId, appConfig });
-    return res.json({ prompt });
+    const draft = await draftBuildPrompt({ roomId: req.params.roomId, appConfig });
+    return res.json(draft);
   } catch (error) {
     return handleRoomError(res, error, 'build-draft');
   }
