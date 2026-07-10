@@ -40,6 +40,10 @@ export interface MCPServerDefinition {
 // The init states (isInitializing, isCancellable, etc.) are stored in the global Jotai atom
 type PollIntervals = Record<string, NodeJS.Timeout | null>;
 
+// ponytail: student-only servers hardcoded — one entry today; make it a config
+// flag if the list grows. Faculty/staff accounts can't complete the OAuth yet.
+const STUDENT_ONLY_MCP_SERVERS = new Set(['ms365-outlook']);
+
 export function useMCPServerManager({
   conversationId,
   storageContextKey,
@@ -381,6 +385,12 @@ export function useMCPServerManager({
 
   const initializeServer = useCallback(
     async (serverName: string, autoOpenOAuth: boolean = true) => {
+      if (
+        STUDENT_ONLY_MCP_SERVERS.has(serverName) &&
+        !window.confirm(localize('com_ui_mcp_students_only_confirm'))
+      ) {
+        return;
+      }
       updateServerInitState(serverName, { isInitializing: true });
       try {
         const response = await reinitializeMutation.mutateAsync(serverName);

@@ -74,7 +74,7 @@ mcpServers:
     type: streamable-http
     url: https://ms365-mcp.azurewebsites.net/mcp
     title: Microsoft 365 Outlook
-    description: Connect your Illinois Microsoft 365 Outlook account for read-only email, calendar, and contacts access.
+    description: "STUDENTS ONLY: faculty and staff accounts cannot connect yet. Connect your Illinois Microsoft 365 Outlook account for read-only email, calendar, and contacts access."
     timeout: 60000
     initTimeout: 60000
     serverInstructions: |
