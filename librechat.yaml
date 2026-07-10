@@ -70,6 +70,18 @@ mcpServers:
       6. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
       7. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
       8. If a tool call times out, the build is still running - do not retry the call.
+  granola:
+    type: streamable-http
+    url: https://mcp.granola.ai/mcp
+    title: Granola
+    description: Connect your Granola account to bring your meeting notes, transcripts, and summaries into GiesChat (read-only).
+    timeout: 60000
+    initTimeout: 60000
+    serverInstructions: |
+      Granola is read-only in GiesChat.
+      Use it only to read, search, and summarize the user's Granola meeting notes, transcripts, and summaries.
+      Do not create, edit, or delete anything in Granola, and do not use it to take actions in other tools.
+      If a user asks for a write action, explain that the current Granola integration is read-only.
   ms365-outlook:
     type: streamable-http
     url: https://ms365-mcp.azurewebsites.net/mcp
