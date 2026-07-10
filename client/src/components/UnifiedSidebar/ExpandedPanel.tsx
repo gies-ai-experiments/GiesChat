@@ -10,6 +10,7 @@ import { useActivePanel, resolveActivePanel, DEFAULT_PANEL } from '~/Providers';
 import { CLOSE_SIDEBAR_ID } from '~/components/Chat/Menus/OpenSidebar';
 import { useLocalize, useNewConvo } from '~/hooks';
 import { clearMessagesCache, cn } from '~/utils';
+import More from './More';
 import store from '~/store';
 
 const AccountSettings = lazy(() => import('~/components/Nav/AccountSettings'));
@@ -165,6 +166,14 @@ function ExpandedPanel({
         }
       />
       <NewChatButton setActive={setActive} />
+      <More
+        hasPluginsPanel={links.some((link) => link.id === 'mcp-builder')}
+        onOpenPlugins={() => {
+          setActive('mcp-builder');
+          onExpand?.();
+        }}
+        onCollapse={onCollapse}
+      />
       <div className="mx-2 border-b border-border-light" />
       <div className="flex flex-col gap-1 overflow-y-auto">
         {links.map((link) => (
