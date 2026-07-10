@@ -52,6 +52,14 @@ export const useMCPConnectionStatusQuery = (
       refetchOnReconnect: false,
       refetchOnMount: false,
       staleTime: 10000, // 10 seconds
+      /** Poll while any server is mid-reconnection so the status settles
+       *  on connected/disconnected without user action */
+      refetchInterval: (data) =>
+        Object.values(data?.connectionStatus ?? {}).some(
+          (status) => status.connectionState === 'connecting',
+        )
+          ? 2500
+          : false,
       ...config,
     },
   );

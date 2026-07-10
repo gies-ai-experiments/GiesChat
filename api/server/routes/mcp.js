@@ -751,6 +751,16 @@ router.get('/connection/status', requireJwtAuth, async (req, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    try {
+      getOAuthReconnectionManager()
+        .reconnectServers(user.id)
+        .catch((error) =>
+          logger.error(`[MCP Connection Status] Reconnection failed for user ${user.id}`, error),
+        );
+    } catch {
+      /* reconnection manager not initialized — status stays read-only */
+    }
+
     const { mcpConfig, appConnections, userConnections, oauthServers } = await getMCPSetupData(
       user.id,
       { role: user.role, tenantId: getTenantId() },

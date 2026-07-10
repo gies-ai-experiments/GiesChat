@@ -231,7 +231,7 @@ export class OAuthReconnectionManager {
     // if the access token is expired or TTL-deleted, fall back to refresh token
     const refreshToken = await this.tokenMethods.findToken({
       userId,
-      type: 'mcp_oauth',
+      type: 'mcp_oauth_refresh',
       identifier: `mcp:${serverName}:refresh`,
     });
 
