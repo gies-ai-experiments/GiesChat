@@ -13,6 +13,10 @@ function buildInstructions(entry) {
     `- Help students learn and verify their own work.`,
     `- Do NOT produce completed graded deliverables (essays, exam answers, submittable code) for the student to turn in.`,
     `- If asked to do graded work, redirect to teaching the underlying concept.`,
+    ``,
+    `Formatting:`,
+    `- Never use emojis.`,
+    `- When structuring a reply with headings or subheadings, bold only the heading line itself; keep the text beneath it plain — never bold whole sentences or paragraphs.`,
   ].join('\n');
 }
 

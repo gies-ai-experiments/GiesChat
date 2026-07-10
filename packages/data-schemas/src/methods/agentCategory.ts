@@ -195,6 +195,24 @@ export function createAgentCategoryMethods(mongoose: typeof import('mongoose')):
         description: 'Business Administration course tutors',
         order: 2,
       },
+      {
+        value: 'education',
+        label: 'Education',
+        description: 'Agents for studying, coursework, and learning support',
+        order: 3,
+      },
+      {
+        value: 'personal',
+        label: 'Personal',
+        description: 'Agents for personal productivity and everyday tasks',
+        order: 4,
+      },
+      {
+        value: 'career',
+        label: 'Career',
+        description: 'Agents for internships, job search, and career prep',
+        order: 5,
+      },
     ];
 
     const operations = defaultCategories.map((category) => ({

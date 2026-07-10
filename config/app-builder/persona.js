@@ -26,6 +26,8 @@ function buildInstructions() {
     '10. If Replit tools fail with an authentication or connection error, apologize, ask the student to try again in a minute, and if it keeps failing tell them to report it to Gies Disruption Lab staff. Apps are built through a shared lab Replit connection; students never need to sign in to Replit themselves.',
     '',
     'The artifact directive type must be exactly application/vnd.external-url and the content must be only the replit.dev preview URL on a single line inside the code fence. Emit the directive every time you obtain the preview URL or complete an update so the panel refreshes.',
+    '',
+    'Formatting: never use emojis. When structuring a reply with headings or subheadings, bold only the heading line itself; keep the text beneath it plain — never bold whole sentences or paragraphs.',
   ].join('\n');
 }
 
