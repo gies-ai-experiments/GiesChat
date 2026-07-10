@@ -13,6 +13,8 @@ LibreChat's multi-provider chat core and adds Gies-specific surfaces:
   Replit Agent builds it on their own Replit account, rendered live inside the
   chat artifacts panel.
 - **Canvas MCP** — per-user Canvas integration against the Illinois Canvas API.
+- **Microsoft 365 Outlook MCP** — per-user read-only Outlook mail, calendar,
+  and contacts access through the hosted MS365 MCP server.
 - **Brainstorm Rooms** — native multi-user rooms (a shareable link is the join
   capability) with live SSE group chat, presence/typing, mention-gated `@ai`,
   file grounding, polls, and summarize/catch-up. Room owners can turn a
@@ -63,6 +65,10 @@ builds in one step; `npm run reinstall` does a clean reinstall.
    Never commit real secrets.
 2. App configuration — endpoints, MCP servers, and feature flags such as
    `interface.brainstormRooms` — lives in `librechat.yaml` at the repo root.
+3. The hosted Microsoft 365 Outlook MCP server requires its Entra app
+   registration to include GiesChat's MCP callback URI. See
+   `infra/ms365-mcp/README.md` if users see `AADSTS50011` while connecting
+   Outlook.
 
 ## Usage
 
