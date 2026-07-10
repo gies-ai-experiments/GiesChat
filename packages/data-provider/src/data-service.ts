@@ -9,6 +9,7 @@ import * as m from './types/mutations';
 import * as ag from './types/agents';
 import * as q from './types/queries';
 import * as rooms from './types/rooms';
+import * as issues from './types/issues';
 import * as sk from './types/skills';
 import * as f from './types/files';
 import * as config from './config';
@@ -66,6 +67,12 @@ export function getRooms(): Promise<rooms.TRoomListItem[]> {
 
 export function createRoom(payload: rooms.TCreateRoomRequest): Promise<rooms.TRoom> {
   return request.post(endpoints.rooms(), payload);
+}
+
+export function submitIssue(
+  payload: issues.TSubmitIssueRequest,
+): Promise<issues.TSubmitIssueResponse> {
+  return request.post(endpoints.issues(), payload);
 }
 
 export function getRoomSnapshot(roomId: string): Promise<rooms.TRoomSnapshot> {

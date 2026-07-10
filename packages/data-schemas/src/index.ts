@@ -43,6 +43,8 @@ export { GENESIS_HASH, PLATFORM_CHAIN_KEY } from './schema/auditLog';
 export { default as logger } from './config/winston';
 export { default as meiliLogger } from './config/meiliLogger';
 export { redactMessage } from './config/parsers';
+export { getRecentDiagnosticLogs } from './config/diagnosticLogs';
+export type { DiagnosticLogEntry } from './config/diagnosticLogs';
 export {
   tenantStorage,
   getTenantId,

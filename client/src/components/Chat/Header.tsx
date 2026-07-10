@@ -11,6 +11,7 @@ import AddMultiConvo from './AddMultiConvo';
 import { useHasAccess } from '~/hooks';
 import { cn } from '~/utils';
 import store from '~/store';
+import ReportIssueDialog from './ReportIssueDialog';
 
 const defaultInterface = getConfigDefaults().interface;
 
@@ -78,6 +79,7 @@ function Header() {
                   <ExportAndShareMenu
                     isSharedButtonEnabled={startupConfig?.sharedLinksEnabled ?? false}
                   />
+                  <ReportIssueDialog />
                   {hasAccessToTemporaryChat === true && <TemporaryChat />}
                 </>
               )}
@@ -104,6 +106,7 @@ function Header() {
             <ExportAndShareMenu
               isSharedButtonEnabled={startupConfig?.sharedLinksEnabled ?? false}
             />
+            <ReportIssueDialog />
             {hasAccessToTemporaryChat === true && <TemporaryChat />}
           </div>
         )}

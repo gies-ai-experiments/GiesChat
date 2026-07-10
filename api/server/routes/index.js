@@ -37,8 +37,10 @@ const keys = require('./keys');
 const user = require('./user');
 const mcp = require('./mcp');
 const rum = require('./rum');
+const issues = require('./issues');
 
 module.exports = {
+  issues,
   rum,
   mcp,
   auth,

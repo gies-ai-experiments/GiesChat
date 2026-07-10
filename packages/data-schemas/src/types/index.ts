@@ -16,6 +16,7 @@ export * from './agentApiKey';
 export * from './agentCategory';
 export * from './tutorSource';
 export * from './room';
+export * from './issueReport';
 export * from './role';
 export * from './action';
 export * from './assistant';

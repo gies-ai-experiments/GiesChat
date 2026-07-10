@@ -77,6 +77,8 @@ export * from './stream';
 export { memoryDiagnostics } from './utils/memory';
 /* RUM */
 export * from './rum/proxy';
+/* Issue reports */
+export * from './issues';
 /* types */
 export type * from './mcp/types';
 export type * from './flow/types';

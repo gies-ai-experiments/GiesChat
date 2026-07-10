@@ -9,6 +9,7 @@ import {
 } from './parsers';
 import { getTenantId, getUserId, getRequestId, SYSTEM_TENANT_ID } from './tenantContext';
 import { getLogDirectory } from './utils';
+import { captureDiagnosticLog } from './diagnosticLogs';
 
 const { NODE_ENV, DEBUG_LOGGING, CONSOLE_JSON, DEBUG_CONSOLE, LOG_TO_FILE } = process.env;
 
@@ -52,6 +53,11 @@ const requestContextFormat = winston.format((info: winston.Logform.Transformable
       info[key] = context[key];
     }
   });
+  return info;
+});
+
+const diagnosticCaptureFormat = winston.format((info: winston.Logform.TransformableInfo) => {
+  captureDiagnosticLog(info);
   return info;
 });
 
@@ -174,6 +180,7 @@ if (useDebugConsole) {
 const logger: winston.Logger = winston.createLogger({
   level: level(),
   levels,
+  format: winston.format.combine(requestContextFormat(), redactFormat(), diagnosticCaptureFormat()),
   transports,
 });
 

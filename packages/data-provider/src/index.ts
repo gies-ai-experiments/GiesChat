@@ -32,6 +32,7 @@ export * from './types/runs';
 export * from './types/web';
 export * from './types/graph';
 export * from './types/rooms';
+export * from './types/issues';
 /* access permissions */
 export * from './accessPermissions';
 /* query/mutation keys */

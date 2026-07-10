@@ -41,6 +41,7 @@ import { createUserModel } from './user';
 import { createRoleModel } from './role';
 import { createFileModel } from './file';
 import { createKeyModel } from './key';
+import { createIssueReportModel } from './issueReport';
 
 /**
  * Creates all database models for all collections
@@ -87,6 +88,7 @@ export function createModels(mongoose: typeof import('mongoose')): {
   AuditLog: ReturnType<typeof createAuditLogModel>;
   Group: ReturnType<typeof createGroupModel>;
   Config: ReturnType<typeof createConfigModel>;
+  IssueReport: ReturnType<typeof createIssueReportModel>;
 } {
   return {
     User: createUserModel(mongoose),
@@ -130,5 +132,6 @@ export function createModels(mongoose: typeof import('mongoose')): {
     AuditLog: createAuditLogModel(mongoose),
     Group: createGroupModel(mongoose),
     Config: createConfigModel(mongoose),
+    IssueReport: createIssueReportModel(mongoose),
   };
 }
