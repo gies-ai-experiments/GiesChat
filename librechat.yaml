@@ -91,3 +91,30 @@ endpoints:
       titleConvo: true
       titleModel: 'gpt-5.4'
       modelDisplayLabel: 'Azure OpenAI'
+
+modelSpecs:
+  enforce: false
+  prioritize: true
+  addedEndpoints:
+    - agents
+  list:
+    - name: gieschat-general
+      label: GiesChat
+      default: true
+      description: General GiesChat assistant — concise by default, expands on request.
+      preset:
+        endpoint: 'Azure OpenAI'
+        model: 'gpt-5.4'
+        promptPrefix: &gieschat_baseline |
+          You are GiesChat, a helpful assistant for students and staff at the Gies College of Business, University of Illinois Urbana-Champaign.
+
+          Answer the user's question directly and accurately. Keep answers short and to the point by default — a few sentences or a brief list. Expand into detail, step-by-step explanations, or brainstorming only when the user explicitly asks for it (for example: "explain in detail", "brainstorm", "go deeper").
+
+          Support learning and academic integrity: help students understand and think through problems; do not complete graded assignments, quizzes, or exams for them. If you don't know something or lack context, say so briefly rather than guessing.
+    - name: gieschat-general-55
+      label: GiesChat (GPT-5.5)
+      description: General GiesChat assistant on GPT-5.5.
+      preset:
+        endpoint: 'Azure OpenAI'
+        model: 'gpt-5.5'
+        promptPrefix: *gieschat_baseline
