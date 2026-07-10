@@ -1,4 +1,5 @@
 const { agentIdFor, categoryValueFor, courseKeyFor } = require('./keys');
+const { buildAvatarDataUri } = require('./avatar');
 
 /**
  * Idempotently upsert one category per subject area (Finance, Accounting, …) and
@@ -106,6 +107,7 @@ async function seedTutors({
       provider,
       model,
       category,
+      avatar: { filepath: buildAvatarDataUri(entry), source: 'gies' },
       is_promoted: Boolean(entry.isPromoted),
     };
 
