@@ -68,10 +68,10 @@ const isValidThemeColors = (value: unknown): value is IThemeRGB => {
 };
 
 /**
- * Get initial theme from localStorage or default to 'light'
+ * Get initial theme from localStorage or default to 'dark'
  */
 const getInitialTheme = (): string => {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark';
   try {
     const stored = localStorage.getItem(THEME_KEY);
     if (stored && ['light', 'dark', 'system'].includes(stored)) {
@@ -80,7 +80,7 @@ const getInitialTheme = (): string => {
   } catch {
     // localStorage not available
   }
-  return 'light';
+  return 'dark';
 };
 
 /**
