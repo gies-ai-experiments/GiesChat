@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure Security"
+  short_description: "Pre-deploy gate: no student/admin data or secret leaks to Azure"
+  default_prompt: "Use $illinois-azure-security to check this app for leaked secrets or student/admin PII before it deploys to Azure."

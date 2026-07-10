@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure Foundry Models"
+  short_description: "Provision per-app Azure AI Foundry models, endpoints, and keys"
+  default_prompt: "Use $illinois-azure-foundry-models to stand up an Azure AI Foundry model for this app and give me the endpoint, key, and the provider wiring."

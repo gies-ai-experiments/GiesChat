@@ -1,0 +1,102 @@
+%% IEEE conference/journal paper scaffold for the research-paper skill.
+%% Fill the bracketed placeholders. Compile with: pdflatex paper && bibtex paper && pdflatex paper && pdflatex paper
+%% (or: latexmk -pdf paper.tex). For a journal article, swap `conference` -> `journal`.
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}      % nicer tables
+\usepackage{url}
+\graphicspath{{figures/}}
+
+\begin{document}
+
+\title{[TITLE]}
+
+%% For double-blind submission, comment out the author block and use \author{Anonymous}.
+\author{
+  \IEEEauthorblockN{[Author Name]}
+  \IEEEauthorblockA{
+    \textit{[Affiliation / Department]} \\
+    \textit{[Institution]} \\
+    [City, Country] \\
+    [email@domain]
+  }
+}
+
+\maketitle
+
+\begin{abstract}
+[150--250 words. Problem and why it matters; the gap; what you built; the key measured
+result with a concrete number; the takeaway. No citations. Write this last.]
+\end{abstract}
+
+\begin{IEEEkeywords}
+[keyword1, keyword2, keyword3, keyword4]
+\end{IEEEkeywords}
+
+\section{Introduction}\label{sec:intro}
+[Funnel: domain and why it's hard $\rightarrow$ shortfall in current practice $\rightarrow$
+your approach in 2--3 sentences $\rightarrow$ explicit contribution list $\rightarrow$ paper roadmap.]
+
+The contributions of this paper are:
+\begin{itemize}
+  \item [Contribution 1]
+  \item [Contribution 2]
+  \item [Contribution 3]
+\end{itemize}
+
+\section{Related Work}\label{sec:related}
+[Thematic groups of prior art; for each, how this work differs. Real, verifiable
+citations only, e.g.~\cite{ref1}. Include needed background.]
+
+\section{Methodology}\label{sec:method}
+[Architecture overview (lead with Fig.~\ref{fig:arch}); each component's job, I/O, and
+algorithm; key design decisions and \emph{why}; equations/pseudocode where they help.]
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\columnwidth]{architecture.pdf}
+  \caption{[System architecture. Replace with figures/architecture.pdf.]}
+  \label{fig:arch}
+\end{figure}
+
+\section{Implementation}\label{sec:impl}
+[Languages/frameworks, notable libraries, scale, engineering challenges, determinism/
+safety mechanisms. Optional---merge into Methodology if thin.]
+
+\section{Evaluation}\label{sec:eval}
+[Experimental setup (environment, config, data, seeds, sample sizes); metric definitions;
+results in tables/figures with interpretation. REAL numbers from evidence/ only. State
+plainly anything that could not be run.]
+
+\begin{table}[t]
+  \centering
+  \caption{[Results. Replace with measured values.]}
+  \label{tab:results}
+  \begin{tabular}{lcc}
+    \toprule
+    Metric & [Config A] & [Config B] \\
+    \midrule
+    [metric 1] & [val] & [val] \\
+    [metric 2] & [val] & [val] \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Discussion and Limitations}\label{sec:discussion}
+[Higher-level interpretation; candid threats to validity (internal, external, construct);
+where the approach would not apply.]
+
+\section{Conclusion}\label{sec:conclusion}
+[Restate contribution and strongest evidence (no new claims); concrete future work.]
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure App Migration"
+  short_description: "Migrate apps to Illinois Azure safely"
+  default_prompt: "Use $illinois-azure-app-migration to plan a safe Azure migration for this app."

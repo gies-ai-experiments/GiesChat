@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure CLI Deploy"
+  short_description: "Run the az commands to deploy to Azure App Service"
+  default_prompt: "Use $illinois-azure-cli-deploy to give me the exact Azure CLI commands to deploy this app."

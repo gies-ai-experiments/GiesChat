@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure Governance"
+  short_description: "Azure cost, access, and identity guardrails"
+  default_prompt: "Use $illinois-azure-governance to check Azure cost, access, and identity setup before deployment."

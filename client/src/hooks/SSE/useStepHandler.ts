@@ -19,6 +19,11 @@ import type {
   SubagentUpdateEvent,
 } from 'librechat-data-provider';
 import type { SetterOrUpdater } from 'recoil';
+import {
+  createReplitExternalUrlArtifact,
+  getReplitBuildEvent,
+  isReplitToolCallName,
+} from '~/utils/replitLifecycle';
 import type { AnnounceOptions } from '~/common';
 import {
   foldSubagentEvent,
@@ -26,7 +31,7 @@ import {
   initSubagentAggregatorState,
   initSubagentTickerState,
 } from '~/utils/subagentContent';
-import { subagentProgressByToolCallId } from '~/store';
+import store, { subagentProgressByToolCallId } from '~/store';
 import { MESSAGE_UPDATE_INTERVAL } from '~/common';
 
 type TUseStepHandler = {
@@ -146,6 +151,28 @@ export default function useStepHandler({
    * `atomFamily` — atoms persist for the app lifetime.
    */
   const knownSubagentAtomKeys = useRef(new Set<string>());
+
+  const applyReplitBuildEvent = useRecoilCallback(
+    ({ set }) =>
+      (event: ReturnType<typeof getReplitBuildEvent>): void => {
+        if (!event) {
+          return;
+        }
+        set(store.replitBuildNotification, {
+          ...event,
+          updatedAt: Date.now(),
+        });
+
+        const artifact = createReplitExternalUrlArtifact(event);
+        if (!artifact) {
+          return;
+        }
+        set(store.artifactsState, (prev) => ({ ...(prev ?? {}), [artifact.id]: artifact }));
+        set(store.currentArtifactId, artifact.id);
+        set(store.artifactsVisibility, true);
+      },
+    [],
+  );
 
   const getCurrentMessages = useCallback(
     (messages: TMessage[]) => {
@@ -680,6 +707,10 @@ export default function useStepHandler({
               },
             };
 
+            if (isReplitToolCallName(toolCall.name)) {
+              applyReplitBuildEvent(getReplitBuildEvent(toolCall));
+            }
+
             // Use the pre-calculated contentIndex which handles parallel agent indexing
             updatedResponse = updateContent(
               updatedResponse,
@@ -936,6 +967,7 @@ export default function useStepHandler({
         if (isSkillAuthoringToolCall(result.tool_call)) {
           onSkillAuthoringComplete?.();
         }
+        applyReplitBuildEvent(getReplitBuildEvent(result.tool_call));
 
         const response = messageMap.current.get(responseMessageId);
         if (response) {

@@ -1,0 +1,26 @@
+{
+  "skill_name": "design-discovery",
+  "evals": [
+    {
+      "id": 0,
+      "name": "greenfield-no-screenshot-coffee",
+      "prompt": "I'm starting a small-batch coffee roastery in Champaign called Prairie Roast and I need a landing page. It's mostly for local cafes and restaurants who'd buy from us wholesale, plus some direct-to-consumer bags. I want it to feel warm and a little editorial, kind of tactile and honest — definitely NOT another sleek corporate coffee-tech startup look. I really don't have a clear visual direction beyond that. Can you help me figure out the design before I build it? Research some good examples too if it helps.",
+      "expected_output": "A discovery flow that produces (or works clearly toward) a design brief: subject pinned down, aesthetic direction proposed, real-world references with reasoning, and a brief file written to docs/design/. Should avoid the generic AI-default looks and hand off to frontend-design rather than writing UI code.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "redesign-described-ui-fintech",
+      "prompt": "My current SaaS dashboard is the standard shadcn/ui look — gray cards, default blue primary buttons, Inter everywhere, very generic. It's a budgeting app for freelancers (think people juggling irregular income, chasing invoices, setting aside taxes). The whole thing feels sterile and forgettable, like every other fintech tool. I want a real visual identity that still feels trustworthy with money but has some actual personality. Help me nail down a direction and write it up so I can hand it to whoever builds it.",
+      "expected_output": "Discovery that diagnoses the described current UI, proposes 2-3 distinct directions with trade-offs, grounds them in references (ideally confirming research scope first), and writes a design brief to docs/design/. Should not just restyle into another default.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "screenshot-flags-templated",
+      "prompt": "Here's a landing page mockup I put together for my product (a developer tooling startup called Northwind). Honestly I think it looks fine but a designer friend said it feels really generic. Can you take a look and tell me what's going on, and help me figure out a direction that feels more distinctive before I build the real thing?",
+      "expected_output": "Reads the screenshot and analyzes it concretely (should identify it as the cream + serif + terracotta + big-number-stats AI-default pattern and explain WHY it reads as templated), asks/clarifies whether it's a reference or current UI, then moves toward a more distinctive direction and a brief. Should not just polish the existing generic look.",
+      "files": ["evals/assets/landing-mock.png"]
+    }
+  ]
+}

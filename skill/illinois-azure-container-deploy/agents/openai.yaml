@@ -1,0 +1,4 @@
+interface:
+  display_name: "Illinois Azure Container Deploy"
+  short_description: "Deploy MCP servers and containers via a per-app Azure registry"
+  default_prompt: "Use $illinois-azure-container-deploy to deploy this container/MCP server to Azure with its own registry."
