@@ -28,14 +28,6 @@ interface:
         en: Only connect MCP servers you trust. MCP tools can send context to external services and may take actions on your behalf.
 
 mcpServers:
-  gies-demo:
-    type: stdio
-    command: node
-    args:
-      - e2e/setup/fake-mcp-server.js
-    title: Gies Demo MCP
-    description: Local demo MCP server for testing the MCP picker.
-    timeout: 30000
   canvas:
     type: stdio
     command: uvx
