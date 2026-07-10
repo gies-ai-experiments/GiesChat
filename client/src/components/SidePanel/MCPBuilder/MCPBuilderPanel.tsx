@@ -45,7 +45,7 @@ export default function MCPBuilderPanel() {
             label={localize('com_ui_filter_mcp_servers')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            containerClassName="flex-1"
+            containerClassName="min-w-0 flex-1"
           />
           {hasCreateAccess && (
             <MCPServerDialog

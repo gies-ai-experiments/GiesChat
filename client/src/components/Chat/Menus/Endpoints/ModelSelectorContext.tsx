@@ -180,18 +180,7 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
 
   const handleSelectSpec = useCallback(
     (spec: t.TModelSpec) => {
-      let model = spec.preset.model ?? null;
       onSelectSpec?.(spec);
-      if (isAgentsEndpoint(spec.preset.endpoint)) {
-        model = spec.preset.agent_id ?? '';
-      } else if (isAssistantsEndpoint(spec.preset.endpoint)) {
-        model = spec.preset.assistant_id ?? '';
-      }
-      setSelectedValues({
-        endpoint: spec.preset.endpoint,
-        model,
-        modelSpec: spec.name,
-      });
     },
     [onSelectSpec],
   );

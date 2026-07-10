@@ -49,12 +49,18 @@ export default function MCPServerCard({
   const statusDotColor = getStatusDotColor(serverStatus, isInitializing);
   const canEdit = canCreateEditMCPs && canEditThisServer;
 
+  const getActionEvent = () =>
+    ({
+      stopPropagation: () => {},
+      preventDefault: () => {},
+    }) as React.MouseEvent;
+
   const handleInitialize = () => {
     /** If server has custom user vars and is not already connected, show config dialog first
      *  This ensures users can enter credentials before initialization attempts
      */
     if (hasCustomUserVars && serverStatus?.connectionState !== 'connected') {
-      onConfigClick({ stopPropagation: () => {}, preventDefault: () => {} } as React.MouseEvent);
+      onConfigClick(getActionEvent());
       return;
     }
     initializeServer(server.serverName);
@@ -64,11 +70,12 @@ export default function MCPServerCard({
     revokeOAuthForServer(server.serverName);
   };
 
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleEditClick = () => {
     setDialogOpen(true);
   };
+
+  const handleConfigClick = () => onConfigClick(getActionEvent());
+  const handleCancel = () => onCancel(getActionEvent());
 
   // Determine status text for accessibility
   const getStatusText = () => {
@@ -123,7 +130,9 @@ export default function MCPServerCard({
 
         {/* Server Info */}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium text-text-primary">{displayName}</div>
+          <div className="truncate text-sm font-medium text-text-primary" title={displayName}>
+            {displayName}
+          </div>
           {description && <p className="truncate text-xs text-text-secondary">{description}</p>}
         </div>
 
@@ -138,9 +147,9 @@ export default function MCPServerCard({
             canEdit={canEdit}
             editButtonRef={triggerRef}
             onEditClick={handleEditClick}
-            onConfigClick={onConfigClick}
+            onConfigClick={handleConfigClick}
             onInitialize={handleInitialize}
-            onCancel={onCancel}
+            onCancel={handleCancel}
             onRevoke={handleRevoke}
           />
         </div>
