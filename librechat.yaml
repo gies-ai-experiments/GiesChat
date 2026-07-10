@@ -71,6 +71,19 @@ mcpServers:
       6. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
       7. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
       8. If a tool call times out, the build is still running - do not retry the call.
+  ms365-outlook:
+    type: streamable-http
+    url: https://ms365-mcp.azurewebsites.net/mcp
+    title: Microsoft 365 Outlook
+    description: Connect your Illinois Microsoft 365 Outlook account for read-only email, calendar, and contacts access.
+    timeout: 60000
+    initTimeout: 60000
+    chatMenu: false
+    serverInstructions: |
+      Microsoft 365 Outlook is read-only in GiesChat.
+      Use it only to read and search the user's Outlook mail, calendar, and contacts.
+      Do not send email, create or edit calendar events, update contacts, delete items, or otherwise modify Microsoft 365 data.
+      If a user asks for a write action, explain that the current Microsoft 365 integration is read-only.
 
 endpoints:
   custom:

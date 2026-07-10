@@ -1,0 +1,8 @@
+.env
+.env.*
+*.pem
+id_rsa
+my.secrets
+.git
+node_modules
+npm-debug.log*
