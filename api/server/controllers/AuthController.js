@@ -157,7 +157,7 @@ const refreshController = async (req, res) => {
   const parsedCookies = req.headers.cookie ? cookies.parse(req.headers.cookie) : {};
   const token_provider = parsedCookies.token_provider;
 
-  if (isEnabled(process.env.GIESCHAT_GUEST_LOGIN)) {
+  if (isEnabled(process.env.GIESCHAT_GUEST_LOGIN) && parsedCookies.gieschat_logged_out !== '1') {
     try {
       const user = await getOrCreateGuestUser();
       const token = await setAuthTokens(user._id, res, null, req);

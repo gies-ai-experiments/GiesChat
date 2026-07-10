@@ -117,6 +117,9 @@ function mockResponse() {
     cookie: jest.fn((name, value, options) => {
       cookies[name] = { value, options };
     }),
+    clearCookie: jest.fn((name) => {
+      delete cookies[name];
+    }),
     _cookies: cookies,
   };
   return res;

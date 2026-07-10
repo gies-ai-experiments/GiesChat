@@ -44,6 +44,9 @@ const logoutController = async (req, res) => {
     res.clearCookie('openid_id_token');
     res.clearCookie('openid_user_id');
     res.clearCookie('token_provider');
+    /** Session cookie suppressing the GIESCHAT_GUEST_LOGIN auto-bootstrap on
+     *  /api/auth/refresh so logout sticks; cleared again on explicit login */
+    res.cookie('gieschat_logged_out', '1', { httpOnly: true, sameSite: 'lax' });
     clearCloudFrontCookies(res, {
       userId: req.user?.id ?? req.user?._id?.toString?.(),
       tenantId: req.user?.tenantId,

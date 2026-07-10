@@ -37,6 +37,7 @@ function buildRes() {
     send: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     clearCookie: jest.fn(),
+    cookie: jest.fn(),
   };
   return res;
 }
@@ -578,6 +579,21 @@ describe('LogoutController', () => {
       );
       const body = res.send.mock.calls[0][0];
       expect(body.redirect).toContain('id_token_hint=small-id-token');
+    });
+  });
+
+  describe('guest auto-login suppression', () => {
+    it('sets the gieschat_logged_out cookie so logout survives the refresh guest bootstrap', async () => {
+      const req = buildReq();
+      const res = buildRes();
+
+      await logoutController(req, res);
+
+      expect(res.cookie).toHaveBeenCalledWith(
+        'gieschat_logged_out',
+        '1',
+        expect.objectContaining({ httpOnly: true, sameSite: 'lax' }),
+      );
     });
   });
 });
