@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
-import { Lightbulb, MessagesSquare } from 'lucide-react';
+import { useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMediaQuery } from '@librechat/client';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { Lightbulb, LayoutGrid, MessagesSquare } from 'lucide-react';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
 import { getConfigDefaults, getEndpointField } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';
@@ -9,6 +11,7 @@ import BrainstormPanel from '~/components/Brainstorm/BrainstormPanel';
 import ConversationsSection from '~/components/UnifiedSidebar/ConversationsSection';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
+import { useShowMarketplace } from '~/hooks';
 import store from '~/store';
 
 const defaultInterface = getConfigDefaults().interface;
@@ -51,6 +54,17 @@ export default function useUnifiedSidebarLinks() {
   });
 
   const brainstormEnabled = startupConfig?.brainstormRoomsEnabled === true;
+  const showAgentMarketplace = useShowMarketplace();
+  const navigate = useNavigate();
+  const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  const setSidebarExpanded = useSetRecoilState(store.sidebarExpanded);
+
+  const openMarketplace = useCallback(() => {
+    navigate('/agents');
+    if (isSmallScreen) {
+      setSidebarExpanded(false);
+    }
+  }, [navigate, isSmallScreen, setSidebarExpanded]);
 
   const links = useMemo(() => {
     const conversationLink: NavLink = {
@@ -60,9 +74,13 @@ export default function useUnifiedSidebarLinks() {
       id: 'conversations',
       Component: ConversationsSection,
     };
-    if (!brainstormEnabled) {
-      return [conversationLink, ...sideNavLinks];
-    }
+    const marketplaceLink: NavLink = {
+      title: 'com_agents_marketplace',
+      label: '',
+      icon: LayoutGrid,
+      id: 'marketplace',
+      onClick: openMarketplace,
+    };
     const brainstormLink: NavLink = {
       title: 'com_ui_brainstorm',
       label: '',
@@ -71,8 +89,13 @@ export default function useUnifiedSidebarLinks() {
       Component: BrainstormPanel,
     };
 
-    return [conversationLink, brainstormLink, ...sideNavLinks];
-  }, [sideNavLinks, brainstormEnabled]);
+    return [
+      conversationLink,
+      ...(showAgentMarketplace ? [marketplaceLink] : []),
+      ...(brainstormEnabled ? [brainstormLink] : []),
+      ...sideNavLinks,
+    ];
+  }, [sideNavLinks, brainstormEnabled, showAgentMarketplace, openMarketplace]);
 
   return links;
 }
