@@ -20,6 +20,7 @@ const {
   ROOM_MESSAGE_LIMIT,
   ROOM_SUMMARIZE_LIMIT,
   ROOM_BUILD_LIMIT,
+  ROOM_PROMPT_DRAFT_LIMIT,
   detectAiMention,
   runAiReply,
   summarizeRoom,
@@ -31,6 +32,7 @@ const {
   closePoll,
   toPollView,
   draftBuildPrompt,
+  draftRoomPrompt,
   runAppBuild,
   isBuildLocked,
 } = require('@librechat/api');
@@ -82,6 +84,33 @@ router.get('/', async (req, res) => {
     return res.json(rooms);
   } catch (error) {
     return handleRoomError(res, error, 'list');
+  }
+});
+
+router.post('/prompt/draft', async (req, res) => {
+  try {
+    if (
+      !checkLimit(
+        `${req.user.id}:prompt-draft`,
+        ROOM_PROMPT_DRAFT_LIMIT.max,
+        ROOM_PROMPT_DRAFT_LIMIT.windowMs,
+      )
+    ) {
+      return res.status(429).json({ error: 'rate_limited' });
+    }
+    const { title, notes } = req.body ?? {};
+    if (typeof title !== 'string' || title.trim().length === 0 || title.length > 200) {
+      return res.status(400).json({ error: 'invalid_title' });
+    }
+    const appConfig = await getAppConfig({ role: req.user.role, userId: req.user.id });
+    const prompt = await draftRoomPrompt({
+      title: title.trim(),
+      notes: typeof notes === 'string' ? notes : undefined,
+      appConfig,
+    });
+    return res.json({ prompt });
+  } catch (error) {
+    return handleRoomError(res, error, 'prompt-draft');
   }
 });
 

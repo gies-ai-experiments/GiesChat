@@ -1,8 +1,16 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { createModels } from '@librechat/data-schemas';
-import type { IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
-import { detectAiMention, getRoomPersona, buildRoomMessages, buildSummarizeMessages } from './ai';
+import type { AppConfig, IRoomMessage, IRoomPoll } from '@librechat/data-schemas';
+import type { FetchImpl } from './ai';
+import {
+  detectAiMention,
+  getRoomPersona,
+  buildRoomMessages,
+  buildSummarizeMessages,
+  promptDraftMessages,
+  draftRoomPrompt,
+} from './ai';
 
 const msg = (authorName: string, text: string, kind: IRoomMessage['kind'] = 'user') =>
   ({ authorName, text, kind }) as IRoomMessage;
@@ -19,6 +27,50 @@ describe('detectAiMention', () => {
     ['email me@ai', false],
   ])('%s → %s', (text, expected) => {
     expect(detectAiMention(text)).toBe(expected);
+  });
+});
+
+describe('promptDraftMessages', () => {
+  it('includes the title and refines organizer notes when present', () => {
+    const messages = promptDraftMessages({ title: 'Campus Sustainability', notes: 'be socratic' });
+    expect(messages).toHaveLength(2);
+    expect(messages[0].role).toBe('system');
+    expect(messages[0].content.toLowerCase()).toContain('system prompt');
+    expect(messages[1].content).toContain('Campus Sustainability');
+    expect(messages[1].content).toContain('be socratic');
+  });
+
+  it('omits the notes section when notes are empty', () => {
+    const messages = promptDraftMessages({ title: 'Campus Sustainability', notes: '   ' });
+    expect(messages[1].content).not.toContain('Organizer notes');
+  });
+});
+
+describe('draftRoomPrompt', () => {
+  const appConfig = {
+    endpoints: {
+      custom: [
+        {
+          name: 'Azure OpenAI',
+          apiKey: 'k',
+          baseURL: 'http://llm.test/v1',
+          models: { default: ['gpt-5.4'] },
+        },
+      ],
+    },
+  } as unknown as AppConfig;
+
+  const sseResponse = (text: string): Response => {
+    const chunk = { choices: [{ delta: { content: text } }] };
+    const body = `data: ${JSON.stringify(chunk)}\n\ndata: [DONE]\n\n`;
+    return new Response(body, { status: 200 });
+  };
+
+  it('returns the trimmed LLM draft', async () => {
+    const fetchImpl: FetchImpl = async () =>
+      sseResponse('  You facilitate a brainstorm on campus sustainability.  ');
+    const prompt = await draftRoomPrompt({ title: 'Campus Sustainability', appConfig, fetchImpl });
+    expect(prompt).toBe('You facilitate a brainstorm on campus sustainability.');
   });
 });
 

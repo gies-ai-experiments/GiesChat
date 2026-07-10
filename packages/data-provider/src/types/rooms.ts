@@ -135,6 +135,15 @@ export type TDraftRoomBuildResponse = {
   questions: string[];
 };
 
+export type TDraftRoomPromptRequest = {
+  title: string;
+  notes?: string;
+};
+
+export type TDraftRoomPromptResponse = {
+  prompt: string;
+};
+
 export type TStartRoomBuildRequest = {
   prompt: string;
   stackType: TRoomBuildStackType;

@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner, useToastContext } from '@librechat/client';
+import { useCreateRoomMutation, useDraftRoomPromptMutation } from '~/data-provider';
 import { useListAgentsQuery } from '~/data-provider/Agents/queries';
-import { useCreateRoomMutation } from '~/data-provider';
 import { NotificationSeverity } from '~/common';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
@@ -30,9 +31,32 @@ export default function Create() {
   const [agentId, setAgentId] = useState('');
   const [contextText, setContextText] = useState('');
   const createRoom = useCreateRoomMutation();
+  const draftPrompt = useDraftRoomPromptMutation();
   const { data: agents } = useListAgentsQuery();
 
   const canSubmit = title.trim().length > 0 && !createRoom.isLoading;
+  const canGenerate = title.trim().length > 0 && !draftPrompt.isLoading;
+
+  const generatePrompt = () => {
+    if (!canGenerate) {
+      return;
+    }
+    draftPrompt.mutate(
+      {
+        title: title.trim(),
+        notes: contextText.trim() === '' ? undefined : contextText.trim(),
+      },
+      {
+        onSuccess: ({ prompt }) => setContextText(prompt.slice(0, CONTEXT_CAP)),
+        onError: () =>
+          showToast({
+            message: localize('com_ui_brainstorm_generate_prompt_error'),
+            severity: NotificationSeverity.ERROR,
+            showIcon: true,
+          }),
+      },
+    );
+  };
 
   const submit = () => {
     if (!canSubmit) {
@@ -113,9 +137,28 @@ export default function Create() {
                   hint={localize('com_ui_brainstorm_optional')}
                 />
               </label>
-              <span className="text-xs tabular-nums text-text-secondary">
-                {contextText.length.toLocaleString()} / {CONTEXT_CAP.toLocaleString()}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs tabular-nums text-text-secondary">
+                  {contextText.length.toLocaleString()} / {CONTEXT_CAP.toLocaleString()}
+                </span>
+                <button
+                  type="button"
+                  onClick={generatePrompt}
+                  disabled={!canGenerate}
+                  title={
+                    title.trim() === '' ? localize('com_ui_brainstorm_generate_prompt_hint') : ''
+                  }
+                  data-testid="brainstorm-generate-prompt"
+                  className="flex items-center gap-1.5 rounded-md border border-border-light px-2.5 py-1 text-xs font-medium text-text-primary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {draftPrompt.isLoading ? (
+                    <Spinner className="size-3.5" />
+                  ) : (
+                    <Sparkles className="size-3.5" aria-hidden="true" />
+                  )}
+                  {localize('com_ui_brainstorm_generate_prompt')}
+                </button>
+              </div>
             </div>
             <textarea
               id="brainstorm-system-prompt"

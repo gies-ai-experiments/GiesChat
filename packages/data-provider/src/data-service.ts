@@ -95,6 +95,12 @@ export function draftRoomBuild(roomId: string): Promise<rooms.TDraftRoomBuildRes
   return request.post(endpoints.roomBuildDraft(roomId), {});
 }
 
+export function draftRoomPrompt(
+  payload: rooms.TDraftRoomPromptRequest,
+): Promise<rooms.TDraftRoomPromptResponse> {
+  return request.post(endpoints.roomPromptDraft(), payload);
+}
+
 export function startRoomBuild(
   roomId: string,
   payload: rooms.TStartRoomBuildRequest,

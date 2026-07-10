@@ -212,6 +212,55 @@ export async function streamChatCompletion(params: {
   return text;
 }
 
+const PROMPT_DRAFT_CAP = 20000;
+
+const PROMPT_DRAFT_SYSTEM =
+  'You write system prompts for an AI facilitator that joins a group brainstorm room ' +
+  'of business students. Given the room title and optional rough notes from the organizer, ' +
+  'write a professional system prompt covering: the facilitator role, the topic and goals ' +
+  'of the session, how to guide the discussion (build on ideas, weigh trade-offs, keep the ' +
+  'group moving), and any constraints from the notes. Refine the notes rather than ' +
+  'discarding them. Respond with ONLY the prompt text — no headings, no markdown fences, ' +
+  'no commentary.';
+
+export function promptDraftMessages(params: {
+  title: string;
+  notes?: string;
+}): ChatCompletionMessage[] {
+  const { title, notes } = params;
+  const sections = [`Room title: ${title}`];
+  const trimmed = notes?.trim() ?? '';
+  if (trimmed !== '') {
+    sections.push(`Organizer notes (rough, refine these):\n${trimmed.slice(0, PROMPT_DRAFT_CAP)}`);
+  }
+  sections.push('Write the facilitator system prompt now.');
+  return [
+    { role: 'system', content: PROMPT_DRAFT_SYSTEM },
+    { role: 'user', content: sections.join('\n\n') },
+  ];
+}
+
+export async function draftRoomPrompt(params: {
+  title: string;
+  notes?: string;
+  appConfig: AppConfig;
+  fetchImpl?: FetchImpl;
+}): Promise<string> {
+  const { title, notes, appConfig, fetchImpl } = params;
+  const endpoint = resolveRoomEndpoint(appConfig);
+  if (!endpoint) {
+    throw new Error('room AI endpoint is not configured');
+  }
+  const text = await streamChatCompletion({
+    endpoint,
+    model: endpoint.defaultModel,
+    messages: promptDraftMessages({ title, notes }),
+    fetchImpl,
+    onDelta: () => undefined,
+  });
+  return text.trim().slice(0, PROMPT_DRAFT_CAP);
+}
+
 const RAG_CHUNKS_PER_FILE = 5;
 const RAG_CHUNK_LIMIT = 8;
 
