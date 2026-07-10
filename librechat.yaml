@@ -9,7 +9,7 @@ interface:
   bookmarks: false
   agents:
     use: true
-    create: false
+    create: true
     share: false
   marketplace:
     use: true
@@ -96,6 +96,10 @@ mcpServers:
       If a user asks for a write action, explain that the current Microsoft 365 integration is read-only.
 
 endpoints:
+  agents:
+    allowedProviders:
+      - 'Azure OpenAI'
+      - 'anthropic'
   custom:
     - name: 'Azure OpenAI'
       apiKey: '${AZURE_OPENAI_API_KEY}'

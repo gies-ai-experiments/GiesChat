@@ -302,6 +302,25 @@ describe('AgentGrid Integration with useGetMarketplaceAgentsQuery', () => {
         limit: 6,
       });
     });
+
+    it('should request EDIT permission without category filter for "my" category', () => {
+      render(<AgentGrid category="my" searchQuery="" onSelectAgent={mockOnSelectAgent} />);
+
+      expect(mockUseMarketplaceAgentsInfiniteQuery).toHaveBeenCalledWith({
+        requiredPermission: 2,
+        limit: 6,
+      });
+    });
+
+    it('should keep EDIT permission when searching within "my" category', () => {
+      render(<AgentGrid category="my" searchQuery="test" onSelectAgent={mockOnSelectAgent} />);
+
+      expect(mockUseMarketplaceAgentsInfiniteQuery).toHaveBeenCalledWith({
+        requiredPermission: 2,
+        search: 'test',
+        limit: 6,
+      });
+    });
   });
 
   // Create wrapper with QueryClient

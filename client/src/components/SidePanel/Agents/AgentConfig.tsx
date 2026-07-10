@@ -27,7 +27,7 @@ import {
   useHasMemoryAccess,
   useAuthContext,
 } from '~/hooks';
-import { ToolSelectDialog, MCPToolSelectDialog } from '~/components/Tools';
+import { MCPToolSelectDialog } from '~/components/Tools';
 import useAgentCapabilities from '~/hooks/Agents/useAgentCapabilities';
 import { useListSkillsQuery, useGetAgentFiles } from '~/data-provider';
 import { useFileMapContext, useAgentPanelContext } from '~/Providers';
@@ -41,7 +41,6 @@ import AgentAvatar from './AgentAvatar';
 import FileContext from './FileContext';
 import SearchForm from './Search/Form';
 import FileSearch from './FileSearch';
-import Artifacts from './Artifacts';
 import AgentTool from './AgentTool';
 import CodeForm from './Code/Form';
 import MCPTools from './MCPTools';
@@ -67,7 +66,6 @@ export default function AgentConfig() {
   const fileMap = useFileMapContext();
   const { showToast } = useToastContext();
   const methods = useFormContext<AgentForm>();
-  const [showToolDialog, setShowToolDialog] = useState(false);
   const [showMCPToolDialog, setShowMCPToolDialog] = useState(false);
   const [showSkillDialog, setShowSkillDialog] = useState(false);
   const {
@@ -111,7 +109,6 @@ export default function AgentConfig() {
     contextEnabled,
     actionsEnabled,
     skillsEnabled,
-    artifactsEnabled,
     webSearchEnabled,
     fileSearchEnabled,
   } = useAgentCapabilities(agentsConfig?.capabilities);
@@ -375,12 +372,7 @@ export default function AgentConfig() {
             </div>
           </button>
         </div>
-        {(codeEnabled ||
-          fileSearchEnabled ||
-          artifactsEnabled ||
-          contextEnabled ||
-          showMemory ||
-          webSearchEnabled) && (
+        {(codeEnabled || fileSearchEnabled || contextEnabled || showMemory || webSearchEnabled) && (
           <div className="mb-4 flex w-full flex-col items-start gap-3">
             <label className="text-token-text-primary block text-sm font-medium">
               {localize('com_assistants_capabilities')}
@@ -391,8 +383,6 @@ export default function AgentConfig() {
             {webSearchEnabled && <SearchForm />}
             {/* File Context */}
             {contextEnabled && <FileContext agent_id={agent_id} files={context_files} />}
-            {/* Artifacts */}
-            {artifactsEnabled && <Artifacts />}
             {/* File Search */}
             {fileSearchEnabled && <FileSearch agent_id={agent_id} files={knowledge_files} />}
             {/* Memory */}
@@ -549,18 +539,6 @@ export default function AgentConfig() {
                 ))}
             </div>
             <div className="mt-2 flex space-x-2">
-              {(toolsEnabled ?? false) && (
-                <button
-                  type="button"
-                  onClick={() => setShowToolDialog(true)}
-                  className="btn btn-neutral border-token-border-light relative h-9 w-full rounded-lg font-medium"
-                  aria-haspopup="dialog"
-                >
-                  <div className="flex w-full items-center justify-center gap-2">
-                    {localize('com_assistants_add_tools')}
-                  </div>
-                </button>
-              )}
               {(actionsEnabled ?? false) && (
                 <button
                   type="button"
@@ -676,11 +654,6 @@ export default function AgentConfig() {
           </div>
         </div>
       </div>
-      <ToolSelectDialog
-        isOpen={showToolDialog}
-        setIsOpen={setShowToolDialog}
-        endpoint={EModelEndpoint.agents}
-      />
       {availableMCPServers != null && availableMCPServers.length > 0 && (
         <MCPToolSelectDialog
           agentId={agent_id}

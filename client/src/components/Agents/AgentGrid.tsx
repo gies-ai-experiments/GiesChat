@@ -9,6 +9,8 @@ import { useHasData } from './SmartLoader';
 import ErrorDisplay from './ErrorDisplay';
 import AgentCard from './AgentCard';
 
+export const MY_AGENTS_CATEGORY = 'my';
+
 interface AgentGridProps {
   category: string;
   searchQuery: string;
@@ -32,6 +34,9 @@ const AgentGrid: React.FC<AgentGridProps> = ({
 
   // Build query parameters based on current state
   const queryParams = useMemo(() => {
+    // 'my' is a synthetic tab: EDIT permission filters the list to agents the user owns
+    const isMyAgents = category === MY_AGENTS_CATEGORY;
+    const isSpecialTab = category === 'all' || category === 'promoted' || isMyAgents;
     const params: {
       requiredPermission: number;
       category?: string;
@@ -39,25 +44,25 @@ const AgentGrid: React.FC<AgentGridProps> = ({
       limit: number;
       promoted?: 0 | 1;
     } = {
-      requiredPermission: PermissionBits.VIEW, // View permission for marketplace viewing
+      requiredPermission: isMyAgents ? PermissionBits.EDIT : PermissionBits.VIEW,
       limit: 6,
     };
 
     // Handle search
     if (searchQuery) {
       params.search = searchQuery;
-      // Include category filter for search if it's not 'all' or 'promoted'
-      if (category !== 'all' && category !== 'promoted') {
+      // Include category filter for search unless on a special tab
+      if (!isSpecialTab) {
         params.category = category;
       }
     } else {
       // Handle category-based queries
       if (category === 'promoted') {
         params.promoted = 1;
-      } else if (category !== 'all') {
+      } else if (!isSpecialTab) {
         params.category = category;
       }
-      // For 'all' category, no additional filters needed
+      // For 'all' and 'my' tabs, no additional filters needed
     }
 
     return params;
@@ -120,6 +125,9 @@ const AgentGrid: React.FC<AgentGridProps> = ({
     }
     if (categoryValue === 'all') {
       return 'All';
+    }
+    if (categoryValue === MY_AGENTS_CATEGORY) {
+      return localize('com_agents_my_agents');
     }
 
     // Simple capitalization for unknown categories

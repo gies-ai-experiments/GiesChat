@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useMediaQuery } from '@librechat/client';
+import { Plus } from 'lucide-react';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { Button, OGDialog, OGDialogContent, OGDialogTitle, useMediaQuery } from '@librechat/client';
 import type t from 'librechat-data-provider';
 import { useDocumentTitle, useHasAccess, useLocalize, TranslationKeys } from '~/hooks';
 import { useGetEndpointsQuery, useGetAgentCategoriesQuery } from '~/data-provider';
+import AgentPanelSwitch from '~/components/SidePanel/Agents/AgentPanelSwitch';
 import MarketplaceAdminSettings from './MarketplaceAdminSettings';
 import OpenSidebar from '~/components/Chat/Menus/OpenSidebar';
 import { SidePanelGroup } from '~/components/SidePanel';
+import AgentGrid, { MY_AGENTS_CATEGORY } from './AgentGrid';
 import CategoryTabs from './CategoryTabs';
 import SearchBar from './SearchBar';
-import AgentGrid from './AgentGrid';
 import { cn } from '~/utils';
 
 interface AgentMarketplaceProps {
@@ -60,6 +62,29 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
     refetchOnMount: false,
   });
 
+  const hasAccessToCreateAgents = useHasAccess({
+    permissionType: PermissionTypes.AGENTS,
+    permission: Permissions.CREATE,
+  });
+
+  const [showCreateAgent, setShowCreateAgent] = useState(false);
+
+  const categories = useMemo<t.TMarketplaceCategory[]>(() => {
+    const base = categoriesQuery.data ?? [];
+    if (!hasAccessToCreateAgents) {
+      return base;
+    }
+    return [
+      ...base,
+      {
+        value: MY_AGENTS_CATEGORY,
+        label: 'com_agents_my_agents',
+        description: 'com_agents_my_agents_description',
+        count: 0,
+      },
+    ];
+  }, [categoriesQuery.data, hasAccessToCreateAgents]);
+
   // Handle initial category when on /agents without a category
   useEffect(() => {
     if (
@@ -89,11 +114,11 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
    * Determine ordered tabs to compute indices for direction
    */
   const orderedTabs = useMemo<string[]>(() => {
-    const dynamic = (categoriesQuery.data || []).map((c) => c.value);
+    const dynamic = categories.map((c) => c.value);
     // Only include values that actually exist in the categories
     const set = new Set<string>(dynamic);
     return Array.from(set);
-  }, [categoriesQuery.data]);
+  }, [categories]);
 
   const getTabIndex = useCallback(
     (tab: string): number => {
@@ -227,13 +252,25 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                 {/* Search bar */}
                 <div className="mx-auto flex max-w-2xl gap-2 pb-6">
                   <SearchBar value={searchQuery} onSearch={handleSearch} />
+                  {hasAccessToCreateAgents && (
+                    <Button
+                      variant="outline"
+                      className="relative h-12 rounded-xl border-border-medium font-medium"
+                      onClick={() => setShowCreateAgent(true)}
+                      aria-label={localize('com_agents_create')}
+                      data-testid="marketplace-create-agent-button"
+                    >
+                      <Plus className="icon-md" aria-hidden="true" />
+                      {!isSmallScreen && localize('com_agents_create')}
+                    </Button>
+                  )}
                   {/* TODO: Remove this once we have a better way to handle admin settings */}
                   {!isSmallScreen && <MarketplaceAdminSettings />}
                 </div>
 
                 {/* Category tabs */}
                 <CategoryTabs
-                  categories={categoriesQuery.data || []}
+                  categories={categories}
                   activeTab={displayCategory}
                   isLoading={categoriesQuery.isLoading}
                   onChange={handleTabChange}
@@ -274,7 +311,7 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                           }
 
                           // Find the category in the API data
-                          const categoryData = categoriesQuery.data?.find(
+                          const categoryData = categories.find(
                             (cat) => cat.value === displayCategory,
                           );
                           if (categoryData) {
@@ -351,7 +388,7 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                             }
 
                             // Find the category in the API data
-                            const categoryData = categoriesQuery.data?.find(
+                            const categoryData = categories.find(
                               (cat) => cat.value === nextCategory,
                             );
                             if (categoryData) {
@@ -407,6 +444,14 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
           </div>
         </main>
       </SidePanelGroup>
+      {hasAccessToCreateAgents && (
+        <OGDialog open={showCreateAgent} onOpenChange={setShowCreateAgent}>
+          <OGDialogContent className="max-h-[90vh] w-11/12 max-w-lg overflow-y-auto">
+            <OGDialogTitle>{localize('com_agents_create')}</OGDialogTitle>
+            <AgentPanelSwitch />
+          </OGDialogContent>
+        </OGDialog>
+      )}
     </div>
   );
 };
