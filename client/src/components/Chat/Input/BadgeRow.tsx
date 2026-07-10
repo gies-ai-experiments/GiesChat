@@ -12,6 +12,8 @@ import { Badge } from '@librechat/client';
 import { useRecoilValue, useRecoilCallback } from 'recoil';
 import type { LucideIcon } from 'lucide-react';
 import type { BadgeItem } from '~/common';
+import ModelSelector from '../Menus/Endpoints/ModelSelector';
+import { useGetStartupConfig } from '~/data-provider';
 import CodeInterpreter from './CodeInterpreter';
 import { BadgeRowProvider } from '~/Providers';
 import ToolsDropdown from './ToolsDropdown';
@@ -167,6 +169,7 @@ function BadgeRow({
 
   const allBadges = useChatBadges();
   const isEditing = useRecoilValue(store.isEditingBadges);
+  const { data: startupConfig } = useGetStartupConfig();
 
   const badges = useMemo(
     () => allBadges.filter((badge) => badge.isAvailable !== false),
@@ -330,6 +333,9 @@ function BadgeRow({
       isSubmitting={isSubmitting}
     >
       <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">
+        <div className="flex items-center">
+          <ModelSelector startupConfig={startupConfig} />
+        </div>
         {showEphemeralBadges === true && <ToolsDropdown />}
         {tempBadges.map((badge, index) => (
           <React.Fragment key={badge.id}>
