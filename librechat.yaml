@@ -96,6 +96,8 @@ endpoints:
       titleConvo: true
       titleModel: 'gpt-5.4'
       modelDisplayLabel: 'Azure OpenAI'
+      addParams:
+        web_search: true
 
 modelSpecs:
   enforce: false
