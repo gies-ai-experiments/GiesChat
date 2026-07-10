@@ -228,8 +228,8 @@ const HoverButtons = ({
         dataTestId={!isCreatedByUser ? 'copy-response-button' : undefined}
       />
 
-      {/* Edit Button */}
-      {isEditableEndpoint && (
+      {/* Edit Button — user messages only; AI responses are not editable */}
+      {isEditableEndpoint && isCreatedByUser && (
         <HoverButton
           id={`edit-${message.messageId}`}
           onClick={onEdit}
