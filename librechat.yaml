@@ -5,6 +5,8 @@ interface:
   brainstormRooms: false
   memories: false
   prompts: false
+  parameters: false
+  bookmarks: false
   agents:
     use: true
     create: false
