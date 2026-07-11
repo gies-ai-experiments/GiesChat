@@ -621,17 +621,19 @@ function BifVignette() {
         <polygon points="424,280 476,280 462,262 438,262" fill="#f0cf9c" />
         <polygon points="424,228 438,242 438,262 424,280" fill="#ffdfae" />
         <polygon points="476,228 462,242 462,262 476,280" fill="#ffdfae" />
-        <rect x="438" y="242" width="24" height="20" fill="#fff6e2" />
-        <rect x="446" y="247" width="8" height="10" fill="#ffb668" opacity="0.55" />
-        <rect
-          x="438"
-          y="242"
-          width="24"
-          height="20"
-          fill="none"
-          stroke="#e8c48e"
-          strokeWidth="0.4"
-        />
+        <g className="lp-room-far">
+          <rect x="438" y="242" width="24" height="20" fill="#fff6e2" />
+          <rect x="446" y="247" width="8" height="10" fill="#ffb668" opacity="0.55" />
+          <rect
+            x="438"
+            y="242"
+            width="24"
+            height="20"
+            fill="none"
+            stroke="#e8c48e"
+            strokeWidth="0.4"
+          />
+        </g>
         <line x1="438" y1="262" x2="424" y2="280" stroke="#dcb87f" strokeWidth="0.4" />
         <line x1="462" y1="262" x2="476" y2="280" stroke="#dcb87f" strokeWidth="0.4" />
       </g>
@@ -760,11 +762,11 @@ function useEntryProgress() {
       const rect = el.getBoundingClientRect();
       const total = rect.height - window.innerHeight;
       const p = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-      const approach = Math.min(1, p / 0.55);
-      const through = Math.min(1, Math.max(0, (p - 0.75) / 0.25));
+      const approach = Math.min(1, p / 0.5);
+      const through = Math.min(1, Math.max(0, (p - 0.65) / 0.35));
       el.style.setProperty('--p', String(p));
       el.style.setProperty('--pa', String(approach * approach));
-      el.style.setProperty('--pd', String(Math.min(1, Math.max(0, (p - 0.55) / 0.25))));
+      el.style.setProperty('--pd', String(Math.min(1, Math.max(0, (p - 0.5) / 0.2))));
       el.style.setProperty('--pt', String(through * through));
     };
     const onScroll = () => {

@@ -278,7 +278,7 @@
 .lp-entry-stage svg {
   height: 100%;
   width: 100%;
-  transform: scale(calc(0.75 + var(--pa) * 7.8 + var(--pt) * 14));
+  transform: scale(calc(0.75 + var(--pa) * 7.8 + var(--pt) * 20));
   transform-origin: 50% 67.1%;
   will-change: transform;
 }
@@ -287,8 +287,14 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 60%, #fff3dc 0%, #ffd9a0 70%, #ffc07a 100%);
-  opacity: var(--pt);
+  opacity: calc(max(0, (var(--pt) - 0.45) * 1.9));
   pointer-events: none;
+}
+
+.lp-room-far {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(calc(1 - var(--pt) * 0.5));
 }
 
 .lp-entry-label {
@@ -493,7 +499,8 @@
   }
 
   .lp-door-left,
-  .lp-door-right {
+  .lp-door-right,
+  .lp-room-far {
     transform: none;
   }
 
