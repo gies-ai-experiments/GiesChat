@@ -23,6 +23,8 @@ const defaultMcpServerManager = {
 
 let mockCanUseMcp = true;
 let mockMcpServerManager = { ...defaultMcpServerManager };
+let mockConversation: Record<string, unknown> = { endpoint: 'openAI' };
+let mockAgentsMap: Record<string, { mcp_servers?: string[] }> = {};
 
 jest.mock('~/Providers', () => ({
   useBadgeRowContext: () => ({
@@ -30,6 +32,8 @@ jest.mock('~/Providers', () => ({
     storageContextKey: undefined,
     mcpServerManager: mockMcpServerManager,
   }),
+  useChatContext: () => ({ conversation: mockConversation }),
+  useAgentsMapContext: () => mockAgentsMap,
 }));
 
 jest.mock('~/hooks', () => ({
@@ -63,6 +67,8 @@ describe('MCPSelect', () => {
     jest.clearAllMocks();
     mockCanUseMcp = true;
     mockMcpServerManager = { ...defaultMcpServerManager };
+    mockConversation = { endpoint: 'openAI' };
+    mockAgentsMap = {};
   });
 
   it('renders the menu button', () => {
@@ -119,6 +125,34 @@ describe('MCPSelect', () => {
     await user.keyboard('{ArrowDown}');
     await user.keyboard('{ArrowDown}');
     expect(items[0]).toHaveFocus();
+  });
+
+  it("shows the active agent's attached MCP servers as selected and read-only", async () => {
+    const user = userEvent.setup();
+    mockConversation = { endpoint: 'agents', agent_id: 'agent_1' };
+    mockAgentsMap = { agent_1: { mcp_servers: ['server-a'] } };
+
+    render(<MCPSelect />);
+
+    expect(screen.getByRole('button', { name: /Server A/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Server A/i }));
+    const menu = screen.getByRole('menu', { name: /com_ui_mcp_servers/i });
+    expect(within(menu).getByText('com_ui_mcp_used_by_agent')).toBeInTheDocument();
+
+    const agentItem = within(menu).getByRole('menuitemcheckbox', { name: /Server A/i });
+    expect(agentItem).toHaveAttribute('aria-checked', 'true');
+    await user.click(agentItem);
+    expect(mockToggleServerSelection).not.toHaveBeenCalled();
+  });
+
+  it('shows agent-attached servers even when unpinned with no user selection', () => {
+    mockMcpServerManager = { ...defaultMcpServerManager, isPinned: false, mcpValues: [] };
+    mockConversation = { endpoint: 'agents', agent_id: 'agent_1' };
+    mockAgentsMap = { agent_1: { mcp_servers: ['server-b'] } };
+
+    render(<MCPSelect />);
+    expect(screen.getByRole('button', { name: /Server B/i })).toBeInTheDocument();
   });
 
   it('renders nothing when user lacks MCP access', () => {

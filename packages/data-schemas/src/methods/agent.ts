@@ -904,6 +904,7 @@ export function createAgentMethods(
       name: 1,
       avatar: 1,
       author: 1,
+      tools: 1,
       description: 1,
       updatedAt: 1,
       category: 1,
@@ -930,6 +931,19 @@ export function createAgentMethods(
         if (agent.author) {
           agent.author = (agent.author as Types.ObjectId).toString();
         }
+        /** Expose only the derived MCP server names; full tool ids stay editor-only */
+        if (Array.isArray(agent.tools)) {
+          const mcpServers = new Set<string>();
+          for (const tool of agent.tools as string[]) {
+            if (typeof tool === 'string' && tool.includes(mcp_delimiter)) {
+              mcpServers.add(tool.split(mcp_delimiter).pop() as string);
+            }
+          }
+          if (mcpServers.size > 0) {
+            agent.mcp_servers = Array.from(mcpServers);
+          }
+        }
+        delete agent.tools;
         return agent;
       },
     );

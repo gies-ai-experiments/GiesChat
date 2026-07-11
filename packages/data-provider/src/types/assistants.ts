@@ -274,6 +274,8 @@ export type Agent = {
   instructions?: string | null;
   additional_instructions?: string | null;
   tools?: string[];
+  /** MCP server names derived from `tools`, exposed on list responses for viewers */
+  mcp_servers?: string[];
   tool_kwargs?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   provider: AgentProvider;

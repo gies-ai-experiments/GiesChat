@@ -1,44 +1,58 @@
 import React, { memo, useMemo } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { ChevronDown } from 'lucide-react';
-import { PermissionTypes, Permissions } from 'librechat-data-provider';
+import { PermissionTypes, Permissions, isAgentsEndpoint } from 'librechat-data-provider';
 import { TooltipAnchor } from '@librechat/client';
+import type { MCPServerDefinition } from '~/hooks/MCP/useMCPServerManager';
 import MCPServerMenuItem from '~/components/MCP/MCPServerMenuItem';
 import MCPConfigDialog from '~/components/MCP/MCPConfigDialog';
 import StackedMCPIcons from '~/components/MCP/StackedMCPIcons';
+import { useBadgeRowContext, useChatContext, useAgentsMapContext } from '~/Providers';
 import { useHasAccess, useLocalize } from '~/hooks';
-import { useBadgeRowContext } from '~/Providers';
 import { cn } from '~/utils';
 
 function MCPSelectContent() {
   const localize = useLocalize();
   const context = useBadgeRowContext();
+  const { conversation } = useChatContext();
+  const agentsMap = useAgentsMapContext();
   const { conversationId, storageContextKey, mcpServerManager: manager } = context ?? {};
 
   const menuStore = Ariakit.useMenuStore({ focusLoop: true });
   const isOpen = menuStore.useState('open');
 
-  const selectedServers = useMemo(() => {
-    if (!manager?.mcpValues || manager.mcpValues.length === 0) {
+  /** Servers attached to the active agent — always in use during its runs, shown read-only */
+  const agentServers = useMemo(() => {
+    const agentId = isAgentsEndpoint(conversation?.endpoint) ? conversation?.agent_id : undefined;
+    if (!agentId) {
       return [];
     }
-    const selectedSet = new Set(manager.mcpValues);
-    return manager.selectableServers?.filter((s) => selectedSet.has(s.serverName));
-  }, [manager?.selectableServers, manager?.mcpValues]);
+    const serverNames = agentsMap?.[agentId]?.mcp_servers ?? [];
+    return serverNames
+      .map((name) => manager?.selectableServers?.find((s) => s.serverName === name))
+      .filter((s): s is MCPServerDefinition => s != null);
+  }, [conversation?.endpoint, conversation?.agent_id, agentsMap, manager?.selectableServers]);
+
+  const selectedServers = useMemo(() => {
+    const selectedSet = new Set(manager?.mcpValues ?? []);
+    const agentNames = new Set(agentServers.map((s) => s.serverName));
+    const userSelected =
+      manager?.selectableServers?.filter(
+        (s) => selectedSet.has(s.serverName) && !agentNames.has(s.serverName),
+      ) ?? [];
+    return [...agentServers, ...userSelected];
+  }, [manager?.selectableServers, manager?.mcpValues, agentServers]);
 
   const displayText = useMemo(() => {
-    const selectedCount = manager?.mcpValues?.length ?? 0;
-    if (selectedCount === 0) {
+    if (selectedServers.length === 0) {
       return null;
     }
-    if (selectedCount === 1) {
-      const server = manager?.selectableServers?.find(
-        (s) => s.serverName === manager?.mcpValues?.[0],
-      );
-      return server?.config?.title || manager?.mcpValues?.[0];
+    if (selectedServers.length === 1) {
+      const server = selectedServers[0];
+      return server.config?.title || server.serverName;
     }
-    return localize('com_ui_x_selected', { 0: selectedCount });
-  }, [manager?.selectableServers, manager?.mcpValues, localize]);
+    return localize('com_ui_x_selected', { 0: selectedServers.length });
+  }, [selectedServers, localize]);
 
   if (!manager) {
     return null;
@@ -56,7 +70,7 @@ function MCPSelectContent() {
     getServerStatusIconProps,
   } = manager;
 
-  if (!isPinned && mcpValues?.length === 0) {
+  if (!isPinned && selectedServers.length === 0) {
     return null;
   }
 
@@ -108,17 +122,38 @@ function MCPSelectContent() {
           )}
         >
           <div className="flex max-h-[320px] flex-col gap-1 overflow-y-auto">
-            {selectableServers.map((server) => (
-              <MCPServerMenuItem
-                key={server.serverName}
-                server={server}
-                isSelected={mcpValues?.includes(server.serverName) ?? false}
-                connectionStatus={connectionStatus}
-                isInitializing={isInitializing}
-                statusIconProps={getServerStatusIconProps(server.serverName)}
-                onToggle={toggleServerSelection}
-              />
-            ))}
+            {agentServers.length > 0 && (
+              <>
+                <div className="px-2.5 pb-1 pt-1.5 text-xs font-medium text-text-secondary">
+                  {localize('com_ui_mcp_used_by_agent')}
+                </div>
+                {agentServers.map((server) => (
+                  <MCPServerMenuItem
+                    key={`agent-${server.serverName}`}
+                    server={server}
+                    isSelected={true}
+                    connectionStatus={connectionStatus}
+                    isInitializing={isInitializing}
+                    statusIconProps={getServerStatusIconProps(server.serverName)}
+                    onToggle={() => {}}
+                  />
+                ))}
+                <div className="my-1 h-px bg-border-light" aria-hidden="true" />
+              </>
+            )}
+            {selectableServers
+              .filter((server) => !agentServers.some((s) => s.serverName === server.serverName))
+              .map((server) => (
+                <MCPServerMenuItem
+                  key={server.serverName}
+                  server={server}
+                  isSelected={mcpValues?.includes(server.serverName) ?? false}
+                  connectionStatus={connectionStatus}
+                  isInitializing={isInitializing}
+                  statusIconProps={getServerStatusIconProps(server.serverName)}
+                  onToggle={toggleServerSelection}
+                />
+              ))}
           </div>
         </Ariakit.Menu>
       </Ariakit.MenuProvider>
