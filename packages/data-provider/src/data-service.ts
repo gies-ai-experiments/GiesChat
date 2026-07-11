@@ -115,6 +115,10 @@ export function startRoomBuild(
   return request.post(endpoints.roomBuild(roomId), payload);
 }
 
+export function getReplitBuildStatus(replId: string): Promise<rooms.TReplitBuildStatus> {
+  return request.get(endpoints.replitBuildStatus(replId));
+}
+
 export function attachRoomFile(roomId: string, fileId: string): Promise<rooms.TRoom> {
   return request.post(endpoints.roomFiles(roomId), { fileId });
 }

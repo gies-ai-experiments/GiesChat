@@ -90,6 +90,9 @@ export const roomBuildDraft = (roomId: string) => `${room(roomId)}/build/draft`;
 export const roomBuild = (roomId: string) => `${room(roomId)}/build`;
 export const roomPromptDraft = () => `${roomsRoot}/prompt/draft`;
 
+export const replitBuildStatus = (replId: string) =>
+  `${BASE_URL}/api/replit/build-status?replId=${encodeURIComponent(replId)}`;
+
 const shareRoot = `${BASE_URL}/api/share`;
 export const shareMessages = (shareId: string) => `${shareRoot}/${shareId}`;
 export const forkSharedMessages = (shareId: string) => `${shareRoot}/${shareId}/fork`;

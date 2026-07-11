@@ -183,7 +183,7 @@ export const releaseBuildLock = (roomId: string): void => {
   buildLocks.delete(roomId);
 };
 
-const PREVIEW_QUESTION =
+export const PREVIEW_QUESTION: string =
   'Is the initial build finished? What is the live preview URL of this app — the ' +
   'https://....replit.dev URL where the running app can be viewed? Reply with the build ' +
   'status and the exact URL.';

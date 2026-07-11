@@ -148,3 +148,11 @@ export type TStartRoomBuildRequest = {
   prompt: string;
   stackType: TRoomBuildStackType;
 };
+
+export type TReplitBuildState = 'building' | 'ready' | 'error';
+
+export type TReplitBuildStatus = {
+  status: TReplitBuildState;
+  url?: string;
+  detail?: string;
+};

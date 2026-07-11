@@ -31,6 +31,7 @@ const oauth = require('./oauth');
 const files = require('./files');
 const share = require('./share');
 const rooms = require('./rooms');
+const replit = require('./replit');
 const tags = require('./tags');
 const auth = require('./auth');
 const keys = require('./keys');
@@ -61,6 +62,7 @@ module.exports = {
   files,
   share,
   rooms,
+  replit,
   banner,
   agents,
   convos,

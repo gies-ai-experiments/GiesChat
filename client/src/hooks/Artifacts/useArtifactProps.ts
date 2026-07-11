@@ -11,6 +11,7 @@ import {
   wrapAsFencedCodeBlock,
   TOOL_ARTIFACT_TYPES,
   EXTERNAL_URL_FILE_KEY,
+  REPLIT_BUILD_FILE_KEY,
 } from '~/utils/artifacts';
 import { getMarkdownFiles } from '~/utils/markdown';
 import { getMermaidFiles } from '~/utils/mermaid';
@@ -48,6 +49,10 @@ export default function useArtifactProps({ artifact }: { artifact: Artifact }) {
 
     if (type === TOOL_ARTIFACT_TYPES.EXTERNAL_URL) {
       return [EXTERNAL_URL_FILE_KEY, { [EXTERNAL_URL_FILE_KEY]: artifact.content ?? '' }];
+    }
+
+    if (type === TOOL_ARTIFACT_TYPES.REPLIT_BUILD) {
+      return [REPLIT_BUILD_FILE_KEY, { [REPLIT_BUILD_FILE_KEY]: artifact.content ?? '' }];
     }
 
     /* Office preview buckets (DOCX/SPREADSHEET/PRESENTATION): the backend
