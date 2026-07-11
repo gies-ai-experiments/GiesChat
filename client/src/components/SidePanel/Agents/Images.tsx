@@ -59,11 +59,13 @@ export const AgentAvatarRender = ({ url }: { url?: string }) => {
 export function AvatarMenu({
   trigger,
   handleFileChange,
+  onChooseIcon,
   onReset,
   canReset,
 }: {
   trigger: ReactElement;
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChooseIcon: () => void;
   onReset: () => void;
   canReset: boolean;
 }) {
@@ -85,6 +87,11 @@ export function AvatarMenu({
       id: 'upload-avatar',
       label: uploadLabel,
       onClick: () => onItemClick(),
+    },
+    {
+      id: 'choose-icon-avatar',
+      label: localize('com_ui_choose_icon'),
+      onClick: () => onChooseIcon(),
     },
   ];
 

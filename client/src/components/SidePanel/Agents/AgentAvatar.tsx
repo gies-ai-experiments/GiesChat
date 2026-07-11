@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { useToastContext } from '@librechat/client';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { mergeFileConfig, fileConfig as defaultFileConfig } from 'librechat-data-provider';
@@ -6,6 +6,7 @@ import type { AgentAvatar } from 'librechat-data-provider';
 import type { AgentForm } from '~/common';
 import { AgentAvatarRender, NoImage, AvatarMenu } from './Images';
 import { useGetFileConfig } from '~/data-provider';
+import IconPicker from './IconPicker';
 import { useLocalize } from '~/hooks';
 
 function Avatar({ avatar }: { avatar: AgentAvatar | null }) {
@@ -35,14 +36,11 @@ function Avatar({ avatar }: { avatar: AgentAvatar | null }) {
     }
   }, [avatar?.filepath, avatarAction, avatarPreview, setValue]);
 
-  const handleFileChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      const sizeLimit = fileConfig.avatarSizeLimit ?? 0;
+  const [showIconPicker, setShowIconPicker] = useState(false);
 
-      if (!file) {
-        return;
-      }
+  const applyFile = useCallback(
+    (file: File) => {
+      const sizeLimit = fileConfig.avatarSizeLimit ?? 0;
 
       if (sizeLimit && file.size > sizeLimit) {
         const limitInMb = sizeLimit / (1024 * 1024);
@@ -65,6 +63,17 @@ function Avatar({ avatar }: { avatar: AgentAvatar | null }) {
       reader.readAsDataURL(file);
     },
     [fileConfig.avatarSizeLimit, localize, setValue, showToast],
+  );
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      applyFile(file);
+    },
+    [applyFile],
   );
 
   const handleReset = useCallback(() => {
@@ -91,10 +100,14 @@ function Avatar({ avatar }: { avatar: AgentAvatar | null }) {
             </button>
           }
           handleFileChange={handleFileChange}
+          onChooseIcon={() => setShowIconPicker(true)}
           onReset={handleReset}
           canReset={canReset}
         />
       </div>
+      {showIconPicker && (
+        <IconPicker onClose={() => setShowIconPicker(false)} onApply={applyFile} />
+      )}
     </>
   );
 }
