@@ -42,6 +42,7 @@ mcpServers:
       UV_TOOL_DIR: /tmp/uv-tools
     title: Canvas MCP
     description: Connect your Illinois Canvas account with your Canvas access token.
+    iconPath: "/assets/mcp-canvas.png"
     timeout: 30000
     customUserVars:
       CANVAS_API_TOKEN:
@@ -53,6 +54,7 @@ mcpServers:
     url: https://replit-mcp.com/server/mcp
     title: Replit
     description: Build live apps with Replit Agent using your own Replit account.
+    iconPath: "/assets/mcp-replit.svg"
     timeout: 120000
     initTimeout: 60000
     serverInstructions: |
@@ -75,6 +77,7 @@ mcpServers:
     url: https://mcp.granola.ai/mcp
     title: Granola
     description: Connect your Granola account to bring your meeting notes, transcripts, and summaries into GiesChat (read-only).
+    iconPath: "/assets/mcp-granola.png"
     timeout: 60000
     initTimeout: 60000
     serverInstructions: |
@@ -87,6 +90,7 @@ mcpServers:
     url: https://ms365-mcp.azurewebsites.net/mcp
     title: Microsoft 365 Outlook
     description: "STUDENTS ONLY: faculty and staff accounts cannot connect yet. Connect your Illinois Microsoft 365 Outlook account for read-only email, calendar, and contacts access."
+    iconPath: "/assets/mcp-outlook.png"
     timeout: 60000
     initTimeout: 60000
     serverInstructions: |
