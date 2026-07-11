@@ -66,6 +66,11 @@ const loadBrainstormCreate = () =>
     Component: m.default,
   }));
 
+const loadWelcome = () =>
+  import('~/components/Landing/Welcome').then((m) => ({
+    Component: m.default,
+  }));
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -74,6 +79,11 @@ export const router = createBrowserRouter(
     {
       path: 'share/:shareId',
       element: <ShareRoute />,
+      errorElement: <RouteErrorBoundary />,
+    },
+    {
+      path: 'welcome',
+      lazy: loadWelcome,
       errorElement: <RouteErrorBoundary />,
     },
     {
