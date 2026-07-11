@@ -404,10 +404,9 @@ describe('getOpenAIConfig', () => {
     expect(result.tools).toEqual([{ type: 'web_search' }]);
   });
 
-  it('should handle web_search from addParams overriding modelOptions', () => {
+  it('should apply web_search from addParams when modelOptions does not specify it', () => {
     const modelOptions = {
       model: 'gpt-5',
-      web_search: false,
     };
 
     const addParams = {
@@ -422,6 +421,22 @@ describe('getOpenAIConfig', () => {
     // web_search should not be in modelKwargs or llmConfig
     expect((result.llmConfig as Record<string, unknown>).web_search).toBeUndefined();
     expect(result.llmConfig.modelKwargs).toEqual({ customParam: 'value' });
+  });
+
+  it('should let an explicit modelOptions web_search override addParams', () => {
+    const modelOptions = {
+      model: 'gpt-5',
+      web_search: false,
+    };
+
+    const addParams = {
+      web_search: true,
+    };
+
+    const result = getOpenAIConfig(mockApiKey, { modelOptions, addParams });
+
+    expect(result.llmConfig.useResponsesApi).toBeUndefined();
+    expect(result.tools).toEqual([]);
   });
 
   it('should disable web_search when included in dropParams', () => {
@@ -439,10 +454,25 @@ describe('getOpenAIConfig', () => {
     expect(result.tools).toEqual([]);
   });
 
-  it('should handle web_search false from addParams', () => {
+  it('should keep an explicit modelOptions web_search enabled despite addParams false', () => {
     const modelOptions = {
       model: 'gpt-5',
       web_search: true,
+    };
+
+    const addParams = {
+      web_search: false,
+    };
+
+    const result = getOpenAIConfig(mockApiKey, { modelOptions, addParams });
+
+    expect(result.llmConfig.useResponsesApi).toBe(true);
+    expect(result.tools).toEqual([{ type: 'web_search' }]);
+  });
+
+  it('should handle web_search false from addParams when modelOptions does not specify it', () => {
+    const modelOptions = {
+      model: 'gpt-5',
     };
 
     const addParams = {

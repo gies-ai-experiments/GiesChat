@@ -10,6 +10,7 @@ import {
   QueryKeys,
   dataService,
   getEndpointField,
+  supportsNativeWebSearch,
 } from 'librechat-data-provider';
 import type { AgentForm, IconComponentTypes } from '~/common';
 import { removeFocusOutlines, processAgentOption, defaultTextProps, getIconKey, cn } from '~/utils';
@@ -355,7 +356,11 @@ export default function AgentConfig() {
             {/* Code Execution */}
             {codeEnabled && <CodeForm agent_id={agent_id} files={code_files} />}
             {/* Web Search */}
-            {webSearchEnabled && <SearchForm />}
+            {webSearchEnabled && (
+              <SearchForm
+                nativeSearch={supportsNativeWebSearch(endpointType ?? (providerValue as string))}
+              />
+            )}
             {/* File Context */}
             {contextEnabled && <FileContext agent_id={agent_id} files={context_files} />}
             {/* File Search */}

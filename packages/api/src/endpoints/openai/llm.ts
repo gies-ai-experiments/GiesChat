@@ -554,7 +554,8 @@ export function getOpenAILLMConfig({
   if (addParams && typeof addParams === 'object') {
     for (const [key, value] of Object.entries(addParams)) {
       if (key === 'web_search') {
-        if (typeof value === 'boolean') {
+        /** An explicit request-level `web_search` (per-agent toggle) wins; addParams still overrides defaultParams */
+        if (web_search === undefined && typeof value === 'boolean') {
           enableWebSearch = value;
         }
         continue;

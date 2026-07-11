@@ -79,6 +79,23 @@ export const isOpenAILikeProvider = (provider?: string | null): boolean => {
   return openAILikeProviders.has(provider ?? '');
 };
 
+const nonNativeWebSearchProviders = new Set<string>([
+  EModelEndpoint.anthropic,
+  EModelEndpoint.google,
+  EModelEndpoint.bedrock,
+  Providers.VERTEXAI,
+]);
+
+/**
+ * Whether the provider/endpoint type supports OpenAI's native `web_search` request
+ * parameter (Responses API), so the agent web search toggle works without
+ * LibreChat's search-provider (Serper/Firecrawl) stack.
+ */
+export const supportsNativeWebSearch = (endpointOrType?: string | null): boolean =>
+  endpointOrType != null &&
+  endpointOrType !== '' &&
+  !nonNativeWebSearchProviders.has(endpointOrType);
+
 /**
  * Providers whose `usage_metadata.input_tokens` ALREADY INCLUDES cached tokens
  * (`input_token_details.cache_*` is a subset, not an additional charge):

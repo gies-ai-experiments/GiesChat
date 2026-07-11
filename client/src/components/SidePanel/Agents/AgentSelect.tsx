@@ -73,6 +73,10 @@ function AgentSelect({
         agentTools.push(tool);
       });
 
+      if (fullAgent.model_parameters?.web_search === true) {
+        capabilities[AgentCapabilities.web_search] = true;
+      }
+
       const formValues: Partial<AgentForm & TAgentCapabilities> = {
         ...capabilities,
         agent: update,

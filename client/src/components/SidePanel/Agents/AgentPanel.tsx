@@ -9,7 +9,9 @@ import {
   ResourceType,
   EModelEndpoint,
   PermissionBits,
+  getEndpointField,
   isAssistantsEndpoint,
+  supportsNativeWebSearch,
 } from 'librechat-data-provider';
 import type { FieldNamesMarkedBoolean } from 'react-hook-form';
 import type { Agent } from 'librechat-data-provider';
@@ -417,14 +419,33 @@ export default function AgentPanel() {
       if (data.file_search === true) {
         tools.push(Tools.file_search);
       }
-      if (data.web_search === true) {
-        tools.push(Tools.web_search);
-      }
       if (data.memory === true) {
         tools.push(Tools.memory);
       }
 
-      const { payload: basePayload, provider, model } = composeAgentUpdatePayload(data, agent_id);
+      const {
+        payload: composedPayload,
+        provider,
+        model,
+      } = composeAgentUpdatePayload(data, agent_id);
+
+      /** OpenAI-family providers use the native `web_search` request param instead of
+       *  LibreChat's search-provider tool, so the toggle works without Serper/Firecrawl keys */
+      const nativeWebSearch = supportsNativeWebSearch(
+        getEndpointField(endpointsConfig, provider, 'type') ?? provider,
+      );
+      if (!nativeWebSearch && data.web_search === true) {
+        tools.push(Tools.web_search);
+      }
+      const basePayload = nativeWebSearch
+        ? {
+            ...composedPayload,
+            model_parameters: {
+              ...composedPayload.model_parameters,
+              web_search: data.web_search === true,
+            },
+          }
+        : composedPayload;
 
       if (agent_id) {
         if (data.avatar_action === 'upload' && isAvatarUploadOnlyDirty(dirtyFields)) {
@@ -464,7 +485,16 @@ export default function AgentPanel() {
 
       create.mutate({ ...basePayload, model, tools, provider });
     },
-    [agent_id, create, dirtyFields, handleAvatarUpload, update, showToast, localize],
+    [
+      agent_id,
+      create,
+      dirtyFields,
+      endpointsConfig,
+      handleAvatarUpload,
+      update,
+      showToast,
+      localize,
+    ],
   );
 
   const handleSelectAgent = useCallback(() => {
