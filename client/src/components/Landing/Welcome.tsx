@@ -49,6 +49,10 @@ const CITY_CLUSTERS: Cluster[] = [
   [1060, 748, 8, 28],
   [860, 760, 8, 30],
   [795, 742, 4, 12],
+  [520, 640, 6, 24],
+  [340, 700, 8, 30],
+  [760, 700, 6, 24],
+  [1000, 690, 6, 26],
 ];
 
 const SPHERE_CX = 600;
@@ -70,7 +74,7 @@ function scatter(seed: number, clusters: Cluster[]): StarSpec[] {
       const x = cx + (rand() + rand() - 1) * spread;
       const y = cy + (rand() + rand() - 1) * spread * 0.6;
       if (y >= sphereEdgeY(x) + 8) {
-        dots.push([x, y, 0.5 + rand() * 0.9, 0.25 + rand() * 0.6]);
+        dots.push([x, y, 0.6 + rand() * 1.0, 0.35 + rand() * 0.6]);
       }
     }
   });
@@ -195,13 +199,13 @@ function OrbitScene() {
     >
       <defs>
         <radialGradient id="lpSphere" cx="50%" cy="8%" r="95%">
-          <stop offset="0%" stopColor="#16305a" />
-          <stop offset="30%" stopColor="#102341" />
-          <stop offset="55%" stopColor="#0b1830" />
-          <stop offset="100%" stopColor="#071020" />
+          <stop offset="0%" stopColor="#1b3a69" />
+          <stop offset="30%" stopColor="#142b4e" />
+          <stop offset="55%" stopColor="#0d1d39" />
+          <stop offset="100%" stopColor="#081426" />
         </radialGradient>
         <radialGradient id="lpGlow">
-          <stop offset="0%" stopColor="#ff8a4d" stopOpacity="0.22" />
+          <stop offset="0%" stopColor="#ff8a4d" stopOpacity="0.3" />
           <stop offset="100%" stopColor="#ff8a4d" stopOpacity="0" />
         </radialGradient>
         <filter id="lpBlur">
@@ -216,7 +220,7 @@ function OrbitScene() {
         </filter>
         <linearGradient id="lpNight" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#060b14" stopOpacity="0" />
-          <stop offset="100%" stopColor="#060b14" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#060b14" stopOpacity="0.4" />
         </linearGradient>
         <clipPath id="lpSphereClip">
           <circle cx={SPHERE_CX} cy={SPHERE_CY} r={SPHERE_R} />
@@ -475,10 +479,14 @@ function bifPanes(): Pane[] {
 const BIF_PANES = bifPanes();
 
 const BIF_CARS: Array<[x: number, flip: boolean, lit: boolean]> = [
+  [60, false, false],
   [150, false, true],
   [262, false, false],
+  [320, false, true],
   [645, true, true],
+  [715, true, false],
   [800, true, false],
+  [860, true, true],
 ];
 
 function BifVignette() {
@@ -504,21 +512,55 @@ function BifVignette() {
         filter="url(#lpBifBlur)"
       />
       <rect x="130" y="150" width="158" height="130" fill="#0c1830" />
-      <rect x="612" y="128" width="170" height="152" fill="#0d1a33" />
       {[
         [160, 180],
         [204, 180],
         [248, 180],
         [160, 224],
         [248, 224],
-        [648, 160],
-        [700, 160],
-        [744, 196],
-        [648, 232],
-        [700, 232],
       ].map(([x, y]) => (
         <rect key={`${x}-${y}`} x={x} y={y} width="14" height="18" fill="#ffb27a" opacity="0.18" />
       ))}
+      <g>
+        <rect x="668" y="92" width="64" height="78" fill="#0c141f" />
+        <rect x="668" y="170" width="64" height="110" fill="#243049" />
+        <rect x="612" y="100" width="56" height="180" fill="#3a211b" />
+        <rect x="732" y="104" width="68" height="176" fill="#3a211b" />
+        {[620, 636, 652].map((x) => (
+          <rect key={x} x={x} y="112" width="8" height="160" fill="#0a0f18" />
+        ))}
+        {[742, 760, 778].map((x) => (
+          <rect key={x} x={x} y="116" width="8" height="156" fill="#0a0f18" />
+        ))}
+        {[
+          [620, 148],
+          [636, 204],
+          [652, 120],
+          [742, 132],
+          [760, 236],
+          [778, 168],
+          [742, 204],
+        ].map(([x, y]) => (
+          <rect key={`${x}-${y}`} x={x} y={y} width="8" height="13" fill="#ffb27a" opacity="0.5" />
+        ))}
+        <rect x="676" y="112" width="48" height="10" fill="#0a0f18" />
+        <rect x="676" y="134" width="48" height="10" fill="#0a0f18" />
+        <rect x="690" y="134" width="12" height="10" fill="#ffb27a" opacity="0.35" />
+        <rect x="676" y="196" width="48" height="12" fill="#0a0f18" />
+        <rect x="704" y="196" width="14" height="12" fill="#ffb27a" opacity="0.3" />
+        <rect x="682" y="232" width="36" height="48" fill="#ffd9a0" opacity="0.45" />
+        <rect x="693" y="232" width="1.5" height="48" fill="#0c141f" />
+        <rect x="705" y="232" width="1.5" height="48" fill="#0c141f" />
+        <ellipse
+          cx="700"
+          cy="290"
+          rx="55"
+          ry="9"
+          fill="#ff8a4d"
+          opacity="0.12"
+          filter="url(#lpBifBlur)"
+        />
+      </g>
       <rect x="300" y="92" width="300" height="188" fill="#1a0f04" />
       <g>
         {BIF_PANES.map(([x, y, opacity], i) => (
