@@ -360,26 +360,56 @@ function TutorsVignette() {
 function RoomsVignette() {
   return (
     <svg viewBox="0 0 360 220" className="w-full" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="lpBulbGlow">
+          <stop offset="0%" stopColor="#ff8a4d" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#ff8a4d" stopOpacity="0" />
+        </radialGradient>
+      </defs>
       <path
         className="lp-vpath"
         pathLength={1}
-        d="M 90 150 L 150 70 L 240 60 L 290 140 L 190 170 Z M 150 70 L 190 170"
+        d="M 70 172 L 180 118 M 140 192 L 180 118 M 230 188 L 180 118 M 300 168 L 180 118"
         fill="none"
         stroke="#ff5f05"
         strokeOpacity="0.25"
         strokeWidth="0.8"
       />
       {[
-        [90, 150],
-        [150, 70],
-        [290, 140],
-        [190, 170],
+        [70, 172],
+        [140, 192],
+        [230, 188],
+        [300, 168],
       ].map(([x, y]) => (
         <circle key={`${x}-${y}`} cx={x} cy={y} r="4" fill="#edf1f7" />
       ))}
       <g className="lp-vdot">
-        <circle cx="240" cy="60" r="11" fill="#ff8a4d" opacity="0.15" />
-        <circle cx="240" cy="60" r="5" fill="#ff5f05" />
+        <circle cx="180" cy="92" r="48" fill="url(#lpBulbGlow)" />
+        <g stroke="#ff5f05" strokeWidth="1.4" opacity="0.6">
+          <path d="M 180 44 V 32" />
+          <path d="M 137 52 L 129 44" />
+          <path d="M 223 52 L 231 44" />
+          <path d="M 128 92 H 116" />
+          <path d="M 232 92 H 244" />
+        </g>
+        <circle
+          cx="180"
+          cy="92"
+          r="26"
+          fill="#13294b"
+          stroke="#8fb1de"
+          strokeOpacity="0.8"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M 174 102 L 174 94 Q 177 88 180 94 Q 183 88 186 94 L 186 102"
+          fill="none"
+          stroke="#ff5f05"
+          strokeWidth="1.6"
+        />
+        <rect x="172" y="116" width="16" height="3" rx="1.5" fill="#8b98ac" opacity="0.7" />
+        <rect x="172" y="121" width="16" height="3" rx="1.5" fill="#8b98ac" opacity="0.7" />
+        <rect x="176" y="126" width="8" height="3" rx="1.5" fill="#8b98ac" opacity="0.5" />
       </g>
     </svg>
   );
