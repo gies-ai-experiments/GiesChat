@@ -17,6 +17,7 @@ import { ChatContext, AddedChatContext, ChatFormProvider, useFileMapContext } fr
 import ConversationStarters from './Input/ConversationStarters';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import ProjectLandingChip from './ProjectLandingChip';
+import CareerIntake from './CareerIntake';
 import MessagesView from './Messages/MessagesView';
 import Presentation from './Presentation';
 import ChatForm from './Input/ChatForm';
@@ -102,6 +103,7 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
           <Presentation>
             <div className="relative flex h-full w-full flex-col">
               <Header />
+              <CareerIntake />
               <>
                 <div
                   className={cn(
