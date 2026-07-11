@@ -339,23 +339,52 @@ function OrbitScene() {
 function TutorsVignette() {
   return (
     <svg viewBox="0 0 360 220" className="w-full" aria-hidden="true" focusable="false">
-      <circle cx="180" cy="110" r="34" fill="#13294b" stroke="#5b82b8" strokeOpacity="0.4" />
-      <g transform="rotate(-12 180 110)">
-        <ellipse
-          className="lp-vpath"
-          pathLength={1}
-          cx="180"
-          cy="110"
-          rx="130"
-          ry="52"
-          fill="none"
-          stroke="#8b98ac"
-          strokeOpacity="0.35"
-        />
-        <g className="lp-vdot">
-          <circle cx="286" cy="80" r="10" fill="#ff8a4d" opacity="0.15" />
-          <circle cx="286" cy="80" r="4.5" fill="#ff5f05" />
-        </g>
+      <defs>
+        <radialGradient id="lpBookGlow">
+          <stop offset="0%" stopColor="#ff8a4d" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#ff8a4d" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="180" cy="126" rx="120" ry="46" fill="url(#lpBookGlow)" />
+      <path
+        className="lp-vpath"
+        pathLength={1}
+        d="M 180 96 C 156 86, 118 86, 94 96 L 94 146 C 118 136, 156 136, 180 146 Z"
+        fill="#13294b"
+        stroke="#8fb1de"
+        strokeOpacity="0.8"
+        strokeWidth="1.2"
+      />
+      <path
+        className="lp-vpath"
+        pathLength={1}
+        d="M 180 96 C 204 86, 242 86, 266 96 L 266 146 C 242 136, 204 136, 180 146 Z"
+        fill="#13294b"
+        stroke="#8fb1de"
+        strokeOpacity="0.8"
+        strokeWidth="1.2"
+      />
+      <g fill="none" stroke="#8b98ac" strokeOpacity="0.35" strokeWidth="1">
+        <path d="M 104 108 C 128 100, 152 100, 170 106" />
+        <path d="M 104 120 C 128 112, 152 112, 170 118" />
+        <path d="M 104 132 C 128 124, 152 124, 170 130" />
+        <path d="M 190 106 C 208 100, 232 100, 256 108" />
+        <path d="M 190 118 C 208 112, 232 112, 256 120" />
+        <path d="M 190 130 C 208 124, 232 124, 256 132" />
+      </g>
+      <g className="lp-vdot">
+        <path d="M 180 96 L 180 146" stroke="#ff5f05" strokeWidth="1.6" />
+        <path d="M 180 96 L 180 146" stroke="#ff8a4d" strokeWidth="4" opacity="0.25" />
+        {[
+          [150, 66, 2.2],
+          [185, 50, 2.8],
+          [217, 68, 2.0],
+        ].map(([x, y, r]) => (
+          <g key={`${x}-${y}`}>
+            <circle cx={x} cy={y} r={r * 3} fill="#ff8a4d" opacity="0.15" />
+            <circle cx={x} cy={y} r={r} fill="#ff5f05" />
+          </g>
+        ))}
       </g>
     </svg>
   );
