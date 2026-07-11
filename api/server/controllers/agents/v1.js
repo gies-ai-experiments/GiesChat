@@ -1025,6 +1025,14 @@ const getListAgentsHandler = async (req, res) => {
       resourceType: ResourceType.AGENT,
       requiredPermissions: PermissionBits.VIEW,
     });
+    const publicSet = new Set(publiclyAccessibleIds.map((oid) => oid.toString()));
+
+    /** `public=1` scopes marketplace browsing to published agents only,
+     *  so personal creations appear solely under the "My GPTs" view */
+    const scopedIds =
+      req.query.public === '1'
+        ? accessibleIds.filter((oid) => publicSet.has(oid.toString()))
+        : accessibleIds;
 
     /**
      * Refresh all S3 avatars for this user's accessible agent set (not only the current page)
@@ -1060,7 +1068,7 @@ const getListAgentsHandler = async (req, res) => {
 
     // Use the new ACL-aware function
     const data = await db.getListAgentsByAccess({
-      accessibleIds,
+      accessibleIds: scopedIds,
       otherParams: filter,
       limit,
       after: cursor,
@@ -1083,7 +1091,6 @@ const getListAgentsHandler = async (req, res) => {
       accessibleSkillSet = new Set(accessibleSkillIds.map((oid) => oid.toString()));
     }
 
-    const publicSet = new Set(publiclyAccessibleIds.map((oid) => oid.toString()));
     const agentsWithContacts = await attachOwnerContacts(agents);
 
     const urlCache = cachedRefresh?.urlCache;

@@ -43,10 +43,16 @@ const AgentGrid: React.FC<AgentGridProps> = ({
       search?: string;
       limit: number;
       promoted?: 0 | 1;
+      public?: 0 | 1;
     } = {
       requiredPermission: isMyAgents ? PermissionBits.EDIT : PermissionBits.VIEW,
       limit: 6,
     };
+
+    /** Marketplace tabs only surface published agents; personal creations live under "My GPTs" */
+    if (!isMyAgents) {
+      params.public = 1;
+    }
 
     // Handle search
     if (searchQuery) {

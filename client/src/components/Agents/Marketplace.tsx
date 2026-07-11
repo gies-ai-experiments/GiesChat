@@ -69,21 +69,10 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
 
   const [showCreateAgent, setShowCreateAgent] = useState(false);
 
-  const categories = useMemo<t.TMarketplaceCategory[]>(() => {
-    const base = categoriesQuery.data ?? [];
-    if (!hasAccessToCreateAgents) {
-      return base;
-    }
-    return [
-      ...base,
-      {
-        value: MY_AGENTS_CATEGORY,
-        label: 'com_agents_my_agents',
-        description: 'com_agents_my_agents_description',
-        count: 0,
-      },
-    ];
-  }, [categoriesQuery.data, hasAccessToCreateAgents]);
+  const categories = useMemo<t.TMarketplaceCategory[]>(
+    () => categoriesQuery.data ?? [],
+    [categoriesQuery.data],
+  );
 
   // Handle initial category when on /agents without a category
   useEffect(() => {
@@ -230,7 +219,30 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
             {/* Hero Section - scrolls away */}
             {!isSmallScreen && (
               <div className="container mx-auto max-w-4xl">
-                <div className={cn('mb-8 text-center', 'mt-12')}>
+                {hasAccessToCreateAgents && (
+                  <div className="mt-4 flex items-center justify-end gap-2 px-4">
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-border-medium font-medium"
+                      onClick={() => handleTabChange(MY_AGENTS_CATEGORY)}
+                      aria-label={localize('com_agents_my_agents')}
+                      data-testid="marketplace-my-gpts-button"
+                    >
+                      {localize('com_agents_my_agents')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-border-medium font-medium"
+                      onClick={() => setShowCreateAgent(true)}
+                      aria-label={localize('com_agents_create')}
+                      data-testid="marketplace-create-agent-button"
+                    >
+                      <Plus className="icon-md" aria-hidden="true" />
+                      {localize('com_agents_create')}
+                    </Button>
+                  </div>
+                )}
+                <div className={cn('mb-8 text-center', hasAccessToCreateAgents ? 'mt-2' : 'mt-12')}>
                   <h1 className="mb-3 text-3xl font-bold tracking-tight text-text-primary md:text-5xl">
                     {localize('com_agents_marketplace')}
                   </h1>
@@ -246,24 +258,36 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                 {isSmallScreen ? (
                   <div className="mx-auto mb-3 flex max-w-2xl items-center justify-between gap-2">
                     <OpenSidebar />
-                    <MarketplaceAdminSettings compact />
+                    <div className="flex items-center gap-2">
+                      {hasAccessToCreateAgents && (
+                        <>
+                          <Button
+                            variant="outline"
+                            className="h-9 rounded-xl border-border-medium px-3 font-medium"
+                            onClick={() => handleTabChange(MY_AGENTS_CATEGORY)}
+                            aria-label={localize('com_agents_my_agents')}
+                            data-testid="marketplace-my-gpts-button"
+                          >
+                            {localize('com_agents_my_agents')}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-9 rounded-xl border-border-medium px-3 font-medium"
+                            onClick={() => setShowCreateAgent(true)}
+                            aria-label={localize('com_agents_create')}
+                            data-testid="marketplace-create-agent-button"
+                          >
+                            <Plus className="icon-md" aria-hidden="true" />
+                          </Button>
+                        </>
+                      )}
+                      <MarketplaceAdminSettings compact />
+                    </div>
                   </div>
                 ) : null}
                 {/* Search bar */}
                 <div className="mx-auto flex max-w-2xl gap-2 pb-6">
                   <SearchBar value={searchQuery} onSearch={handleSearch} />
-                  {hasAccessToCreateAgents && (
-                    <Button
-                      variant="outline"
-                      className="relative h-12 rounded-xl border-border-medium font-medium"
-                      onClick={() => setShowCreateAgent(true)}
-                      aria-label={localize('com_agents_create')}
-                      data-testid="marketplace-create-agent-button"
-                    >
-                      <Plus className="icon-md" aria-hidden="true" />
-                      {!isSmallScreen && localize('com_agents_create')}
-                    </Button>
-                  )}
                   {/* TODO: Remove this once we have a better way to handle admin settings */}
                   {!isSmallScreen && <MarketplaceAdminSettings />}
                 </div>
@@ -297,6 +321,12 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                       {(() => {
                         // Get category data for display
                         const getCategoryData = () => {
+                          if (displayCategory === MY_AGENTS_CATEGORY) {
+                            return {
+                              name: localize('com_agents_my_agents'),
+                              description: localize('com_agents_my_agents_description'),
+                            };
+                          }
                           if (displayCategory === 'promoted') {
                             return {
                               name: localize('com_agents_top_picks'),
@@ -374,6 +404,12 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
                         {(() => {
                           // Get category data for display
                           const getCategoryData = () => {
+                            if (nextCategory === MY_AGENTS_CATEGORY) {
+                              return {
+                                name: localize('com_agents_my_agents'),
+                                description: localize('com_agents_my_agents_description'),
+                              };
+                            }
                             if (nextCategory === 'promoted') {
                               return {
                                 name: localize('com_agents_top_picks'),

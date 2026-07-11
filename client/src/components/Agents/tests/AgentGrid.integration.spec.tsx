@@ -271,6 +271,7 @@ describe('AgentGrid Integration with useGetMarketplaceAgentsQuery', () => {
         category: 'finance',
         search: 'test query',
         limit: 6,
+        public: 1,
       });
     });
 
@@ -281,6 +282,7 @@ describe('AgentGrid Integration with useGetMarketplaceAgentsQuery', () => {
         requiredPermission: 1,
         promoted: 1,
         limit: 6,
+        public: 1,
       });
     });
 
@@ -290,6 +292,7 @@ describe('AgentGrid Integration with useGetMarketplaceAgentsQuery', () => {
       expect(mockUseMarketplaceAgentsInfiniteQuery).toHaveBeenCalledWith({
         requiredPermission: 1,
         limit: 6,
+        public: 1,
       });
     });
 
@@ -300,6 +303,7 @@ describe('AgentGrid Integration with useGetMarketplaceAgentsQuery', () => {
         requiredPermission: 1,
         search: 'test',
         limit: 6,
+        public: 1,
       });
     });
 
