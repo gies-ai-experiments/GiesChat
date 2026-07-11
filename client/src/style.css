@@ -2589,7 +2589,7 @@ html {
   align-self: flex-end;
   background: var(--illini-blue);
   color: #fff;
-  font-weight: 600;
+  font-weight: 400;
   border-radius: 1.25rem;
   padding: 0.625rem 1rem;
 }
@@ -2607,11 +2607,15 @@ html {
 .agent-turn .message-content {
   border-left: 3px solid var(--illini-orange);
   padding-left: 0.875rem;
-  font-weight: 600;
+  font-weight: 400;
 }
 
-.agent-turn .message-content :where(code, pre) {
+.message-content strong {
   font-weight: 400;
+}
+
+.message-content :where(h1, h2, h3, h4, h5, h6) strong {
+  font-weight: inherit;
 }
 
 .agent-turn .message-content:empty {
