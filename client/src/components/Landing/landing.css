@@ -278,7 +278,7 @@
 .lp-entry-stage svg {
   height: 100%;
   width: 100%;
-  transform: scale(calc(0.55 + var(--pa) * 8 + var(--pt) * 14));
+  transform: scale(calc(0.75 + var(--pa) * 7.8 + var(--pt) * 14));
   transform-origin: 50% 67.1%;
   will-change: transform;
 }
@@ -315,7 +315,7 @@
 
 @media (max-width: 640px) {
   .lp-entry-stage svg {
-    transform: scale(calc(0.34 + var(--pa) * 8 + var(--pt) * 14));
+    transform: scale(calc(0.45 + var(--pa) * 7.8 + var(--pt) * 14));
   }
 
   .lp-entry-label {

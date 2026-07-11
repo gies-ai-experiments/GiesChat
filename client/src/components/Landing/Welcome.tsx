@@ -490,6 +490,7 @@ const BIF_CARS: Array<[x: number, flip: boolean, lit: boolean]> = [
 ];
 
 function BifVignette() {
+  const localize = useLocalize();
   return (
     <svg
       viewBox="0 0 900 380"
@@ -521,7 +522,7 @@ function BifVignette() {
       ].map(([x, y]) => (
         <rect key={`${x}-${y}`} x={x} y={y} width="14" height="18" fill="#ffb27a" opacity="0.18" />
       ))}
-      <g>
+      <g transform="translate(215 58) scale(0.78)" opacity="0.8">
         <rect x="668" y="92" width="64" height="78" fill="#0c141f" />
         <rect x="668" y="170" width="64" height="110" fill="#243049" />
         <rect x="612" y="100" width="56" height="180" fill="#3a211b" />
@@ -659,7 +660,37 @@ function BifVignette() {
       </g>
       <ellipse cx="86" cy="244" rx="52" ry="40" fill="#081226" />
       <ellipse cx="836" cy="236" rx="56" ry="46" fill="#081226" />
-      <rect x="30" y="305.5" width="840" height="1" fill="#1d3a66" opacity="0.3" />
+      <g transform="translate(372 296)">
+        <rect x="-0.75" y="-24" width="1.5" height="24" fill="#8b98ac" opacity="0.7" />
+        <path
+          d="M 3.7 -40.9 L 8.9 -35.7 L 8.9 -28.3 L 3.7 -23.1 L -3.7 -23.1 L -8.9 -28.3 L -8.9 -35.7 L -3.7 -40.9 Z"
+          fill="#b3272d"
+          stroke="#edf1f7"
+          strokeWidth="1"
+        />
+        <text
+          y="-29.8"
+          textAnchor="middle"
+          fill="#edf1f7"
+          fontSize="4.6"
+          fontFamily="'Roboto Mono', ui-monospace, monospace"
+          fontWeight="700"
+        >
+          {localize('com_ui_landing_stop_sign')}
+        </text>
+      </g>
+      <rect x="0" y="296" width="900" height="26" fill="#0a1220" />
+      <rect x="0" y="296" width="900" height="1" fill="#1d3a66" opacity="0.5" />
+      <rect x="0" y="321" width="900" height="1" fill="#1d3a66" opacity="0.4" />
+      <line
+        x1="20"
+        y1="309"
+        x2="880"
+        y2="309"
+        stroke="#8b98ac"
+        strokeOpacity="0.35"
+        strokeDasharray="14 12"
+      />
       {BIF_CARS.map(([x, flip, lit]) => (
         <g key={x} transform={`translate(${x} 302) scale(${flip ? -1 : 1} 1)`}>
           <path
