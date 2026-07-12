@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Plus } from 'lucide-react';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
-import { Button, OGDialog, OGDialogContent, OGDialogTitle, useMediaQuery } from '@librechat/client';
+import { OGDialog, OGDialogContent, OGDialogTitle, useMediaQuery } from '@librechat/client';
 import type t from 'librechat-data-provider';
 import { useDocumentTitle, useHasAccess, useLocalize, TranslationKeys } from '~/hooks';
 import { useGetEndpointsQuery, useGetAgentCategoriesQuery } from '~/data-provider';
@@ -13,6 +12,7 @@ import { SidePanelGroup } from '~/components/SidePanel';
 import AgentGrid, { MY_AGENTS_CATEGORY } from './AgentGrid';
 import CategoryTabs from './CategoryTabs';
 import SearchBar from './SearchBar';
+import AgentsPageHeader from './AgentsPageHeader';
 import { cn } from '~/utils';
 
 interface AgentMarketplaceProps {
@@ -216,73 +216,20 @@ const AgentMarketplace: React.FC<AgentMarketplaceProps> = ({ className = '' }) =
             ref={scrollContainerRef}
             className="scrollbar-gutter-stable relative flex h-full flex-col overflow-y-auto overflow-x-hidden"
           >
-            {/* Hero Section - scrolls away */}
-            {!isSmallScreen && (
-              <div className="container mx-auto max-w-4xl">
-                {hasAccessToCreateAgents && (
-                  <div className="mt-4 flex items-center justify-end gap-2 px-4">
-                    <Button
-                      variant="outline"
-                      className="rounded-xl border-border-medium font-medium"
-                      onClick={() => handleTabChange(MY_AGENTS_CATEGORY)}
-                      aria-label={localize('com_agents_my_agents')}
-                      data-testid="marketplace-my-gpts-button"
-                    >
-                      {localize('com_agents_my_agents')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="rounded-xl border-border-medium font-medium"
-                      onClick={() => setShowCreateAgent(true)}
-                      aria-label={localize('com_agents_create')}
-                      data-testid="marketplace-create-agent-button"
-                    >
-                      <Plus className="icon-md" aria-hidden="true" />
-                      {localize('com_agents_create')}
-                    </Button>
-                  </div>
-                )}
-                <div className={cn('mb-8 text-center', hasAccessToCreateAgents ? 'mt-2' : 'mt-12')}>
-                  <h1 className="mb-3 text-3xl font-bold tracking-tight text-text-primary md:text-5xl">
-                    {localize('com_agents_marketplace')}
-                  </h1>
-                  <p className="mx-auto mb-6 max-w-2xl text-lg text-text-secondary">
-                    {localize('com_agents_marketplace_subtitle')}
-                  </p>
-                </div>
-              </div>
-            )}
+            <AgentsPageHeader
+              isMyAgents={displayCategory === MY_AGENTS_CATEGORY}
+              canCreate={hasAccessToCreateAgents}
+              onBrowse={() => handleTabChange('promoted')}
+              onMyAgents={() => handleTabChange(MY_AGENTS_CATEGORY)}
+              onCreate={() => setShowCreateAgent(true)}
+              leading={isSmallScreen ? <OpenSidebar /> : undefined}
+            />
             {/* Sticky wrapper for search bar and categories */}
             <div className="sticky top-0 z-10 mt-4 bg-presentation pb-4 md:mt-0">
               <div className="container mx-auto max-w-4xl px-4">
                 {isSmallScreen ? (
-                  <div className="mx-auto mb-3 flex max-w-2xl items-center justify-between gap-2">
-                    <OpenSidebar />
-                    <div className="flex items-center gap-2">
-                      {hasAccessToCreateAgents && (
-                        <>
-                          <Button
-                            variant="outline"
-                            className="h-9 rounded-xl border-border-medium px-3 font-medium"
-                            onClick={() => handleTabChange(MY_AGENTS_CATEGORY)}
-                            aria-label={localize('com_agents_my_agents')}
-                            data-testid="marketplace-my-gpts-button"
-                          >
-                            {localize('com_agents_my_agents')}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-9 rounded-xl border-border-medium px-3 font-medium"
-                            onClick={() => setShowCreateAgent(true)}
-                            aria-label={localize('com_agents_create')}
-                            data-testid="marketplace-create-agent-button"
-                          >
-                            <Plus className="icon-md" aria-hidden="true" />
-                          </Button>
-                        </>
-                      )}
-                      <MarketplaceAdminSettings compact />
-                    </div>
+                  <div className="mx-auto mb-3 flex max-w-2xl justify-end">
+                    <MarketplaceAdminSettings compact />
                   </div>
                 ) : null}
                 {/* Search bar */}
