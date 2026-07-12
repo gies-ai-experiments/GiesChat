@@ -159,6 +159,15 @@ describe('ExpandedPanel', () => {
       );
     });
 
+    it('exposes the direct Agents destination as a walkthrough target', () => {
+      renderPanel();
+
+      expect(screen.getByTestId('nav-agents-button')).toHaveAttribute(
+        'aria-label',
+        'com_ui_agents',
+      );
+    });
+
     it('collapses sidebar when clicking the active icon while expanded', () => {
       const { onCollapse } = renderPanel({ expanded: true });
       const activeButton = screen.getByRole('button', { name: 'com_ui_chat_history' });

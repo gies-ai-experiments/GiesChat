@@ -12,6 +12,7 @@ import { useHasAccess } from '~/hooks';
 import { cn } from '~/utils';
 import store from '~/store';
 import ReportIssueDialog from './ReportIssueDialog';
+import LocalTourButton from './LocalTourButton';
 
 const defaultInterface = getConfigDefaults().interface;
 
@@ -89,6 +90,7 @@ function Header() {
 
         {!isSmallScreen && (
           <div className="flex items-center gap-2">
+            <LocalTourButton />
             <button
               type="button"
               aria-label={`Switch to ${backgroundToggleLabel}`}

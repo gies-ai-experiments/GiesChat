@@ -3058,8 +3058,25 @@ html {
   border-radius: 6px;
 }
 .driver-popover.gieschat-tour button.gc-tour-secondary {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  margin-right: auto;
+  background: #fff;
+  border: 1px solid #13294b;
+  border-radius: 6px;
+  color: #13294b;
+  font-weight: 600;
+  margin-left: 6px;
+  text-shadow: none;
+}
+.driver-popover.gieschat-tour button.gc-tour-secondary:hover {
+  background: #ff5f05;
+  border-color: #ff5f05;
+  color: #fff;
+}
+.driver-popover.gieschat-tour button.gc-tour-secondary:focus-visible {
+  outline: 2px solid #ff5f05;
+  outline-offset: 2px;
+}
+.dark .driver-popover.gieschat-tour button.gc-tour-secondary {
+  background: #fff;
+  border-color: #fff;
+  color: #13294b;
 }
