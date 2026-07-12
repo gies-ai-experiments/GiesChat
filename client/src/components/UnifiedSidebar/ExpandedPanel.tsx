@@ -191,7 +191,10 @@ function ExpandedPanel({
             setActive={setActive}
             onExpand={onExpand}
             onCollapse={onCollapse}
-            onNavigate={navigate}
+            onNavigate={(href) => {
+              navigate(href);
+              onCollapse?.();
+            }}
           />
         ))}
       </div>

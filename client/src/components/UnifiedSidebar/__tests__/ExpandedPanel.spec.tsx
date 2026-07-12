@@ -141,12 +141,13 @@ describe('ExpandedPanel', () => {
     });
 
     it('navigates route-backed links without changing the active side panel', () => {
-      renderPanel();
+      const { onCollapse } = renderPanel();
 
       fireEvent.click(screen.getByRole('button', { name: 'com_ui_agents' }));
 
       expect(screen.getByTestId('location')).toHaveTextContent('/agents');
       expect(localStorage.getItem('side:active-panel')).toBeNull();
+      expect(onCollapse).toHaveBeenCalledTimes(1);
     });
 
     it('marks Agents active on category routes', () => {
