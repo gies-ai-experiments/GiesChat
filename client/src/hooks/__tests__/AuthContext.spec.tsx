@@ -220,6 +220,7 @@ describe('AuthContextProvider — logout onSuccess/onError handling', () => {
   });
 
   it('does not call window.location.replace when redirect is absent', async () => {
+    jest.useFakeTimers();
     const replaceSpy = jest.spyOn(window.location, 'replace').mockImplementation(() => {});
 
     renderProvider();
@@ -227,8 +228,13 @@ describe('AuthContextProvider — logout onSuccess/onError handling', () => {
     act(() => {
       mockCapturedLogoutOptions.onSuccess({ message: 'Logout successful' });
     });
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
 
     expect(replaceSpy).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/welcome', { replace: true });
+    jest.useRealTimers();
   });
 
   it('does not trigger silentRefresh after OIDC redirect', () => {
@@ -449,6 +455,7 @@ describe('AuthContextProvider — logout error handling', () => {
 
     expect(replaceSpy).not.toHaveBeenCalled();
     expect(getByTestId('consumer').getAttribute('data-authenticated')).toBe('false');
+    expect(mockNavigate).toHaveBeenCalledWith('/welcome', { replace: true });
     jest.useRealTimers();
   });
 });
