@@ -39,6 +39,7 @@ const PUBLIC_USER_RESPONSE_FIELDS = [
   'plugins',
   'twoFactorEnabled',
   'termsAccepted',
+  'onboardingCompletedAt',
   'personalization',
   'favorites',
   'skillStates',
@@ -113,6 +114,19 @@ const acceptTermsController = async (req, res) => {
   } catch (error) {
     logger.error('Error accepting terms:', error);
     res.status(500).json({ message: 'Error accepting terms' });
+  }
+};
+
+const completeTourController = async (req, res) => {
+  try {
+    const user = await db.completeOnboarding(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ onboardingCompletedAt: user.onboardingCompletedAt });
+  } catch (error) {
+    logger.error('Error completing onboarding tour:', error);
+    res.status(500).json({ message: 'Error completing onboarding tour' });
   }
 };
 
@@ -599,6 +613,7 @@ module.exports = {
   getUserController,
   getTermsStatusController,
   acceptTermsController,
+  completeTourController,
   deleteUserController,
   verifyEmailController,
   updateUserPluginsController,

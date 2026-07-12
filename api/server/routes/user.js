@@ -3,6 +3,7 @@ const {
   updateUserPluginsController,
   resendVerificationController,
   getTermsStatusController,
+  completeTourController,
   acceptTermsController,
   verifyEmailController,
   deleteUserController,
@@ -24,6 +25,7 @@ router.use('/settings', settings);
 router.get('/', requireJwtAuth, getUserController);
 router.get('/terms', requireJwtAuth, getTermsStatusController);
 router.post('/terms/accept', requireJwtAuth, acceptTermsController);
+router.post('/tour/complete', requireJwtAuth, completeTourController);
 router.post('/plugins', requireJwtAuth, updateUserPluginsController);
 router.delete('/delete', requireJwtAuth, canDeleteAccount, configMiddleware, deleteUserController);
 router.post('/verify', verifyEmailSubmissionLimiter, verifyEmailController);
