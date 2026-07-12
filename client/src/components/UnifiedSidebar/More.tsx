@@ -1,8 +1,9 @@
 import { memo, useCallback } from 'react';
 import * as Menu from '@ariakit/react/menu';
-import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@librechat/client';
-import { Ellipsis, LayoutGrid, Plug } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Ellipsis, LayoutGrid, Plug, Compass } from 'lucide-react';
+import { TOUR_REPLAY_KEY, TOUR_REPLAY_EVENT } from '~/components/Tour';
 import { useLocalize, useShowMarketplace } from '~/hooks';
 
 function More({
@@ -16,6 +17,7 @@ function More({
 }) {
   const localize = useLocalize();
   const navigate = useNavigate();
+  const location = useLocation();
   const showAgentMarketplace = useShowMarketplace();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
 
@@ -25,6 +27,18 @@ function More({
       onCollapse?.();
     }
   }, [navigate, isSmallScreen, onCollapse]);
+
+  const startTour = useCallback(() => {
+    if (location.pathname.startsWith('/c/')) {
+      window.dispatchEvent(new Event(TOUR_REPLAY_EVENT));
+    } else {
+      sessionStorage.setItem(TOUR_REPLAY_KEY, '1');
+      navigate('/c/new');
+    }
+    if (isSmallScreen) {
+      onCollapse?.();
+    }
+  }, [location.pathname, navigate, isSmallScreen, onCollapse]);
 
   if (!showAgentMarketplace && !hasPluginsPanel) {
     return null;
@@ -61,6 +75,14 @@ function More({
             {localize('com_ui_plugins')}
           </Menu.MenuItem>
         )}
+        <Menu.MenuItem
+          onClick={startTour}
+          className="select-item text-sm"
+          data-testid="nav-more-tour"
+        >
+          <Compass className="icon-md" aria-hidden="true" />
+          {localize('com_ui_tour_replay')}
+        </Menu.MenuItem>
       </Menu.Menu>
     </Menu.MenuProvider>
   );

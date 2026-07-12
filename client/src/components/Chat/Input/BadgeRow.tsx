@@ -333,7 +333,7 @@ function BadgeRow({
       isSubmitting={isSubmitting}
     >
       <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">
-        <div className="flex items-center">
+        <div className="flex items-center" data-tour="model-picker">
           <ModelSelector startupConfig={startupConfig} />
         </div>
         {showEphemeralBadges === true && <ToolsDropdown />}
@@ -384,7 +384,9 @@ function BadgeRow({
             <Skills />
             <Memory />
             <Artifacts />
-            <MCPSelect />
+            <div className="flex items-center" data-tour="mcp-select">
+              <MCPSelect />
+            </div>
           </>
         )}
         {ghostBadge && (

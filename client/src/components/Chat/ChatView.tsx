@@ -15,6 +15,7 @@ import {
 } from '~/hooks';
 import { ChatContext, AddedChatContext, ChatFormProvider, useFileMapContext } from '~/Providers';
 import ConversationStarters from './Input/ConversationStarters';
+import { useOnboardingTour } from '~/components/Tour';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import ProjectLandingChip from './ProjectLandingChip';
 import CareerIntake from './CareerIntake';
@@ -38,6 +39,7 @@ function LoadingSpinner() {
 }
 
 function ChatView({ index = 0, project }: { index?: number; project?: TChatProject }) {
+  useOnboardingTour();
   const { conversationId } = useParams();
   const localize = useLocalize();
   const rootSubmission = useRecoilValue(store.submissionByIndex(index));
