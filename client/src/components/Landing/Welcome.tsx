@@ -960,6 +960,7 @@ export default function Welcome() {
           <Faq q="com_ui_landing_faq2_q" a="com_ui_landing_faq2_a" />
           <Faq q="com_ui_landing_faq3_q" a="com_ui_landing_faq3_a" />
           <Faq q="com_ui_landing_faq4_q" a="com_ui_landing_faq4_a" />
+          <Faq q="com_ui_landing_faq5_q" a="com_ui_landing_faq5_a" />
         </Reveal>
         <Reveal className="lp-outro">
           <h2 className="lp-h2">{localize('com_ui_landing_outro_title')}</h2>
