@@ -9,7 +9,7 @@ describe('PanelHeader', () => {
       <PanelHeader
         title="Files"
         search={<input aria-label="Search files" />}
-        actions={<button type="button">Add file</button>}
+        actions={<button type="button" aria-label="Add file" />}
       />,
     );
 
