@@ -13,7 +13,7 @@ export default function BrainstormPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface-primary-alt px-3 py-4 text-text-primary">
       <div className="flex items-center justify-between px-1 pb-3">
-        <h2 className="text-lg font-semibold">{localize('com_ui_brainstorm')}</h2>
+        <h2 className="text-lg font-semibold">{localize('com_ui_rooms')}</h2>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"

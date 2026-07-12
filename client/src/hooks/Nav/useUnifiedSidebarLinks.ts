@@ -64,7 +64,7 @@ export default function useUnifiedSidebarLinks() {
     };
     const brainstormLink: NavLink | null = brainstormEnabled
       ? {
-          title: 'com_ui_brainstorm',
+          title: 'com_ui_rooms',
           label: '',
           icon: Lightbulb,
           id: 'brainstorm',
@@ -73,7 +73,7 @@ export default function useUnifiedSidebarLinks() {
       : null;
     const agentsLink: NavLink | null = showAgentMarketplace
       ? {
-          title: 'com_agents_marketplace',
+          title: 'com_ui_agents',
           label: '',
           icon: Bot,
           id: 'agents-home',

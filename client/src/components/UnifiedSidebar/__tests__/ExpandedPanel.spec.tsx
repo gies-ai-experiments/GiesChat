@@ -1,7 +1,7 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import '@testing-library/jest-dom/extend-expect';
-import { Bot, MessagesSquare, NotebookPen } from 'lucide-react';
+import { Bot, Lightbulb, MessagesSquare, NotebookPen } from 'lucide-react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router-dom';
@@ -58,12 +58,17 @@ import store from '~/store';
 
 const createLinks = () => [
   {
+    title: 'com_ui_rooms' as const,
+    icon: Lightbulb,
+    id: 'brainstorm',
+  },
+  {
     title: 'com_ui_chat_history' as const,
     icon: MessagesSquare,
     id: DEFAULT_PANEL,
   },
   {
-    title: 'com_agents_marketplace' as const,
+    title: 'com_ui_agents' as const,
     icon: Bot,
     id: 'agents-home',
     href: '/agents',
@@ -129,10 +134,16 @@ describe('ExpandedPanel', () => {
   });
 
   describe('NavIconButton collapse toggle', () => {
+    it('presents collaborative spaces as Rooms', () => {
+      renderPanel();
+
+      expect(screen.getByRole('button', { name: 'com_ui_rooms' })).toBeInTheDocument();
+    });
+
     it('navigates route-backed links without changing the active side panel', () => {
       renderPanel();
 
-      fireEvent.click(screen.getByRole('button', { name: 'com_agents_marketplace' }));
+      fireEvent.click(screen.getByRole('button', { name: 'com_ui_agents' }));
 
       expect(screen.getByTestId('location')).toHaveTextContent('/agents');
       expect(localStorage.getItem('side:active-panel')).toBeNull();
@@ -141,7 +152,7 @@ describe('ExpandedPanel', () => {
     it('marks Agents active on category routes', () => {
       renderPanel({ initialRoute: '/agents/finance' });
 
-      expect(screen.getByRole('button', { name: 'com_agents_marketplace' })).toHaveAttribute(
+      expect(screen.getByRole('button', { name: 'com_ui_agents' })).toHaveAttribute(
         'aria-pressed',
         'true',
       );
