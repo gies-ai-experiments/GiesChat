@@ -35,9 +35,7 @@ describe('completeOnboarding', () => {
     const user = await User.create({ email: 'tour@test.edu', provider: 'openid' });
     const first = await methods.completeOnboarding(user._id.toString());
     const second = await methods.completeOnboarding(user._id.toString());
-    expect(second?.onboardingCompletedAt?.getTime()).toBe(
-      first?.onboardingCompletedAt?.getTime(),
-    );
+    expect(second?.onboardingCompletedAt?.getTime()).toBe(first?.onboardingCompletedAt?.getTime());
   });
 
   test('returns null for an unknown user id', async () => {
