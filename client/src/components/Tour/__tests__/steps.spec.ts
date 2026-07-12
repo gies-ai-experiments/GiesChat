@@ -9,32 +9,46 @@ describe('resolveTourSteps', () => {
     document.body.innerHTML = '';
   });
 
-  it('keeps anchor-less steps and drops steps whose selector is missing', () => {
-    const resolved = resolveTourSteps();
-    expect(resolved).toHaveLength(2);
-    expect(resolved.every((step) => step.selector === undefined)).toBe(true);
+  it('defines the approved welcome, course-tutors, and composer screens', () => {
+    expect(TOUR_STEPS.map((step) => step.id)).toEqual(['welcome', 'course-tutors', 'composer']);
   });
 
-  it('keeps steps whose anchors exist and are visible', () => {
-    const modelPicker = document.createElement('div');
-    modelPicker.setAttribute('data-tour', 'model-picker');
-    mockVisible(modelPicker);
-    document.body.appendChild(modelPicker);
+  it('uses More only when the direct Agents destination is unavailable', () => {
+    const more = document.createElement('button');
+    more.dataset.testid = 'nav-more-button';
+    mockVisible(more);
+    document.body.appendChild(more);
 
-    const resolved = resolveTourSteps();
-    expect(resolved).toHaveLength(3);
-    expect(resolved[1].selector).toBe('[data-tour="model-picker"]');
+    const courseTutors = resolveTourSteps().find((step) => step.id === 'course-tutors');
+    expect(courseTutors?.selector).toBe('[data-testid="nav-more-button"]');
   });
 
-  it('drops anchors that exist but have no layout (hidden)', () => {
-    const mcp = document.createElement('div');
-    mcp.setAttribute('data-tour', 'mcp-select');
-    document.body.appendChild(mcp);
+  it('prefers the direct Agents destination when both targets are visible', () => {
+    const agents = document.createElement('a');
+    agents.dataset.testid = 'nav-agents-button';
+    mockVisible(agents);
+    document.body.appendChild(agents);
 
-    expect(resolveTourSteps()).toHaveLength(2);
+    const more = document.createElement('button');
+    more.dataset.testid = 'nav-more-button';
+    mockVisible(more);
+    document.body.appendChild(more);
+
+    const courseTutors = resolveTourSteps().find((step) => step.id === 'course-tutors');
+    expect(courseTutors?.selector).toBe('[data-testid="nav-agents-button"]');
   });
 
-  it('defines exactly the five approved steps', () => {
-    expect(TOUR_STEPS).toHaveLength(5);
+  it('omits unavailable spotlights while retaining the centered welcome and composer', () => {
+    expect(resolveTourSteps().map((step) => step.id)).toEqual(['welcome', 'composer']);
+  });
+
+  it('keeps the composer as a spotlight when it is visible', () => {
+    const composer = document.createElement('div');
+    composer.dataset.tour = 'chat-composer';
+    mockVisible(composer);
+    document.body.appendChild(composer);
+
+    const composerStep = resolveTourSteps().find((step) => step.id === 'composer');
+    expect(composerStep?.selector).toBe('[data-tour="chat-composer"]');
   });
 });
