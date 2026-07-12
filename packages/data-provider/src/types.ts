@@ -229,6 +229,7 @@ export type TUser = {
   personalization?: {
     memories?: boolean;
   };
+  onboardingCompletedAt?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -755,6 +756,10 @@ export type TUserTermsResponse = {
 export type TAcceptTermsResponse = {
   message: string;
   termsAcceptedAt: Date | string;
+};
+
+export type TCompleteTourResponse = {
+  onboardingCompletedAt: string;
 };
 
 export type TBannerResponse = TBanner | null;

@@ -1356,6 +1356,10 @@ export function acceptTerms(): Promise<t.TAcceptTermsResponse> {
   return request.post(endpoints.acceptUserTerms());
 }
 
+export function completeTour(): Promise<t.TCompleteTourResponse> {
+  return request.post(endpoints.completeUserTour());
+}
+
 export function getBanner(): Promise<t.TBannerResponse> {
   return request.get(endpoints.banner());
 }
