@@ -131,6 +131,10 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       type: Date,
       default: null,
     },
+    onboardingCompletedAt: {
+      type: Date,
+      default: null,
+    },
     personalization: {
       type: {
         memories: {

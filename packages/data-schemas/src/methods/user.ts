@@ -27,6 +27,7 @@ export function createUserMethods(mongoose: typeof import('mongoose')): {
   ) => Promise<mongoose.Types.ObjectId | Partial<IUser>>;
   updateUser: (userId: string, updateData: Partial<IUser>) => Promise<IUser | null>;
   acceptTerms: (userId: string) => Promise<IUser | null>;
+  completeOnboarding: (userId: string) => Promise<IUser | null>;
   searchUsers: ({
     searchPattern,
     limit,
@@ -269,6 +270,22 @@ export function createUserMethods(mongoose: typeof import('mongoose')): {
           $set: {
             termsAccepted: true,
             termsAcceptedAt: { $ifNull: ['$termsAcceptedAt', '$$NOW'] },
+          },
+        },
+      ],
+      { new: true, runValidators: true },
+    ).lean<IUser>();
+  }
+
+  /** Records first-time onboarding tour completion; repeat calls keep the original timestamp. */
+  async function completeOnboarding(userId: string): Promise<IUser | null> {
+    const User = mongoose.models.User;
+    return await User.findByIdAndUpdate(
+      userId,
+      [
+        {
+          $set: {
+            onboardingCompletedAt: { $ifNull: ['$onboardingCompletedAt', '$$NOW'] },
           },
         },
       ],
@@ -535,6 +552,7 @@ export function createUserMethods(mongoose: typeof import('mongoose')): {
     createUser,
     updateUser,
     acceptTerms,
+    completeOnboarding,
     searchUsers,
     getUserById,
     generateToken,

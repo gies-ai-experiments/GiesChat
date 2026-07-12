@@ -49,6 +49,7 @@ export interface IUser extends Document {
   expiresAt?: Date;
   termsAccepted?: boolean;
   termsAcceptedAt?: Date | null;
+  onboardingCompletedAt?: Date | null;
   personalization?: {
     memories?: boolean;
   };
