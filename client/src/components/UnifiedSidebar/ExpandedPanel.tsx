@@ -1,5 +1,6 @@
 import { memo, useCallback, lazy, Suspense } from 'react';
 import { useRecoilValue } from 'recoil';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SquarePen } from 'lucide-react';
 import { QueryKeys } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';
@@ -70,6 +71,7 @@ const NavIconButton = memo(function NavIconButton({
   setActive,
   onExpand,
   onCollapse,
+  onNavigate,
 }: {
   link: NavLink;
   isActive: boolean;
@@ -77,11 +79,16 @@ const NavIconButton = memo(function NavIconButton({
   setActive: (id: string) => void;
   onExpand?: () => void;
   onCollapse?: () => void;
+  onNavigate?: (href: string) => void;
 }) {
   const localize = useLocalize();
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (link.href) {
+        onNavigate?.(link.href);
+        return;
+      }
       if (link.onClick) {
         link.onClick(e);
         return;
@@ -97,7 +104,7 @@ const NavIconButton = memo(function NavIconButton({
         onExpand?.();
       }
     },
-    [link, isActive, setActive, expanded, onExpand, onCollapse],
+    [link, isActive, setActive, expanded, onExpand, onCollapse, onNavigate],
   );
 
   return (
@@ -136,6 +143,8 @@ function ExpandedPanel({
   onExpand?: () => void;
 }) {
   const localize = useLocalize();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { active, setActive } = useActivePanel();
   const effectiveActive = resolveActivePanel(active, links);
 
@@ -166,25 +175,23 @@ function ExpandedPanel({
         }
       />
       <NewChatButton setActive={setActive} />
-      <More
-        hasPluginsPanel={links.some((link) => link.id === 'mcp-builder')}
-        onOpenPlugins={() => {
-          setActive('mcp-builder');
-          onExpand?.();
-        }}
-        onCollapse={onCollapse}
-      />
+      <More onCollapse={onCollapse} />
       <div className="mx-2 border-b border-border-light" />
       <div className="flex flex-col gap-1 overflow-y-auto">
         {links.map((link) => (
           <NavIconButton
             key={link.id}
             link={link}
-            isActive={link.id === effectiveActive}
+            isActive={
+              link.href
+                ? location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
+                : link.id === effectiveActive
+            }
             expanded={expanded ?? true}
             setActive={setActive}
             onExpand={onExpand}
             onCollapse={onCollapse}
+            onNavigate={navigate}
           />
         ))}
       </div>

@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { Lightbulb, MessagesSquare } from 'lucide-react';
+import { Bot, Lightbulb, MessagesSquare } from 'lucide-react';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
-import { getConfigDefaults, getEndpointField } from 'librechat-data-provider';
+import { EModelEndpoint, getConfigDefaults, getEndpointField } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';
 import type { NavLink } from '~/common';
 import BrainstormPanel from '~/components/Brainstorm/BrainstormPanel';
 import ConversationsSection from '~/components/UnifiedSidebar/ConversationsSection';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
+import { useShowMarketplace } from '~/hooks';
 import store from '~/store';
 
 const defaultInterface = getConfigDefaults().interface;
@@ -51,6 +52,7 @@ export default function useUnifiedSidebarLinks() {
   });
 
   const brainstormEnabled = startupConfig?.brainstormRoomsEnabled === true;
+  const showAgentMarketplace = useShowMarketplace();
 
   const links = useMemo(() => {
     const conversationLink: NavLink = {
@@ -60,19 +62,33 @@ export default function useUnifiedSidebarLinks() {
       id: 'conversations',
       Component: ConversationsSection,
     };
-    if (!brainstormEnabled) {
-      return [conversationLink, ...sideNavLinks];
-    }
-    const brainstormLink: NavLink = {
-      title: 'com_ui_brainstorm',
-      label: '',
-      icon: Lightbulb,
-      id: 'brainstorm',
-      Component: BrainstormPanel,
-    };
+    const brainstormLink: NavLink | null = brainstormEnabled
+      ? {
+          title: 'com_ui_brainstorm',
+          label: '',
+          icon: Lightbulb,
+          id: 'brainstorm',
+          Component: BrainstormPanel,
+        }
+      : null;
+    const agentsLink: NavLink | null = showAgentMarketplace
+      ? {
+          title: 'com_agents_marketplace',
+          label: '',
+          icon: Bot,
+          id: 'agents-home',
+          href: '/agents',
+        }
+      : null;
+    const panelLinks = sideNavLinks.filter((link) => link.id !== EModelEndpoint.agents);
 
-    return [conversationLink, brainstormLink, ...sideNavLinks];
-  }, [sideNavLinks, brainstormEnabled]);
+    return [
+      conversationLink,
+      ...(brainstormLink ? [brainstormLink] : []),
+      ...(agentsLink ? [agentsLink] : []),
+      ...panelLinks,
+    ];
+  }, [sideNavLinks, brainstormEnabled, showAgentMarketplace]);
 
   return links;
 }

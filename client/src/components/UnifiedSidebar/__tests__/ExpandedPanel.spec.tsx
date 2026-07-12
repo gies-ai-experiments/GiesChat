@@ -1,9 +1,10 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import '@testing-library/jest-dom/extend-expect';
-import { MessagesSquare, NotebookPen } from 'lucide-react';
+import { Bot, MessagesSquare, NotebookPen } from 'lucide-react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import type { MutableSnapshot } from 'recoil';
 import { ActivePanelProvider, DEFAULT_PANEL } from '~/Providers/ActivePanelContext';
 
@@ -35,6 +36,7 @@ jest.mock('~/store', () => {
 jest.mock('~/hooks', () => ({
   useLocalize: () => (key: string) => key,
   useNewConvo: () => ({ newConversation: mockNewConversation }),
+  useShowMarketplace: () => true,
 }));
 
 jest.mock('~/utils', () => ({
@@ -61,6 +63,12 @@ const createLinks = () => [
     id: DEFAULT_PANEL,
   },
   {
+    title: 'com_agents_marketplace' as const,
+    icon: Bot,
+    id: 'agents-home',
+    href: '/agents',
+  },
+  {
     title: 'com_ui_prompts' as const,
     icon: NotebookPen,
     id: 'prompts',
@@ -75,33 +83,43 @@ function renderPanel({
   onExpand = jest.fn(),
   initialPanel = DEFAULT_PANEL,
   initializeState,
+  initialRoute = '/c/new',
 }: {
   expanded?: boolean;
   onCollapse?: jest.Mock;
   onExpand?: jest.Mock;
   initialPanel?: string;
   initializeState?: (snapshot: MutableSnapshot) => void;
+  initialRoute?: string;
 } = {}) {
   if (initialPanel !== DEFAULT_PANEL) {
     localStorage.setItem('side:active-panel', initialPanel);
   }
 
   const result = render(
-    <QueryClientProvider client={createQueryClient()}>
-      <RecoilRoot initializeState={initializeState}>
-        <ActivePanelProvider>
-          <ExpandedPanel
-            links={createLinks()}
-            expanded={expanded}
-            onCollapse={onCollapse}
-            onExpand={onExpand}
-          />
-        </ActivePanelProvider>
-      </RecoilRoot>
-    </QueryClientProvider>,
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <QueryClientProvider client={createQueryClient()}>
+        <RecoilRoot initializeState={initializeState}>
+          <ActivePanelProvider>
+            <ExpandedPanel
+              links={createLinks()}
+              expanded={expanded}
+              onCollapse={onCollapse}
+              onExpand={onExpand}
+            />
+            <LocationProbe />
+          </ActivePanelProvider>
+        </RecoilRoot>
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 
   return { ...result, onCollapse, onExpand };
+}
+
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location">{location.pathname}</output>;
 }
 
 describe('ExpandedPanel', () => {
@@ -111,6 +129,24 @@ describe('ExpandedPanel', () => {
   });
 
   describe('NavIconButton collapse toggle', () => {
+    it('navigates route-backed links without changing the active side panel', () => {
+      renderPanel();
+
+      fireEvent.click(screen.getByRole('button', { name: 'com_agents_marketplace' }));
+
+      expect(screen.getByTestId('location')).toHaveTextContent('/agents');
+      expect(localStorage.getItem('side:active-panel')).toBeNull();
+    });
+
+    it('marks Agents active on category routes', () => {
+      renderPanel({ initialRoute: '/agents/finance' });
+
+      expect(screen.getByRole('button', { name: 'com_agents_marketplace' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+    });
+
     it('collapses sidebar when clicking the active icon while expanded', () => {
       const { onCollapse } = renderPanel({ expanded: true });
       const activeButton = screen.getByRole('button', { name: 'com_ui_chat_history' });
@@ -139,6 +175,18 @@ describe('ExpandedPanel', () => {
       fireEvent.click(inactiveButton);
       expect(onExpand).toHaveBeenCalledTimes(1);
       expect(localStorage.getItem('side:active-panel')).toBe('prompts');
+    });
+  });
+
+  describe('More menu', () => {
+    it('shows tour replay but no Marketplace or Plugins', () => {
+      renderPanel();
+
+      fireEvent.click(screen.getByRole('button', { name: 'com_ui_more' }));
+
+      expect(screen.getByTestId('nav-more-tour')).toBeInTheDocument();
+      expect(screen.queryByTestId('nav-more-marketplace')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('nav-more-plugins')).not.toBeInTheDocument();
     });
   });
 
