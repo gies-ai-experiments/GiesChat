@@ -199,7 +199,11 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
             </h2>
             {(creatorName || category) && (
               <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-sm text-text-secondary">
-                {creatorName && <span>By {creatorName}</span>}
+                {creatorName && (
+                  <span>
+                    {localize('com_agents_created_by')} {creatorName}
+                  </span>
+                )}
                 {creatorName && category && <span aria-hidden="true">·</span>}
                 {category && <span>{category}</span>}
               </div>
@@ -219,7 +223,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
           {conversationStarters.length > 0 && (
             <section className="border-b border-border-light py-7" aria-labelledby="agent-starters">
               <h3 id="agent-starters" className="text-xl font-bold text-text-primary">
-                Try asking
+                {localize('com_agents_try_asking')}
               </h3>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {conversationStarters.map((starter) => (
@@ -237,7 +241,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent, isOpen, onClose }) => 
           {capabilities.length > 0 && (
             <section className="py-7" aria-labelledby="agent-capabilities">
               <h3 id="agent-capabilities" className="text-xl font-bold text-text-primary">
-                Capabilities
+                {localize('com_assistants_capabilities')}
               </h3>
               <ul className="mt-4 grid gap-3">
                 {capabilities.map((capability) => (

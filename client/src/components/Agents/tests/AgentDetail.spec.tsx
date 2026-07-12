@@ -279,12 +279,16 @@ describe('AgentDetail', () => {
 
       renderWithProviders(<AgentDetail {...defaultProps} agent={configuredAgent} />);
 
-      expect(screen.getByRole('heading', { name: 'Try asking' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'com_agents_try_asking' })).toBeInTheDocument();
       expect(screen.getByText('Explain bond pricing')).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Capabilities' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'com_assistants_capabilities' }),
+      ).toBeInTheDocument();
       expect(screen.getByText('Web Search')).toBeInTheDocument();
       expect(screen.getByText('Execute Code')).toBeInTheDocument();
-      expect(screen.getByText('By Gies College of Business')).toBeInTheDocument();
+      expect(
+        screen.getByText(/com_agents_created_by Gies College of Business/),
+      ).toBeInTheDocument();
       expect(screen.getByText('Finance')).toBeInTheDocument();
     });
 
