@@ -7,6 +7,7 @@ import MCPConfigDialog from '~/components/MCP/MCPConfigDialog';
 import MCPAdminSettings from './MCPAdminSettings';
 import MCPServerDialog from './MCPServerDialog';
 import MCPServerList from './MCPServerList';
+import PanelHeader from '~/components/SidePanel/PanelHeader';
 
 export default function MCPBuilderPanel() {
   const localize = useLocalize();
@@ -36,18 +37,20 @@ export default function MCPBuilderPanel() {
   }, [availableMCPServers, searchQuery]);
 
   return (
-    <div className="flex h-auto w-full flex-col px-3 pb-3 pt-2">
-      <div role="region" aria-label={localize('com_ui_mcp_servers')} className="space-y-2">
-        {/* Toolbar: Search + Add Button */}
-        <div className="flex items-center gap-2">
+    <div className="flex h-auto w-full flex-col">
+      <PanelHeader
+        title={localize('com_ui_mcp_servers')}
+        search={
           <FilterInput
             inputId="mcp-filter"
             label={localize('com_ui_filter_mcp_servers')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            containerClassName="min-w-0 flex-1"
+            containerClassName="min-w-0"
           />
-          {hasCreateAccess && (
+        }
+        actions={
+          hasCreateAccess ? (
             <MCPServerDialog
               open={showDialog}
               onOpenChange={setShowDialog}
@@ -72,9 +75,14 @@ export default function MCPBuilderPanel() {
                 />
               </OGDialogTrigger>
             </MCPServerDialog>
-          )}
-        </div>
-
+          ) : undefined
+        }
+      />
+      <div
+        role="region"
+        aria-label={localize('com_ui_mcp_servers')}
+        className="space-y-2 px-3 pb-3 pt-2"
+      >
         {/* Server Cards List */}
         {isLoading ? (
           <div className="flex items-center justify-center p-8">

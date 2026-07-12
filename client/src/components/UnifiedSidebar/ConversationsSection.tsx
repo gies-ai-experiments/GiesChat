@@ -17,6 +17,7 @@ import { Conversations } from '~/components/Conversations';
 import ProjectsSection from '~/components/Conversations/ProjectsSection';
 import FavoritesList from '~/components/Nav/Favorites/FavoritesList';
 import SearchBar from '~/components/Nav/SearchBar';
+import PanelHeader from '~/components/SidePanel/PanelHeader';
 import store from '~/store';
 
 const BookmarkNav = lazy(() => import('~/components/Nav/Bookmarks/BookmarkNav'));
@@ -110,14 +111,20 @@ const ConversationsSection = memo(() => {
       role="region"
       aria-label={localize('com_ui_chat_history')}
     >
-      <div className="flex items-center gap-0.5 px-3">
-        {hasAccessToBookmarks && (
-          <Suspense fallback={null}>
-            <BookmarkNav tags={tags} setTags={setTags} />
-          </Suspense>
-        )}
-        {search.enabled && <SearchBar isSmallScreen={isSmallScreen} />}
-      </div>
+      <PanelHeader
+        className="mb-2 py-2"
+        title={localize('com_ui_chat_history')}
+        actions={
+          <>
+            {hasAccessToBookmarks && (
+              <Suspense fallback={null}>
+                <BookmarkNav tags={tags} setTags={setTags} />
+              </Suspense>
+            )}
+            {search.enabled && <SearchBar isSmallScreen={isSmallScreen} />}
+          </>
+        }
+      />
       {!search.query && (
         <div className="px-3">
           <FavoritesList isSmallScreen={isSmallScreen} toggleNav={toggleNav} />

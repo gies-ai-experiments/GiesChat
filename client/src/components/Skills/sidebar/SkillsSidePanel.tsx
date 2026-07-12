@@ -7,6 +7,7 @@ import { useDebounce, useHasAccess, useLocalize } from '~/hooks';
 import { CreateSkillMenu } from '../buttons';
 import SkillListPanel from '../lists/SkillList';
 import { cn } from '~/utils';
+import PanelHeader from '~/components/SidePanel/PanelHeader';
 
 interface SkillsSidePanelProps {
   className?: string;
@@ -44,11 +45,11 @@ export default function SkillsSidePanel({ className }: SkillsSidePanelProps) {
         className,
       )}
     >
-      {/* Header — title+icons or inline search input */}
-      <div className="flex items-center justify-between px-4 py-2">
-        {searchOpen ? (
-          <>
-            <div className="relative flex-1">
+      <PanelHeader
+        title={localize('com_ui_skills')}
+        search={
+          searchOpen ? (
+            <div className="relative">
               <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-text-secondary" />
               <input
                 type="text"
@@ -61,21 +62,20 @@ export default function SkillsSidePanel({ className }: SkillsSidePanelProps) {
                 autoFocus
               />
             </div>
+          ) : undefined
+        }
+        actions={
+          searchOpen ? (
             <button
               type="button"
               onClick={handleCloseSearch}
-              className="ml-2 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
               aria-label={localize('com_ui_close')}
             >
               <X className="size-4" />
             </button>
-          </>
-        ) : (
-          <>
-            <h2 className="truncate text-lg font-bold text-text-primary">
-              {localize('com_ui_skills')}
-            </h2>
-            <div className="flex items-center gap-1">
+          ) : (
+            <>
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
@@ -85,10 +85,10 @@ export default function SkillsSidePanel({ className }: SkillsSidePanelProps) {
                 <Search className="size-4" />
               </button>
               {hasCreateAccess && <CreateSkillMenu />}
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )
+        }
+      />
 
       {/* Skill list */}
       <div className="flex-1 overflow-y-auto px-4">
