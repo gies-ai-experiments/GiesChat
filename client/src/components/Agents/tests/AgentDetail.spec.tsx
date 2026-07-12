@@ -219,7 +219,9 @@ describe('AgentDetail', () => {
     it('should render Start Chat button', () => {
       renderWithProviders(<AgentDetail {...defaultProps} />);
 
-      const startChatButton = screen.getByRole('button', { name: 'com_agents_start_chat' });
+      const startChatButton = screen.getByRole('button', {
+        name: 'com_agents_start_chat with Test Agent',
+      });
       expect(startChatButton).toBeInTheDocument();
       expect(startChatButton).not.toBeDisabled();
     });
@@ -247,7 +249,9 @@ describe('AgentDetail', () => {
 
       renderWithProviders(<AgentDetail {...defaultProps} />);
 
-      const startChatButton = screen.getByRole('button', { name: 'com_agents_start_chat' });
+      const startChatButton = screen.getByRole('button', {
+        name: 'com_agents_start_chat with Test Agent',
+      });
       await user.click(startChatButton);
 
       expect(mockNewConversation).toHaveBeenCalledWith({
@@ -262,6 +266,26 @@ describe('AgentDetail', () => {
           title: 'Chat with Test Agent',
         },
       });
+    });
+
+    it('should render conversation starters and capabilities when configured', () => {
+      const configuredAgent = {
+        ...mockAgent,
+        conversation_starters: ['Explain bond pricing', 'Quiz me on risk and return'],
+        tools: ['web_search', 'execute_code'],
+        category: 'finance',
+        authorName: 'Gies College of Business',
+      };
+
+      renderWithProviders(<AgentDetail {...defaultProps} agent={configuredAgent} />);
+
+      expect(screen.getByRole('heading', { name: 'Try asking' })).toBeInTheDocument();
+      expect(screen.getByText('Explain bond pricing')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Capabilities' })).toBeInTheDocument();
+      expect(screen.getByText('Web Search')).toBeInTheDocument();
+      expect(screen.getByText('Execute Code')).toBeInTheDocument();
+      expect(screen.getByText('By Gies College of Business')).toBeInTheDocument();
+      expect(screen.getByText('Finance')).toBeInTheDocument();
     });
 
     it('should not navigate when agent is null', async () => {
