@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { driver } from 'driver.js';
-import { useNavigate } from 'react-router-dom';
 import 'driver.js/dist/driver.css';
 import type { Driver, DriveStep, PopoverDOM } from 'driver.js';
 import { TOUR_REPLAY_KEY, TOUR_REPLAY_EVENT, resolveTourSteps } from './steps';
@@ -10,18 +9,17 @@ import { useLocalize } from '~/hooks';
 
 let startedThisSession = false;
 
-const addSecondaryButton = (popover: PopoverDOM, label: string, onClick: () => void) => {
+export const addSecondaryButton = (popover: PopoverDOM, label: string, onClick: () => void) => {
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = label;
   button.className = 'gc-tour-secondary';
   button.onclick = onClick;
-  popover.footerButtons.prepend(button);
+  popover.previousButton.insertAdjacentElement('afterend', button);
 };
 
 export default function useOnboardingTour() {
   const localize = useLocalize();
-  const navigate = useNavigate();
   const { user } = useAuthContext();
   const driverRef = useRef<Driver | null>(null);
   const completeTour = useCompleteTourMutation();
@@ -34,31 +32,22 @@ export default function useOnboardingTour() {
     driverRef.current?.destroy();
 
     const resolved = resolveTourSteps();
-    const last = resolved.length - 1;
     const steps: DriveStep[] = resolved.map((step, index) => ({
       element: step.selector,
       popover: {
         title: localize(step.titleKey),
         description: localize(step.descKey),
         ...(step.selector !== undefined && { side: 'top' as const }),
-        ...(index === 0 && {
-          nextBtnText: localize('com_ui_tour_start'),
-          onPopoverRender: (popover: PopoverDOM) =>
-            addSecondaryButton(popover, localize('com_ui_tour_skip'), () =>
-              driverRef.current?.destroy(),
-            ),
+        nextBtnText: localize(step.nextKey),
+        doneBtnText: localize(step.nextKey),
+        onPopoverRender: (popover: PopoverDOM) =>
+          addSecondaryButton(popover, localize('com_ui_tour_skip'), () =>
+            driverRef.current?.destroy(),
+          ),
+        ...(index === resolved.length - 1 && {
+          onNextClick: () => driverRef.current?.destroy(),
+          onDoneClick: () => driverRef.current?.destroy(),
         }),
-        ...(index === last &&
-          index > 0 && {
-            onPopoverRender: (popover: PopoverDOM) =>
-              addSecondaryButton(popover, localize('com_ui_tour_done'), () =>
-                driverRef.current?.destroy(),
-              ),
-            onNextClick: () => {
-              driverRef.current?.destroy();
-              navigate('/agents');
-            },
-          }),
       },
     }));
 
@@ -71,11 +60,11 @@ export default function useOnboardingTour() {
       progressText: '{{current}} of {{total}}',
       nextBtnText: localize('com_ui_tour_next'),
       prevBtnText: localize('com_ui_tour_back'),
-      doneBtnText: localize('com_ui_tour_open_marketplace'),
+      doneBtnText: localize('com_ui_tour_done'),
       onDestroyed: () => completeRef.current(),
     });
     driverRef.current.drive();
-  }, [localize, navigate]);
+  }, [localize]);
 
   useEffect(() => {
     if (user == null) {
