@@ -3028,3 +3028,38 @@ html {
 .sharepoint-picker-bg {
   background-color: #f5f5f5;
 }
+
+/* GiesChat onboarding tour (driver.js) */
+.driver-popover.gieschat-tour {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  border-radius: 12px;
+  max-width: 320px;
+}
+.driver-popover.gieschat-tour .driver-popover-title {
+  color: #13294b;
+  font-weight: 700;
+}
+.dark .driver-popover.gieschat-tour .driver-popover-title {
+  color: #ff8b57;
+}
+.driver-popover.gieschat-tour .driver-popover-description,
+.driver-popover.gieschat-tour .driver-popover-progress-text {
+  color: var(--text-secondary);
+}
+.driver-popover.gieschat-tour .driver-popover-next-btn {
+  background: #ff5f05;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  text-shadow: none;
+}
+.driver-popover.gieschat-tour .driver-popover-prev-btn {
+  border-radius: 6px;
+}
+.driver-popover.gieschat-tour button.gc-tour-secondary {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  margin-right: auto;
+}

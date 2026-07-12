@@ -1169,3 +1169,19 @@ export const useAcceptTermsMutation = (
     onMutate: options?.onMutate,
   });
 };
+
+export const useCompleteTourMutation = (): UseMutationResult<
+  t.TCompleteTourResponse,
+  unknown,
+  void,
+  unknown
+> => {
+  const queryClient = useQueryClient();
+  return useMutation(() => dataService.completeTour(), {
+    onSuccess: (data) => {
+      queryClient.setQueryData<t.TUser | undefined>([QueryKeys.user], (prev) =>
+        prev ? { ...prev, onboardingCompletedAt: data.onboardingCompletedAt } : prev,
+      );
+    },
+  });
+};
