@@ -1,4 +1,4 @@
-import { ThemeSelector } from '@librechat/client';
+import { useEffect } from 'react';
 import { TStartupConfig } from 'librechat-data-provider';
 import { ErrorMessage } from '~/components/Auth/ErrorMessage';
 import { TranslationKeys, useLocalize } from '~/hooks';
@@ -26,6 +26,31 @@ function AuthLayout({
 }) {
   const localize = useLocalize();
 
+  /** Signed-out pages always render light for readability. The theme provider
+   *  re-stamps the root class after this mounts, so an observer keeps it light;
+   *  the saved theme is untouched and restored when the auth layout unmounts */
+  useEffect(() => {
+    const root = document.documentElement;
+    const forceLight = () => {
+      if (root.classList.contains('dark')) {
+        root.classList.replace('dark', 'light');
+      }
+    };
+    forceLight();
+    const observer = new MutationObserver(forceLight);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => {
+      observer.disconnect();
+      const stored = localStorage.getItem('color-theme') ?? 'dark';
+      const wantsDark =
+        stored === 'dark' ||
+        (stored === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (wantsDark && root.classList.contains('light')) {
+        root.classList.replace('light', 'dark');
+      }
+    };
+  }, []);
+
   const hasStartupConfigError = startupConfigError !== null && startupConfigError !== undefined;
   const DisplayError = () => {
     if (hasStartupConfigError) {
@@ -39,7 +64,10 @@ function AuthLayout({
         <div className="mx-auto sm:max-w-sm">
           <ErrorMessage>
             {localize('com_auth_error_invalid_reset_token')}{' '}
-            <a className="font-semibold text-[#13294b] hover:text-[#ff5f05] hover:underline dark:text-[#ff5f05]" href="/forgot-password">
+            <a
+              className="font-semibold text-[#13294b] hover:text-[#ff5f05] hover:underline dark:text-[#ff5f05]"
+              href="/forgot-password"
+            >
               {localize('com_auth_click_here')}
             </a>{' '}
             {localize('com_auth_to_try_again')}
@@ -69,9 +97,6 @@ function AuthLayout({
         </div>
       </BlinkAnimation>
       <DisplayError />
-      <div className="absolute bottom-0 left-0 md:m-4">
-        <ThemeSelector />
-      </div>
 
       <main className="flex flex-grow items-center justify-center">
         <div className="w-authPageWidth overflow-hidden bg-white px-6 py-4 dark:bg-gray-900 sm:max-w-md sm:rounded-lg">
