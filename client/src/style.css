@@ -3054,16 +3054,14 @@ html {
   border-radius: 6px;
   text-shadow: none;
 }
-.driver-popover.gieschat-tour .driver-popover-prev-btn {
-  border-radius: 6px;
-}
 .driver-popover.gieschat-tour .gc-tour-hint {
   color: #ff5f05;
   font-size: 12px;
   font-weight: 600;
   margin-top: 8px;
 }
-.driver-popover.gieschat-tour button.gc-tour-secondary {
+.driver-popover.gieschat-tour button.gc-tour-secondary,
+.driver-popover.gieschat-tour .driver-popover-prev-btn {
   background: #fff;
   border: 1px solid #13294b;
   border-radius: 6px;
@@ -3072,16 +3070,19 @@ html {
   margin-left: 6px;
   text-shadow: none;
 }
-.driver-popover.gieschat-tour button.gc-tour-secondary:hover {
+.driver-popover.gieschat-tour button.gc-tour-secondary:hover,
+.driver-popover.gieschat-tour .driver-popover-prev-btn:hover {
   background: #ff5f05;
   border-color: #ff5f05;
   color: #fff;
 }
-.driver-popover.gieschat-tour button.gc-tour-secondary:focus-visible {
+.driver-popover.gieschat-tour button.gc-tour-secondary:focus-visible,
+.driver-popover.gieschat-tour .driver-popover-prev-btn:focus-visible {
   outline: 2px solid #ff5f05;
   outline-offset: 2px;
 }
-.dark .driver-popover.gieschat-tour button.gc-tour-secondary {
+.dark .driver-popover.gieschat-tour button.gc-tour-secondary,
+.dark .driver-popover.gieschat-tour .driver-popover-prev-btn {
   background: #fff;
   border-color: #fff;
   color: #13294b;
