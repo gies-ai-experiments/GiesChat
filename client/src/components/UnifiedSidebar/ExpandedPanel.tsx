@@ -148,6 +148,11 @@ function ExpandedPanel({
   const { active, setActive } = useActivePanel();
   const effectiveActive = resolveActivePanel(active, links);
 
+  const matchesRoute = (href: string) =>
+    location.pathname === href || location.pathname.startsWith(`${href}/`);
+  const routeLinkActive =
+    !expanded && links.some((link) => link.href != null && matchesRoute(link.href));
+
   const toggleLabel = expanded ? 'com_nav_close_sidebar' : 'com_nav_open_sidebar';
   const toggleClick = expanded ? onCollapse : onExpand;
   const toggleSidebarHint = useShortcutHint('toggleSidebar', localize(toggleLabel));
@@ -184,8 +189,8 @@ function ExpandedPanel({
             link={link}
             isActive={
               link.href
-                ? location.pathname === link.href || location.pathname.startsWith(`${link.href}/`)
-                : link.id === effectiveActive
+                ? !expanded && matchesRoute(link.href)
+                : !routeLinkActive && link.id === effectiveActive
             }
             expanded={expanded ?? true}
             setActive={setActive}

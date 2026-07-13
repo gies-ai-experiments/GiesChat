@@ -150,12 +150,38 @@ describe('ExpandedPanel', () => {
       expect(onCollapse).toHaveBeenCalledTimes(1);
     });
 
-    it('marks Agents active on category routes', () => {
-      renderPanel({ initialRoute: '/agents/finance' });
+    it('marks Agents active on category routes while collapsed', () => {
+      renderPanel({ expanded: false, initialRoute: '/agents/finance' });
 
       expect(screen.getByRole('button', { name: 'com_ui_agents' })).toHaveAttribute(
         'aria-pressed',
         'true',
+      );
+    });
+
+    it('highlights only the route link while collapsed on its route', () => {
+      renderPanel({ expanded: false, initialRoute: '/agents' });
+
+      expect(screen.getByRole('button', { name: 'com_ui_agents' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'com_ui_chat_history' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+    });
+
+    it('highlights only the open panel while expanded on a route-link page', () => {
+      renderPanel({ expanded: true, initialRoute: '/agents' });
+
+      expect(screen.getByRole('button', { name: 'com_ui_chat_history' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'com_ui_agents' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
       );
     });
 
