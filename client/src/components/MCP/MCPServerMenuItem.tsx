@@ -32,6 +32,7 @@ export default function MCPServerMenuItem({
 }: MCPServerMenuItemProps) {
   const localize = useLocalize();
   const displayName = server.config?.title || server.serverName;
+  const isConnected = connectionStatus?.[server.serverName]?.connectionState === 'connected';
   const statusColor = getStatusColor(server.serverName, connectionStatus, isInitializing);
   const statusTextKey = getStatusTextKey(server.serverName, connectionStatus, isInitializing);
   const statusText = localize(statusTextKey as Parameters<typeof localize>[0]);
@@ -83,8 +84,14 @@ export default function MCPServerMenuItem({
         <div className="flex items-center gap-1.5">
           <span className="truncate text-sm font-medium text-text-primary">{displayName}</span>
         </div>
-        {server.config?.description && (
-          <p className="truncate text-xs text-text-secondary">{server.config.description}</p>
+        {isConnected ? (
+          <p className="truncate text-xs font-medium text-green-600 dark:text-green-500">
+            {statusText}
+          </p>
+        ) : (
+          server.config?.description && (
+            <p className="truncate text-xs text-text-secondary">{server.config.description}</p>
+          )
         )}
       </div>
 
