@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useEffect } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { ChevronDown } from 'lucide-react';
 import { PermissionTypes, Permissions, isAgentsEndpoint } from 'librechat-data-provider';
@@ -20,6 +20,17 @@ function MCPSelectContent() {
 
   const menuStore = Ariakit.useMenuStore({ focusLoop: true });
   const isOpen = menuStore.useState('open');
+
+  const configDialogOpen = manager?.getConfigDialogProps()?.isOpen ?? false;
+
+  /** Hide the menu when the config dialog opens: stacking the modal dialog over the
+   *  modal menu leaks Ariakit's inert marking and scroll lock when the dialog is
+   *  dismissed (Escape/outside click), leaving the whole page unclickable */
+  useEffect(() => {
+    if (configDialogOpen) {
+      menuStore.hide();
+    }
+  }, [configDialogOpen, menuStore]);
 
   /** Servers attached to the active agent — always in use during its runs, shown read-only */
   const agentServers = useMemo(() => {

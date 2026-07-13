@@ -68,6 +68,11 @@ export default function MCPCardActions({
   const isError = connectionState === 'error';
 
   const isBusy = isInitializing || isConnecting;
+
+  /** The pinned Radix dropdown wedges body pointer-events when a dialog mounts
+   *  while the menu is still tearing down — run dialog-opening actions a tick
+   *  later so the menu closes fully first */
+  const defer = (action: () => void) => () => setTimeout(action, 0);
   const hasActions =
     canEdit ||
     (isBusy && canCancel) ||
@@ -105,7 +110,7 @@ export default function MCPCardActions({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" className="min-w-40">
         {canEdit && (
-          <DropdownMenuItem onSelect={onEditClick}>
+          <DropdownMenuItem onSelect={defer(onEditClick)}>
             <Pencil aria-hidden="true" />
             {localize('com_ui_edit')}
           </DropdownMenuItem>
@@ -117,19 +122,19 @@ export default function MCPCardActions({
           </DropdownMenuItem>
         )}
         {!isBusy && (isDisconnected || isError) && (
-          <DropdownMenuItem onSelect={onInitialize}>
+          <DropdownMenuItem onSelect={defer(onInitialize)}>
             <PlugZap aria-hidden="true" />
             {localize('com_nav_mcp_connect')}
           </DropdownMenuItem>
         )}
         {!isBusy && isConnected && hasCustomUserVars && (
-          <DropdownMenuItem onSelect={onConfigClick}>
+          <DropdownMenuItem onSelect={defer(onConfigClick)}>
             <SlidersHorizontal aria-hidden="true" />
             {localize('com_ui_configure')}
           </DropdownMenuItem>
         )}
         {!isBusy && isConnected && (
-          <DropdownMenuItem onSelect={onInitialize}>
+          <DropdownMenuItem onSelect={defer(onInitialize)}>
             <RefreshCw aria-hidden="true" />
             {localize('com_nav_mcp_reconnect')}
           </DropdownMenuItem>

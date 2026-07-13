@@ -601,6 +601,20 @@ export function useMCPServerManager({
   const handleDialogOpenChange = useCallback((open: boolean) => {
     setIsConfigModalOpen(open);
 
+    if (!open) {
+      /** The pinned @radix-ui/react-dialog 1.0.2 dismissable-layer keeps body
+       *  pointer-events in a module-level singleton; overlapping layer lifetimes
+       *  can restore 'none' after this dialog closes, wedging every click on the
+       *  page. Clear the leak once the exit animation ends and no dialog remains.
+       *  ponytail: workaround for the pinned radix version — remove on upgrade */
+      setTimeout(() => {
+        const openDialog = document.querySelector('[role="dialog"][data-state="open"]');
+        if (!openDialog && document.body.style.pointerEvents === 'none') {
+          document.body.style.pointerEvents = '';
+        }
+      }, 300);
+    }
+
     if (!open && previousFocusRef.current) {
       setTimeout(() => {
         if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
