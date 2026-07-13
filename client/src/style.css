@@ -3057,6 +3057,12 @@ html {
 .driver-popover.gieschat-tour .driver-popover-prev-btn {
   border-radius: 6px;
 }
+.driver-popover.gieschat-tour .gc-tour-hint {
+  color: #ff5f05;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
 .driver-popover.gieschat-tour button.gc-tour-secondary {
   background: #fff;
   border: 1px solid #13294b;

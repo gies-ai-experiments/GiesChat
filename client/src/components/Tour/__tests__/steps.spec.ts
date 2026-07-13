@@ -9,8 +9,23 @@ describe('resolveTourSteps', () => {
     document.body.innerHTML = '';
   });
 
-  it('defines the approved welcome, course-tutors, and composer screens', () => {
-    expect(TOUR_STEPS.map((step) => step.id)).toEqual(['welcome', 'course-tutors', 'composer']);
+  it('defines the spread-out tour in order', () => {
+    expect(TOUR_STEPS.map((step) => step.id)).toEqual([
+      'welcome',
+      'new-chat',
+      'chats',
+      'rooms',
+      'composer',
+      'model-picker',
+      'course-tutors',
+    ]);
+  });
+
+  it('advances on real clicks for the interactive steps only', () => {
+    const interactive = TOUR_STEPS.filter((step) => step.advanceOnClick === true).map(
+      (step) => step.id,
+    );
+    expect(interactive).toEqual(['new-chat', 'chats', 'rooms', 'course-tutors']);
   });
 
   it('uses More only when the direct Agents destination is unavailable', () => {

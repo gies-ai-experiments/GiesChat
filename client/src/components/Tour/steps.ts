@@ -4,7 +4,7 @@ export const TOUR_REPLAY_KEY = 'gieschat:tour-replay';
 export const TOUR_REPLAY_EVENT = 'gieschat:tour-replay';
 
 export interface TourStepDef {
-  id: 'welcome' | 'course-tutors' | 'composer';
+  id: 'welcome' | 'new-chat' | 'chats' | 'rooms' | 'composer' | 'model-picker' | 'course-tutors';
   selector?: string;
   fallbackSelector?: string;
   titleKey: TranslationKeys;
@@ -12,6 +12,7 @@ export interface TourStepDef {
   nextKey: TranslationKeys;
   centered?: boolean;
   centeredWhenMissing?: boolean;
+  advanceOnClick?: boolean;
 }
 
 export const TOUR_STEPS: TourStepDef[] = [
@@ -23,25 +24,67 @@ export const TOUR_STEPS: TourStepDef[] = [
     centered: true,
   },
   {
-    id: 'course-tutors',
-    selector: '[data-testid="nav-agents-button"]',
-    fallbackSelector: '[data-testid="nav-more-button"]',
-    titleKey: 'com_ui_tour_tutors_title',
-    descKey: 'com_ui_tour_tutors_desc',
+    id: 'new-chat',
+    selector: '[data-testid="new-chat-button"]',
+    titleKey: 'com_ui_tour_new_chat_title',
+    descKey: 'com_ui_tour_new_chat_desc',
     nextKey: 'com_ui_tour_next',
+    advanceOnClick: true,
+  },
+  {
+    id: 'chats',
+    selector: '[data-testid="nav-panel-conversations"]',
+    titleKey: 'com_ui_tour_chats_title',
+    descKey: 'com_ui_tour_chats_desc',
+    nextKey: 'com_ui_tour_next',
+    advanceOnClick: true,
+  },
+  {
+    id: 'rooms',
+    selector: '[data-testid="nav-panel-brainstorm"]',
+    titleKey: 'com_ui_tour_rooms_title',
+    descKey: 'com_ui_tour_rooms_desc',
+    nextKey: 'com_ui_tour_next',
+    advanceOnClick: true,
   },
   {
     id: 'composer',
     selector: '[data-tour="chat-composer"]',
     titleKey: 'com_ui_tour_composer_title',
     descKey: 'com_ui_tour_composer_desc',
-    nextKey: 'com_ui_tour_done',
+    nextKey: 'com_ui_tour_next',
     centeredWhenMissing: true,
+  },
+  {
+    id: 'model-picker',
+    selector: '[data-tour="model-picker"]',
+    titleKey: 'com_ui_tour_model_title',
+    descKey: 'com_ui_tour_model_desc',
+    nextKey: 'com_ui_tour_next',
+  },
+  {
+    id: 'course-tutors',
+    selector: '[data-testid="nav-agents-button"]',
+    fallbackSelector: '[data-testid="nav-more-button"]',
+    titleKey: 'com_ui_tour_tutors_title',
+    descKey: 'com_ui_tour_tutors_desc',
+    nextKey: 'com_ui_tour_done',
+    advanceOnClick: true,
   },
 ];
 
 const isVisible = (selector: string) =>
   (document.querySelector(selector)?.getClientRects().length ?? 0) > 0;
+
+function resolveSelector(step: TourStepDef): string | undefined {
+  if (step.selector !== undefined && isVisible(step.selector)) {
+    return step.selector;
+  }
+  if (step.fallbackSelector !== undefined && isVisible(step.fallbackSelector)) {
+    return step.fallbackSelector;
+  }
+  return undefined;
+}
 
 export function resolveTourSteps(steps: TourStepDef[] = TOUR_STEPS): TourStepDef[] {
   return steps.flatMap((step) => {
@@ -49,11 +92,7 @@ export function resolveTourSteps(steps: TourStepDef[] = TOUR_STEPS): TourStepDef
       return [step];
     }
 
-    const selector = isVisible(step.selector)
-      ? step.selector
-      : step.fallbackSelector !== undefined && isVisible(step.fallbackSelector)
-        ? step.fallbackSelector
-        : undefined;
+    const selector = resolveSelector(step);
 
     if (selector === undefined && !step.centeredWhenMissing) {
       return [];

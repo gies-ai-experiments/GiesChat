@@ -9,6 +9,10 @@ import { useLocalize } from '~/hooks';
 
 let startedThisSession = false;
 
+/** Delay before advancing after a click-to-advance step, so the click's own
+ *  effect (panel expand, navigation) settles before the next spotlight positions */
+const ADVANCE_DELAY_MS = 350;
+
 export const addSecondaryButton = (popover: PopoverDOM, label: string, onClick: () => void) => {
   const button = document.createElement('button');
   button.type = 'button';
@@ -31,37 +35,77 @@ export default function useOnboardingTour() {
     sessionStorage.removeItem(TOUR_REPLAY_KEY);
     driverRef.current?.destroy();
 
+    let removeClickListener: (() => void) | null = null;
+    const clearClickListener = () => {
+      removeClickListener?.();
+      removeClickListener = null;
+    };
+
     const resolved = resolveTourSteps();
-    const steps: DriveStep[] = resolved.map((step, index) => ({
-      element: step.selector,
-      popover: {
-        title: localize(step.titleKey),
-        description: localize(step.descKey),
-        ...(step.selector !== undefined && { side: 'top' as const }),
-        nextBtnText: localize(step.nextKey),
-        doneBtnText: localize(step.nextKey),
-        onPopoverRender: (popover: PopoverDOM) =>
-          addSecondaryButton(popover, localize('com_ui_tour_skip'), () =>
-            driverRef.current?.destroy(),
-          ),
-        ...(index === resolved.length - 1 && {
-          onNextClick: () => driverRef.current?.destroy(),
-          onDoneClick: () => driverRef.current?.destroy(),
+    const steps: DriveStep[] = resolved.map((step, index) => {
+      const isLast = index === resolved.length - 1;
+      const interactive = step.advanceOnClick === true && step.selector !== undefined;
+      return {
+        element: step.selector,
+        popover: {
+          title: localize(step.titleKey),
+          description: interactive
+            ? `${localize(step.descKey)}<div class="gc-tour-hint">${localize('com_ui_tour_click_hint')}</div>`
+            : localize(step.descKey),
+          ...(step.selector !== undefined && { side: 'top' as const }),
+          nextBtnText: localize(step.nextKey),
+          doneBtnText: localize(step.nextKey),
+          ...(interactive && { showButtons: ['previous', 'close'] as const }),
+          onPopoverRender: (popover: PopoverDOM) =>
+            addSecondaryButton(popover, localize('com_ui_tour_skip'), () =>
+              driverRef.current?.destroy(),
+            ),
+          ...(isLast &&
+            !interactive && {
+              onNextClick: () => driverRef.current?.destroy(),
+              onDoneClick: () => driverRef.current?.destroy(),
+            }),
+        },
+        ...(interactive && {
+          onHighlighted: (element?: Element) => {
+            clearClickListener();
+            if (element == null) {
+              return;
+            }
+            const handler = () => {
+              clearClickListener();
+              window.setTimeout(() => {
+                if (isLast) {
+                  driverRef.current?.destroy();
+                } else {
+                  driverRef.current?.moveNext();
+                }
+              }, ADVANCE_DELAY_MS);
+            };
+            element.addEventListener('click', handler, { once: true, capture: true });
+            removeClickListener = () =>
+              element.removeEventListener('click', handler, { capture: true });
+          },
+          onDeselected: () => clearClickListener(),
         }),
-      },
-    }));
+      };
+    });
 
     driverRef.current = driver({
       steps,
       showProgress: true,
       overlayOpacity: 0.55,
       stagePadding: 6,
+      disableActiveInteraction: false,
       popoverClass: 'gieschat-tour',
       progressText: '{{current}} of {{total}}',
       nextBtnText: localize('com_ui_tour_next'),
       prevBtnText: localize('com_ui_tour_back'),
       doneBtnText: localize('com_ui_tour_done'),
-      onDestroyed: () => completeRef.current(),
+      onDestroyed: () => {
+        clearClickListener();
+        completeRef.current();
+      },
     });
     driverRef.current.drive();
   }, [localize]);
