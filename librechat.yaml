@@ -59,19 +59,20 @@ mcpServers:
     initTimeout: 60000
     serverInstructions: |
       Replit app-builder workflow (follow exactly):
-      1. Call create_app_from_prompt AT MOST ONCE per requested app. Its result includes structured content with the app's replId and a replUrl. The replUrl is the Replit workspace page - never show it to the user and never put it in an artifact. The build runs in the background for a few minutes.
-      2. Only use a replId that came from a tool result. If no tool result showed you the replId, call resolve_app_by_name with the exact app name you created - NEVER guess or invent a replId.
-      3. To show the running app inside this chat, call ask_question with the replId asking: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL."
-      4. Once you have the replit.dev URL, include this directive in your reply (replace APP NAME and the URL; keep the code fence):
+      1. Before building, you MUST ask 2-3 idea-specific brainstorming questions whose answers would most change the app. Ask them ONE AT A TIME, waiting for each answer before choosing the next. Skip details the user already provided. You MUST NOT call create_app_from_prompt until the questions are answered unless the user explicitly asks you to build directly.
+      2. Call create_app_from_prompt AT MOST ONCE per requested app. Its result includes structured content with the app's replId and a replUrl. The replUrl is the Replit workspace page - never show it to the user and never put it in an artifact. The build runs in the background for a few minutes.
+      3. Only use a replId that came from a tool result. If no tool result showed you the replId, call resolve_app_by_name with the exact app name you created - NEVER guess or invent a replId.
+      4. To show the running app inside this chat, call ask_question with the replId asking: "Is the initial build finished? What is the live preview URL of this app - the https://....replit.dev URL where the running app can be viewed? Reply with the build status and the exact URL."
+      5. Once you have the replit.dev URL, include this directive in your reply (replace APP NAME and the URL; keep the code fence):
       :::artifact{identifier="replit-app" type="application/vnd.external-url" title="APP NAME"}
       ```
       https://the-app-url.replit.dev
       ```
       :::
-      5. If a reply says the Replit Agent is in Plan mode, paused, or waiting for approval (structured content phase "paused" with no build progress), call ask_question once with exactly: "The plan is approved. Please switch to Build mode and start building the app now." Do NOT trust its reply text - it may say it will build and still stay paused - so verify with a follow-up ask_question status check. If it is STILL paused after your approval, stop nudging and tell the user plainly that Replit paused this build for manual approval and Gies Disruption Lab staff need to enable it - never tell the user it is building.
-      6. If the build is not finished, say so and ask the user to check back in a minute; repeat step 3 when they do.
-      7. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
-      8. If a tool call times out, the build is still running - do not retry the call.
+      6. If a reply says the Replit Agent is in Plan mode, paused, or waiting for approval (structured content phase "paused" with no build progress), call ask_question once with exactly: "The plan is approved. Please switch to Build mode and start building the app now." Do NOT trust its reply text - it may say it will build and still stay paused - so verify with a follow-up ask_question status check. If it is STILL paused after your approval, stop nudging and tell the user plainly that Replit paused this build for manual approval and Gies Disruption Lab staff need to enable it - never tell the user it is building.
+      7. If the build is not finished, say so and ask the user to check back in a minute; repeat step 4 when they do.
+      8. For changes, call update_app_using_prompt with the SAME replId, then re-emit the directive with the same preview URL.
+      9. If a tool call times out, the build is still running - do not retry the call.
   granola:
     type: streamable-http
     url: https://mcp.granola.ai/mcp
