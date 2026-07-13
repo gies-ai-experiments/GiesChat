@@ -189,3 +189,4 @@ docs/design/
 
 # Local Claude skills library — never committed (keep tracked skill/README.md)
 skill/*/
+.superpowers/
