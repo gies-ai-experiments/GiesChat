@@ -119,6 +119,7 @@ endpoints:
       modelDisplayLabel: 'Azure OpenAI'
       addParams:
         web_search: true
+        reasoning_effort: medium
 
 modelSpecs:
   enforce: false
