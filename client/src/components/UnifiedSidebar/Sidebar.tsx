@@ -45,8 +45,7 @@ function Sidebar({
         aria-label="Resize sidebar"
         tabIndex={expanded ? 0 : -1}
         className={cn(
-          // GiesChat: sidebar width is fixed — hide the drag handle so users can't resize left/right
-          'absolute right-0 top-0 z-10 hidden h-full w-1 cursor-col-resize transition-colors hover:bg-border-medium active:bg-border-heavy',
+          'group absolute right-0 top-0 z-10 flex h-full w-2 cursor-col-resize items-center justify-center transition-colors hover:bg-[#FF5F05] focus-visible:bg-[#FF5F05] focus-visible:outline-none active:bg-[#FF5F05]',
           expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         style={{ transition: expanded ? 'opacity 200ms ease 80ms' : 'opacity 150ms ease' }}
@@ -58,7 +57,9 @@ function Sidebar({
             onResizeKeyboard('grow');
           }
         }}
-      />
+      >
+        <div className="h-8 w-1 rounded-full bg-border-heavy group-hover:bg-white group-active:bg-white" />
+      </div>
     </>
   );
 }

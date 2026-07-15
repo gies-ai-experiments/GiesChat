@@ -15,12 +15,13 @@ import store from '~/store';
 
 const COLLAPSED_WIDTH = 52;
 const EXPANDED_MIN = 220;
+const EXPANDED_DEFAULT = 320;
 const TRANSITION_MS = 300;
 const EASING = 'cubic-bezier(0.2, 0, 0, 1)';
 
 function getInitialWidth(): number {
   const saved = localStorage.getItem('side:width');
-  return saved ? Math.max(Number(saved), EXPANDED_MIN) : EXPANDED_MIN;
+  return saved ? Math.max(Number(saved), EXPANDED_MIN) : EXPANDED_DEFAULT;
 }
 
 /**
