@@ -1,3 +1,4 @@
+const { careerPrepAvatar } = require('../avatar');
 const { buildInstructions } = require('./persona');
 
 const AGENT_ID = 'agent_gies_career_prep';
@@ -28,6 +29,7 @@ async function seedCareerPrep({ methods, grantPublic, authorId, provider, model 
     category: CATEGORY_VALUE,
     tools: ['file_search'],
     is_promoted: true,
+    avatar: { filepath: careerPrepAvatar(), source: 'gies' },
   };
 
   const existingAgent = await methods.getAgent({ id: AGENT_ID });

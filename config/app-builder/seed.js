@@ -1,4 +1,5 @@
 const { Constants } = require('librechat-data-provider');
+const { appBuilderAvatar } = require('../avatar');
 const { buildInstructions } = require('./persona');
 
 const AGENT_ID = 'agent_gies_app_builder';
@@ -32,6 +33,7 @@ async function seedAppBuilder({ methods, grantPublic, authorId, provider, model 
     tools: [ALL_REPLIT_TOOLS],
     artifacts: 'default',
     is_promoted: true,
+    avatar: { filepath: appBuilderAvatar(), source: 'gies' },
   };
 
   const existingAgent = await methods.getAgent({ id: AGENT_ID });
