@@ -12,6 +12,7 @@ export interface CustomMenuProps extends Ariakit.MenuButtonProps<'div'> {
   comboboxLabel?: string;
   trigger?: Ariakit.MenuButtonProps['render'];
   defaultOpen?: boolean;
+  menuDataTour?: string;
 }
 
 export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(function CustomMenu(
@@ -26,6 +27,7 @@ export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(func
     comboboxLabel,
     trigger,
     defaultOpen,
+    menuDataTour,
     ...props
   },
   ref,
@@ -59,6 +61,7 @@ export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(func
       </Ariakit.MenuButton>
       <Ariakit.Menu
         open={menuStore.useState('open')}
+        data-tour={menuDataTour}
         portal
         overlap
         unmountOnHide

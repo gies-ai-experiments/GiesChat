@@ -101,6 +101,7 @@ function ModelSelectorContent() {
         combobox={<input id="model-search" placeholder=" " />}
         comboboxLabel={localize('com_endpoint_search_models')}
         trigger={trigger}
+        menuDataTour="model-menu"
       >
         {searchResults ? (
           renderSearchResults(searchResults, localize, searchValue)

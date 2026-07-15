@@ -4,15 +4,29 @@ export const TOUR_REPLAY_KEY = 'gieschat:tour-replay';
 export const TOUR_REPLAY_EVENT = 'gieschat:tour-replay';
 
 export interface TourStepDef {
-  id: 'welcome' | 'new-chat' | 'chats' | 'rooms' | 'composer' | 'model-picker' | 'course-tutors';
+  id:
+    | 'welcome'
+    | 'new-chat'
+    | 'chats'
+    | 'rooms'
+    | 'composer'
+    | 'model-picker'
+    | 'model-menu'
+    | 'course-tutors';
   selector?: string;
   fallbackSelector?: string;
   titleKey: TranslationKeys;
   descKey: TranslationKeys;
   nextKey: TranslationKeys;
+  hintKey?: TranslationKeys;
   centered?: boolean;
   centeredWhenMissing?: boolean;
   advanceOnClick?: boolean;
+  /** Keep the step when this selector is visible, resolving `selector` at highlight
+   *  time instead — for targets that only appear mid-tour (e.g. an opened menu) */
+  visibleWhen?: string;
+  /** Advance only when the click lands inside a matching element */
+  clickTargetSelector?: string;
 }
 
 export const TOUR_STEPS: TourStepDef[] = [
@@ -61,6 +75,18 @@ export const TOUR_STEPS: TourStepDef[] = [
     titleKey: 'com_ui_tour_model_title',
     descKey: 'com_ui_tour_model_desc',
     nextKey: 'com_ui_tour_next',
+    advanceOnClick: true,
+  },
+  {
+    id: 'model-menu',
+    selector: '[data-tour="model-menu"]',
+    visibleWhen: '[data-tour="model-picker"]',
+    titleKey: 'com_ui_tour_model_menu_title',
+    descKey: 'com_ui_tour_model_menu_desc',
+    hintKey: 'com_ui_tour_model_menu_hint',
+    nextKey: 'com_ui_tour_next',
+    advanceOnClick: true,
+    clickTargetSelector: '[role="menuitemradio"],[role="option"]',
   },
   {
     id: 'course-tutors',
@@ -90,6 +116,10 @@ export function resolveTourSteps(steps: TourStepDef[] = TOUR_STEPS): TourStepDef
   return steps.flatMap((step) => {
     if (step.selector === undefined) {
       return [step];
+    }
+
+    if (step.visibleWhen !== undefined) {
+      return isVisible(step.visibleWhen) ? [step] : [];
     }
 
     const selector = resolveSelector(step);

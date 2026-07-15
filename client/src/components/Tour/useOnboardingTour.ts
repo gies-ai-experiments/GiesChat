@@ -50,7 +50,7 @@ export default function useOnboardingTour() {
         popover: {
           title: localize(step.titleKey),
           description: interactive
-            ? `${localize(step.descKey)}<div class="gc-tour-hint">${localize('com_ui_tour_click_hint')}</div>`
+            ? `${localize(step.descKey)}<div class="gc-tour-hint">${localize(step.hintKey ?? 'com_ui_tour_click_hint')}</div>`
             : localize(step.descKey),
           ...(step.selector !== undefined && { side: 'top' as const }),
           nextBtnText: localize(step.nextKey),
@@ -72,7 +72,14 @@ export default function useOnboardingTour() {
             if (element == null) {
               return;
             }
-            const handler = () => {
+            const handler = (event: Event) => {
+              const target = event.target instanceof Element ? event.target : null;
+              if (
+                step.clickTargetSelector !== undefined &&
+                target?.closest(step.clickTargetSelector) == null
+              ) {
+                return;
+              }
               clearClickListener();
               window.setTimeout(() => {
                 if (isLast) {
@@ -82,7 +89,7 @@ export default function useOnboardingTour() {
                 }
               }, ADVANCE_DELAY_MS);
             };
-            element.addEventListener('click', handler, { once: true, capture: true });
+            element.addEventListener('click', handler, { capture: true });
             removeClickListener = () =>
               element.removeEventListener('click', handler, { capture: true });
           },
