@@ -81,8 +81,8 @@ export enum QueryKeys {
   /* Skill tree (phase 2 — filesystem-style node view) */
   skillTree = 'skillTree',
   skillNodeContent = 'skillNodeContent',
-  /* Skill favorites (star a skill in the sidebar) */
-  skillFavorites = 'skillFavorites',
+  /* Tool favorites (starred marketplace items) */
+  toolFavorites = 'toolFavorites',
   /* Per-user skill active/inactive overrides */
   skillStates = 'skillStates',
   /* General user favorites */
@@ -99,6 +99,7 @@ export enum MutationKeys {
   deleteAgentApiKey = 'deleteAgentApiKey',
   fileUpload = 'fileUpload',
   fileDelete = 'fileDelete',
+  fileUsage = 'fileUsage',
   updatePreset = 'updatePreset',
   deletePreset = 'deletePreset',
   loginUser = 'loginUser',

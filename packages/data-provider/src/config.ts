@@ -565,6 +565,7 @@ export enum AgentCapabilities {
   end_after_tools = 'end_after_tools',
   deferred_tools = 'deferred_tools',
   execute_code = 'execute_code',
+  stateful_code_sessions = 'stateful_code_sessions',
   file_search = 'file_search',
   web_search = 'web_search',
   artifacts = 'artifacts',
@@ -573,9 +574,11 @@ export enum AgentCapabilities {
   context = 'context',
   skills = 'skills',
   memory = 'memory',
+  ask_user_question = 'ask_user_question',
   tools = 'tools',
   chain = 'chain',
   ocr = 'ocr',
+  run_in_background = 'run_in_background',
 }
 
 export const defaultAssistantsVersion = {
@@ -689,6 +692,7 @@ export const defaultAgentCapabilities = [
   AgentCapabilities.context,
   AgentCapabilities.skills,
   AgentCapabilities.memory,
+  AgentCapabilities.ask_user_question,
   AgentCapabilities.tools,
   AgentCapabilities.chain,
   AgentCapabilities.ocr,
@@ -787,6 +791,29 @@ export type ToolApprovalMode = z.infer<typeof toolApprovalModeSchema>;
  *   HITL machinery for this endpoint (no checkpointer, no hooks, no prompts).
  *   This is admin-level; users toggle prompting via `mode: 'bypass'` instead.
  */
+/**
+ * A programmatic tool-approval hook loaded from a module at startup.
+ *
+ * The referenced module's default export must be a builder
+ * `(options?) => ToolApprovalHookFactory` (see `@librechat/api`'s `registerToolApprovalHook`).
+ * Hooks compose with the static `allow`/`deny`/`ask` policy above and can only TIGHTEN it
+ * (the SDK folds decisions `deny → ask → allow`). This is admin-level config — the module is
+ * dynamically imported and executed in-process, so only reference trusted code.
+ */
+export const toolApprovalHookConfigSchema = z.object({
+  /**
+   * Module specifier to import: a bare package name (e.g. `@acme/approval-hooks`) or a path —
+   * absolute, or relative to the app root. Its default export is the hook builder.
+   */
+  module: z.string().min(1),
+  /** Optional regex matched against the tool name; omit to run for every tool. */
+  matcher: z.string().optional(),
+  /** Static options forwarded to the module's builder; the hook's own per-call config. */
+  options: z.record(z.unknown()).optional(),
+});
+
+export type TToolApprovalHookConfig = z.infer<typeof toolApprovalHookConfigSchema>;
+
 export const toolApprovalPolicySchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -796,6 +823,17 @@ export const toolApprovalPolicySchema = z
     ask: z.array(z.string()).optional(),
     /** Optional reason template surfaced in the prompt; `{tool}` is interpolated. */
     reason: z.string().optional(),
+    /**
+     * Programmatic policy hooks loaded from modules at startup. They layer on top of the
+     * static lists above for dynamic, context-aware decisions the lists can't express
+     * (per-args, per-agent, per-user). See {@link toolApprovalHookConfigSchema}.
+     *
+     * BASE-CONFIG ONLY: hooks are imported + registered once, process-wide, at server
+     * startup — they are NOT reloaded from per-role/user/tenant admin overrides. Encode
+     * per-user/tenant behavior INSIDE the hook (via its runtime context), not by varying the
+     * module list per override. Honored only when `enabled` is true.
+     */
+    hooks: z.array(toolApprovalHookConfigSchema).optional(),
   })
   .optional();
 
@@ -1749,6 +1787,11 @@ export const contextPruningSchema = z.object({
   minPrunableToolChars: z.number().min(0).optional(),
 });
 
+export const retainRecentConfigSchema = z.object({
+  turns: z.number().min(0).max(20).optional(),
+  tokens: z.number().positive().optional(),
+});
+
 export const summarizationConfigSchema = z.object({
   enabled: z.boolean().optional(),
   provider: z.string().optional(),
@@ -1760,6 +1803,7 @@ export const summarizationConfigSchema = z.object({
   reserveRatio: z.number().min(0).max(1).optional(),
   maxSummaryTokens: z.number().positive().optional(),
   contextPruning: contextPruningSchema.optional(),
+  retainRecent: retainRecentConfigSchema.optional(),
 });
 
 export type SummarizationConfig = z.infer<typeof summarizationConfigSchema>;
@@ -1802,11 +1846,14 @@ export const langfuseConfigSchema = z.object({
   enabled: z.boolean().optional(),
   publicKey: z.string().optional(),
   secretKey: z.string().optional(),
-  baseUrl: z.string().optional(),
+  /** Non-secret display value of the secret key, stored at write time so
+   * admin reads can show which secret key is configured without returning the secret. */
+  displaySecretKey: z.string().optional(),
+  /** Routing key for one of the deployment-configured tenant Langfuse destinations. */
+  destination: z.string().optional(),
   fanout: z
     .object({
       enabled: z.boolean().optional(),
-      collectorUrl: z.string().optional(),
     })
     .optional(),
 });
@@ -1971,6 +2018,9 @@ export const alternateName = {
 };
 
 const sharedOpenAIModels = [
+  'gpt-5.6',
+  'gpt-5.6-terra',
+  'gpt-5.6-luna',
   'gpt-5.5',
   'gpt-5.5-pro',
   'chat-latest',
@@ -2252,6 +2302,14 @@ export enum CacheKeys {
    */
   ROLES = 'ROLES',
   /**
+   * Key for cached group memberships used to resolve ACL user principals.
+   */
+  USER_PRINCIPALS = 'USER_PRINCIPALS',
+  /**
+   * Key for per-conversation stateful code sandbox prewarm/warm state.
+   */
+  SANDBOX_PREWARM = 'SANDBOX_PREWARM',
+  /**
    * Key for the title generation cache.
    */
   GEN_TITLE = 'GEN_TITLE',
@@ -2321,6 +2379,10 @@ export enum CacheKeys {
    */
   OPENID_EXCHANGED_TOKENS = 'OPENID_EXCHANGED_TOKENS',
   /**
+   * Key for cached authenticated user documents.
+   */
+  AUTH_USER_DOC = 'AUTH_USER_DOC',
+  /**
    * Key for OpenID session.
    */
   OPENID_SESSION = 'OPENID_SESSION',
@@ -2333,6 +2395,8 @@ export enum CacheKeys {
    */
   ADMIN_OAUTH_EXCHANGE = 'ADMIN_OAUTH_EXCHANGE',
 }
+
+export const AUTH_USER_DOC_BY_ID_PREFIX = 'auth-user-doc-byid';
 
 /**
  * Enum for violation types, used to identify, log, and cache violations.
@@ -2674,6 +2738,8 @@ export enum Constants {
   BASH_PROGRAMMATIC_TOOL_CALLING = 'run_tools_with_bash',
   /** Subagent spawn tool name (must match `@librechat/agents` `Constants.SUBAGENT`). */
   SUBAGENT = 'subagent',
+  /** Poll tool for retrieving the status/result of a backgrounded tool call. */
+  CHECK_BACKGROUND_TASK = 'check_background_task',
 }
 
 /** Maximum explicit subagent hops allowed from any root agent at runtime. */

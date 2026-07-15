@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import * as s from './schemas';
 
-const DEFAULT_ENABLED_MAX_TOKENS = 8192;
 const DEFAULT_THINKING_BUDGET = 2000;
+const BEDROCK_CLAUDE_SONNET_4_6_MAX_OUTPUT = 64000;
 export const BEDROCK_OUTPUT_128K_BETA = 'output-128k-2025-02-19';
 export const BEDROCK_FINE_GRAINED_TOOL_STREAMING_BETA = 'fine-grained-tool-streaming-2025-05-14';
 
@@ -94,16 +94,16 @@ function parseOpusVersion(model: string): { major: number; minor: number } | nul
 }
 
 /** Extracts sonnet major/minor version from both naming formats.
- *  Uses single-digit minor capture to avoid matching date suffixes (e.g., -20250514). */
+ *  Uses bounded minor capture to avoid matching date suffixes (e.g., -20250514). */
 function parseSonnetVersion(model: string): { major: number; minor: number } | null {
-  const nameFirst = model.match(/claude-sonnet[-.]?(\d+)(?:[-.](\d)(?!\d))?/);
+  const nameFirst = model.match(/claude-sonnet[-.]?(\d+)(?:[-.](\d{1,2})(?!\d))?/);
   if (nameFirst) {
     return {
       major: parseInt(nameFirst[1], 10),
       minor: nameFirst[2] != null ? parseInt(nameFirst[2], 10) : 0,
     };
   }
-  const numFirst = model.match(/claude-(\d+)(?:[-.](\d)(?!\d))?-sonnet/);
+  const numFirst = model.match(/claude-(\d+)(?:[-.](\d{1,2})(?!\d))?-sonnet/);
   if (numFirst) {
     return {
       major: parseInt(numFirst[1], 10),
@@ -673,13 +673,45 @@ export const bedrockInputParser = s.tConversationSchema
  * @param data - The parsed Bedrock request options object
  * @returns The object with thinking configured appropriately
  */
+/**
+ * `anthropicSettings.maxOutputTokens.reset` only matches the canonical
+ * family-first id (`claude-sonnet-5`); Bedrock also accepts number-first
+ * aliases (`claude-5-sonnet`, `claude-4-7-sonnet`) that this file gates as
+ * thinking models. Canonicalize to family-first so those aliases resolve to the
+ * real ceiling instead of the 8192 fallback.
+ */
+function toFamilyFirstClaudeId(model: string): string {
+  return model.replace(/claude-(\d+(?:[-.]\d+)?)-(sonnet|opus|haiku)/, 'claude-$2-$1');
+}
+
+function isBedrockClaudeSonnet46(model: string): boolean {
+  return /claude-sonnet[-.]?4[-.]?6(?=$|[^0-9])/.test(toFamilyFirstClaudeId(model));
+}
+
+/**
+ * Thinking tokens share the `maxTokens` output budget with tool-call arguments
+ * (e.g. a `create_file` `content`), so a low default truncates large authored
+ * files mid-argument. Mirror the direct-Anthropic path and default to the
+ * model's full max output when the request does not set one explicitly.
+ */
+function resolveThinkingMaxTokens(data: AnthropicInput): number {
+  const explicit = data.maxTokens ?? data.maxOutputTokens;
+  if (typeof explicit === 'number' && explicit > 0) {
+    return explicit;
+  }
+  const model = typeof data.model === 'string' ? data.model : '';
+  if (isBedrockClaudeSonnet46(model)) {
+    return BEDROCK_CLAUDE_SONNET_4_6_MAX_OUTPUT;
+  }
+  return s.anthropicSettings.maxOutputTokens.reset(toFamilyFirstClaudeId(model));
+}
+
 function configureThinking(data: AnthropicInput): AnthropicInput {
   const updatedData = { ...data };
   const thinking = updatedData.additionalModelRequestFields?.thinking;
 
   if (thinking === true) {
-    updatedData.maxTokens =
-      updatedData.maxTokens ?? updatedData.maxOutputTokens ?? DEFAULT_ENABLED_MAX_TOKENS;
+    updatedData.maxTokens = resolveThinkingMaxTokens(updatedData);
     delete updatedData.maxOutputTokens;
     const thinkingConfig: ThinkingConfig = {
       type: 'enabled',
@@ -697,15 +729,32 @@ function configureThinking(data: AnthropicInput): AnthropicInput {
     thinking != null &&
     (thinking as { type: string }).type === 'adaptive'
   ) {
-    if (updatedData.maxTokens == null && updatedData.maxOutputTokens != null) {
-      updatedData.maxTokens = updatedData.maxOutputTokens;
-    }
+    updatedData.maxTokens = resolveThinkingMaxTokens(updatedData);
     delete updatedData.maxOutputTokens;
     delete updatedData.additionalModelRequestFields!.thinkingBudget;
   }
 
   return updatedData;
 }
+
+/** Top-level Converse request fields (issue #14029: `system` from a preset).
+ *  The input parser's catch-all routes unknown keys into
+ *  additionalModelRequestFields, and Bedrock rejects any that collide with a
+ *  field the request already sends (`messages`/`modelId` always,
+ *  `inferenceConfig` whenever maxTokens is set, `toolConfig` for agents). */
+const RESERVED_CONVERSE_FIELDS = [
+  'system',
+  'messages',
+  'modelId',
+  'toolConfig',
+  'inferenceConfig',
+  'guardrailConfig',
+  'promptVariables',
+  'requestMetadata',
+  'performanceConfig',
+  'additionalModelRequestFields',
+  'additionalModelResponseFieldPaths',
+];
 
 export const bedrockOutputParser = (data: Record<string, unknown>) => {
   const knownKeys = [...Object.keys(s.tConversationSchema.shape), 'topK', 'top_k'];
@@ -746,7 +795,21 @@ export const bedrockOutputParser = (data: Record<string, unknown>) => {
   }
 
   result = configureThinking(result as AnthropicInput);
-  const amrf = result.additionalModelRequestFields as Record<string, unknown> | undefined;
+  let amrf = result.additionalModelRequestFields as Record<string, unknown> | undefined;
+  // Reserved top-level Converse request fields; a copy inside
+  // additionalModelRequestFields makes Bedrock reject the request
+  // ("The additional field <name> conflicts with an existing field").
+  // Guard against non-object values, which the schema's DocumentType permits.
+  if (amrf && typeof amrf === 'object') {
+    const reserved = RESERVED_CONVERSE_FIELDS.filter((key) => key in (amrf ?? {}));
+    if (reserved.length > 0) {
+      amrf = { ...amrf };
+      for (const key of reserved) {
+        delete amrf[key];
+      }
+      result.additionalModelRequestFields = amrf;
+    }
+  }
   if (!amrf || Object.keys(amrf).length === 0) {
     delete result.additionalModelRequestFields;
   }

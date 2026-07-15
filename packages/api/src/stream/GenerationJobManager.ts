@@ -11,6 +11,7 @@ import type {
   TMessageContentParts,
   TContextUsageEvent,
   TTokenUsageEvent,
+  TPendingSteer,
   Agents,
 } from 'librechat-data-provider';
 import type { StandardGraph } from '@librechat/agents';
@@ -21,6 +22,7 @@ import type {
   AbortResult,
   IJobStore,
 } from './interfaces/IJobStore';
+import type { SteerOwner, SteerContentView } from './SteeringLifecycle';
 import type { GenerationJobStore } from '~/app/metrics';
 import type * as t from '~/types';
 import {
@@ -29,10 +31,16 @@ import {
   setGenerationJobsInFlight,
   recordGenerationJob,
 } from '~/app/metrics';
+import {
+  SteeringLifecycle,
+  toPendingSteer,
+  synthesizeAppliedSteerEvents,
+} from './SteeringLifecycle';
 import { isPendingActionStale, isPendingActionExpired } from './interfaces/IJobStore';
 import { InMemoryEventTransport } from './implementations/InMemoryEventTransport';
 import { InMemoryJobStore } from './implementations/InMemoryJobStore';
 import { filterPersistableAbortContent } from './abortContent';
+import { toClientPendingAction } from '~/agents/hitl/policy';
 import { ApprovalLifecycle } from './ApprovalLifecycle';
 
 /** Terminal error surfaced to a client still attached when its approval window lapses. */
@@ -152,6 +160,8 @@ interface RuntimeJobState {
   resolveReady: () => void;
   finalEvent?: t.ServerSentEvent;
   errorEvent?: string;
+  /** Approval-expired host cleanup already ran for this runtime (relay path is swept repeatedly). */
+  approvalCleanupRan?: boolean;
   syncSent: boolean;
   earlyEventBuffer: t.ServerSentEvent[];
   hasSubscriber: boolean;
@@ -184,6 +194,8 @@ class GenerationJobManagerClass {
   private jobStore: IJobStore;
   /** Guarded human-review lifecycle (pause / resolve / expire) over the store. */
   private _approvals: ApprovalLifecycle;
+  /** FIFO steering queue (enqueue / drain / peek / clear) over the store. */
+  private _steering: SteeringLifecycle;
   /** Event pub/sub transport - swappable for Redis Pub/Sub, etc. */
   private eventTransport: IEventTransport;
 
@@ -207,10 +219,20 @@ class GenerationJobManagerClass {
   /** Whether to cleanup event transport immediately on job completion */
   private _cleanupOnComplete = true;
 
+  /**
+   * Host cleanup fired after an approval EXPIRES (periodic sweeper or a stale submit) —
+   * e.g. prune the paused run's durable checkpoint eagerly instead of letting it sit
+   * until its store TTL. Best-effort: failures are logged, never break the expiry.
+   */
+  private _onApprovalExpired:
+    | ((streamId: string, job?: SerializableJobData | null) => void | Promise<void>)
+    | null = null;
+
   constructor(options?: GenerationJobManagerOptions) {
     this.jobStore =
       options?.jobStore ?? new InMemoryJobStore({ ttlAfterComplete: 0, maxJobs: 1000 });
     this._approvals = new ApprovalLifecycle(this.jobStore);
+    this._steering = new SteeringLifecycle(this.jobStore);
     this.eventTransport = options?.eventTransport ?? new InMemoryEventTransport();
     this._cleanupOnComplete = options?.cleanupOnComplete ?? true;
   }
@@ -270,6 +292,7 @@ class GenerationJobManagerClass {
 
     this.jobStore = services.jobStore;
     this._approvals = new ApprovalLifecycle(this.jobStore);
+    this._steering = new SteeringLifecycle(this.jobStore);
     this.eventTransport = services.eventTransport;
     this._isRedis = services.isRedis ?? false;
     this._cleanupOnComplete = services.cleanupOnComplete ?? true;
@@ -278,6 +301,19 @@ class GenerationJobManagerClass {
     logger.info(
       `[GenerationJobManager] Configured with ${this._isRedis ? 'Redis' : 'in-memory'} stores`,
     );
+  }
+
+  /**
+   * Register a host callback fired after an approval EXPIRES — from the periodic sweeper or
+   * a stale submit — e.g. to prune the paused run's durable checkpoint eagerly instead of
+   * waiting out its TTL. Unlike {@link configure} this never resets services, so it is safe
+   * to call from any startup path (including ones that run on constructor defaults). The
+   * `streamId` argument equals the LangGraph `thread_id` (LibreChat's conversationId).
+   */
+  setApprovalExpiredHandler(
+    handler: ((streamId: string, job?: SerializableJobData | null) => void | Promise<void>) | null,
+  ): void {
+    this._onApprovalExpired = handler;
   }
 
   /**
@@ -685,6 +721,28 @@ class GenerationJobManagerClass {
     this.runStepBuffers?.delete(streamId);
     this.replayEventWriteQueues.delete(streamId);
     this.tokenUsageWriteQueues.delete(streamId);
+    // Backstop for direct terminal callers (init failures, unhandled errors)
+    // that never ran the controllers' close-and-park: close the queue, then
+    // park any 202-accepted leftovers for /chat/status claim-on-read instead
+    // of silently clearing them. Paths that already drained find an empty
+    // queue and no-op; the createdAt guard (re-checked inside the store's
+    // atomic drain) keeps a stale completion off a replacement job's queue.
+    // Runs BEFORE the terminal status write — the Redis terminal cleanup DELs
+    // the queue key.
+    try {
+      const jobData = await this.jobStore.getJob(streamId);
+      if (jobData) {
+        const leftovers = (
+          await this.jobStore.closeAndDrainSteers(streamId, jobData.createdAt)
+        ).map(toPendingSteer);
+        await this._steering.park(streamId, leftovers, {
+          userId: jobData.userId,
+          tenantId: jobData.tenantId,
+        });
+      }
+    } catch (err) {
+      logger.warn(`[GenerationJobManager] Failed to park leftover steers for ${streamId}:`, err);
+    }
 
     // For error jobs, DON'T delete immediately - keep around so late-connecting
     // clients can receive the error. This handles the race condition where error
@@ -738,8 +796,19 @@ class GenerationJobManagerClass {
    * Cross-replica support (Redis mode):
    * - Emits abort signal via Redis pub/sub
    * - The replica running generation receives signal and aborts its AbortController
+   *
+   * `options.transformAbortContent` rewrites the persistable content BEFORE the
+   * final SSE is emitted (and before it is returned for the DB save), so a
+   * host-side stamp — e.g. re-attaching a paused `ask_user_question`'s args
+   * that the Redis chunk-log reconstruction dropped — reaches the LIVE client
+   * too, not just the saved message. Pure/optional; identity when omitted.
    */
-  async abortJob(streamId: string): Promise<AbortResult> {
+  async abortJob(
+    streamId: string,
+    options?: {
+      transformAbortContent?: (content: TMessageContentParts[]) => TMessageContentParts[];
+    },
+  ): Promise<AbortResult> {
     const jobData = await this.jobStore.getJob(streamId);
     const runtime = this.runtimeState.get(streamId);
 
@@ -767,18 +836,44 @@ class GenerationJobManagerClass {
       runtime.abortController.abort();
     }
 
+    /** Steers that never reached an injection boundary — reported on the abort
+     *  final event (and the abort route's JSON) so the client can restore them
+     *  as queued chips instead of silently dropping the user's words. The
+     *  close-and-drain rejects any steer POST racing this finalization, and
+     *  the createdAt guard keeps it off a replacement job's queue. Runs
+     *  BEFORE the content snapshot below: a drain hook that already popped a
+     *  steer and applied its part gets captured by the snapshot, so the text
+     *  surfaces either here (pendingSteers) or there (inline part) — an
+     *  encode still in flight across the abort remains inherently racy
+     *  cross-instance, but the window no longer includes completed applies. */
+    const pendingSteers = (
+      await this.jobStore.closeAndDrainSteers(streamId, jobData.createdAt)
+    ).map(toPendingSteer);
+    // No-subscriber recovery: the abort response/final are transient, so park
+    // the leftovers for /chat/status claim-on-read within the recovery TTL.
+    await this.steering.park(streamId, pendingSteers, {
+      userId: jobData.userId,
+      tenantId: jobData.tenantId,
+    });
+
     /** Content before clearing state */
     const result = await this.jobStore.getContentParts(streamId);
     const content = result?.content ?? [];
-    const abortContent = filterPersistableAbortContent(content);
+    let abortContent = filterPersistableAbortContent(content);
+    if (options?.transformAbortContent) {
+      abortContent = options.transformAbortContent(
+        abortContent as TMessageContentParts[],
+      ) as typeof abortContent;
+    }
     const shouldPersistAbortContent = abortContent.length > 0;
 
     /** Collected usage for all models */
     const collectedUsage = this.jobStore.getCollectedUsage(streamId);
 
-    /** Text from content parts for fallback token counting */
+    /** Text from content parts for fallback token counting; the persisted
+     *  abort record keeps steered words (they reached the model context). */
     const text = shouldPersistAbortContent
-      ? parseTextParts(abortContent as TMessageContentParts[])
+      ? parseTextParts(abortContent as TMessageContentParts[], false, { includeSteer: true })
       : '';
 
     /** Detect "early abort" - aborted before any generation happened (e.g., during tool loading)
@@ -821,6 +916,7 @@ class GenerationJobManagerClass {
       aborted: true,
       // Flag for early abort - no messages saved, frontend should go to new chat
       earlyAbort: isEarlyAbort,
+      ...(pendingSteers.length > 0 && { pendingSteers }),
     } satisfies t.FinalEvent as t.ServerSentEvent;
 
     if (runtime) {
@@ -858,6 +954,7 @@ class GenerationJobManagerClass {
       finalEvent: abortFinalEvent,
       text,
       collectedUsage,
+      ...(pendingSteers.length > 0 && { pendingSteers }),
     };
   }
 
@@ -1072,8 +1169,8 @@ class GenerationJobManagerClass {
     // the snapshot didn't already carry the action, surface it as a pending event so the
     // approval prompt renders. Idempotent: a pause landing AFTER attach is delivered live
     // too, and the client's handler just sets the current action, so a duplicate is benign.
+    const liveJob = await this.jobStore.getJob(streamId);
     if (!resumeState?.pendingAction) {
-      const liveJob = await this.jobStore.getJob(streamId);
       if (
         liveJob?.status === 'requires_action' &&
         liveJob.pendingAction != null &&
@@ -1083,9 +1180,47 @@ class GenerationJobManagerClass {
           ...pendingEvents,
           {
             event: ApprovalEvents.ON_PENDING_ACTION,
-            data: liveJob.pendingAction as unknown as Record<string, unknown>,
+            data: toClientPendingAction(liveJob.pendingAction) as unknown as Record<
+              string,
+              unknown
+            >,
           },
         ];
+      }
+    }
+
+    // Same snapshot→subscribe race for steers: a steer accepted (and possibly
+    // applied) in the window is invisible to the snapshot, since the Redis
+    // `on_steer_applied` publish is fire-and-forget and the sync payload has no
+    // pendingSteers (in-memory covers it via the early buffer, where this
+    // re-check is a cheap no-op). Always re-peek for still-active jobs,
+    // treating a missing snapshot queue as empty; terminal jobs skip because
+    // the final event owns steer delivery. The content re-read runs only when
+    // the queue shows gap activity, and synthesis sources from the FRESH
+    // content view so an applied steer with no snapshot id still surfaces.
+    const jobActive = liveJob?.status === 'running' || liveJob?.status === 'requires_action';
+    if (resumeState != null && jobActive) {
+      const snapshotSteers = resumeState.pendingSteers ?? [];
+      const liveQueue = await this.jobStore.peekSteers(streamId);
+      const liveIds = new Set(liveQueue.map((item) => item.steerId));
+      const queueChanged =
+        liveQueue.length !== snapshotSteers.length ||
+        snapshotSteers.some((steer) => !liveIds.has(steer.steerId));
+      if (queueChanged) {
+        const livePending = liveQueue.map(toPendingSteer);
+        resumeState.pendingSteers = livePending.length > 0 ? livePending : undefined;
+      }
+      if (queueChanged || liveQueue.length > 0) {
+        const contentResult = await this.jobStore.getContentParts(streamId);
+        const gapEvents = synthesizeAppliedSteerEvents(
+          (resumeState.aggregatedContent ?? []) as SteerContentView,
+          liveQueue,
+          (contentResult?.content ?? []) as SteerContentView,
+          { conversationId: streamId, responseMessageId: resumeState.responseMessageId },
+        );
+        if (gapEvents.length > 0) {
+          pendingEvents = [...pendingEvents, ...gapEvents];
+        }
       }
     }
 
@@ -1101,8 +1236,19 @@ class GenerationJobManagerClass {
    *
    * In Redis mode, awaits the publish to guarantee event ordering.
    * This is critical for streaming deltas (tool args, message content) to arrive in order.
+   *
+   * `options.durable` additionally awaits the Redis chunk append BEFORE the
+   * transport publish (still best-effort on failure): events whose durable
+   * record is the recovery source (e.g. `on_steer_applied`) must be in the
+   * chunk log before any subscriber can observe the publish, or a
+   * cross-replica reconnect can reconstruct content without them. The default
+   * stays fire-and-forget — no added latency on the per-delta hot path.
    */
-  async emitChunk(streamId: string, event: t.ServerSentEvent): Promise<void> {
+  async emitChunk(
+    streamId: string,
+    event: t.ServerSentEvent,
+    options?: { durable?: boolean },
+  ): Promise<void> {
     const runtime = this.runtimeState.get(streamId);
     if (!runtime || runtime.abortController.signal.aborted) {
       return;
@@ -1129,13 +1275,19 @@ class GenerationJobManagerClass {
 
       if (eventType && eventData !== undefined) {
         // Store in format expected by aggregateContent: { event, data }
-        this.jobStore.appendChunk(streamId, { event: eventType, data: eventData }).catch((err) => {
-          logger.error(`[GenerationJobManager] Failed to append chunk:`, err);
-        });
+        const appendPromise = this.jobStore
+          .appendChunk(streamId, { event: eventType, data: eventData })
+          .catch((err) => {
+            logger.error(`[GenerationJobManager] Failed to append chunk:`, err);
+          });
 
         // For run step events, also save to run steps key for quick retrieval
         if (eventType === 'on_run_step' || eventType === 'on_run_step_completed') {
           this.saveRunStepFromEvent(streamId, eventData as Record<string, unknown>);
+        }
+
+        if (options?.durable === true) {
+          await appendPromise;
         }
       }
     }
@@ -1518,6 +1670,19 @@ class GenerationJobManagerClass {
   }
 
   /**
+   * The FIFO steering queue for mid-run user messages:
+   * `steering.enqueue()` / `drain()` / `peek()` / `clear()`.
+   *
+   * The steer route enqueues from any instance; the owning process's
+   * run-scoped PostToolBatch hook drains at the next tool-batch boundary.
+   * Finalization paths drain leftovers into the final/abort events so the
+   * client can convert them to queued follow-ups.
+   */
+  get steering(): SteeringLifecycle {
+    return this._steering;
+  }
+
+  /**
    * Get resume state for reconnecting clients.
    */
   async getResumeState(streamId: string): Promise<t.ResumeState | null> {
@@ -1567,6 +1732,9 @@ class GenerationJobManagerClass {
       }
     }
 
+    /** Steers still queued (not yet injected); injected ones are already in aggregatedContent. */
+    const pendingSteers = (await this.jobStore.peekSteers(streamId)).map(toPendingSteer);
+
     logger.debug(`[GenerationJobManager] getResumeState:`, {
       streamId,
       runStepsLength: runSteps.length,
@@ -1588,11 +1756,13 @@ class GenerationJobManagerClass {
       collectedUsage,
       contextUsage,
       // Carry the live pending approval in the resume contract so a reloading /
-      // cross-replica client can rebuild the prompt from resumeState.
+      // cross-replica client can rebuild the prompt from resumeState. Client-safe
+      // projection: the stored record's resumeContext/requestFingerprint stay server-only.
       pendingAction:
         jobData.status === 'requires_action' && !isPendingActionStale(jobData)
-          ? jobData.pendingAction
+          ? toClientPendingAction(jobData.pendingAction)
           : undefined,
+      pendingSteers: pendingSteers.length > 0 ? pendingSteers : undefined,
     };
   }
 
@@ -1681,17 +1851,75 @@ class GenerationJobManagerClass {
    * if this call expired the action.
    */
   async expireApproval(streamId: string, actionId?: string): Promise<boolean> {
+    /** Steers accepted before the pause are frozen for its whole window
+     *  (enqueue rejects while `requires_action`), so this pre-CAS snapshot is
+     *  exactly what the expiry's terminal cleanup is about to delete. Read it
+     *  BEFORE the transition — the store drops the queue key inside it — and
+     *  park only if the CAS wins (a lost CAS means the run resumed and the
+     *  live queue must stay untouched). */
+    let parkableSteers: TPendingSteer[] = [];
+    let steerOwner: SteerOwner | undefined;
+    try {
+      const job = await this.jobStore.getJob(streamId);
+      if (job) {
+        steerOwner = { userId: job.userId, tenantId: job.tenantId };
+        parkableSteers = (await this.jobStore.peekSteers(streamId)).map(toPendingSteer);
+      }
+    } catch (err) {
+      logger.warn(`[GenerationJobManager] Failed to snapshot steers pre-expiry ${streamId}`, err);
+    }
     const expired = await this._approvals.expire(streamId, actionId);
     if (!expired) {
       return false;
+    }
+    if (steerOwner && parkableSteers.length > 0) {
+      await this.steering.park(streamId, parkableSteers, steerOwner);
     }
     try {
       await this.emitError(streamId, APPROVAL_EXPIRED_ERROR);
     } catch (err) {
       logger.error(`[GenerationJobManager] Failed to notify expired approval ${streamId}`, err);
     }
+    await this.runApprovalExpiredHandler(streamId);
     this.runningJobs.delete(streamId);
     return true;
+  }
+
+  /**
+   * Invoke the host approval-expired cleanup, passing the job so the host can resolve
+   * tenant/user-scoped config (the expiry runs outside any request context). Best-effort:
+   * the job read and the handler itself may fail without breaking the expiry.
+   */
+  private async runApprovalExpiredHandler(
+    streamId: string,
+    job?: SerializableJobData | null,
+  ): Promise<void> {
+    if (!this._onApprovalExpired) {
+      return;
+    }
+    // Dedup across the expiry paths: a locally expired approval (expireApproval) stays in
+    // the store/runtime for the completed-job TTL, so later sweeps re-enter the relay
+    // branch for the same aborted approval — run the cleanup once per runtime lifetime.
+    const runtime = this.runtimeState.get(streamId);
+    if (runtime?.approvalCleanupRan) {
+      return;
+    }
+    if (runtime) {
+      runtime.approvalCleanupRan = true;
+    }
+    let resolvedJob = job;
+    if (resolvedJob === undefined) {
+      try {
+        resolvedJob = await this.jobStore.getJob(streamId);
+      } catch {
+        resolvedJob = null;
+      }
+    }
+    try {
+      await this._onApprovalExpired(streamId, resolvedJob);
+    } catch (err) {
+      logger.warn(`[GenerationJobManager] Approval-expired cleanup failed for ${streamId}`, err);
+    }
   }
 
   private async expireStaleApprovals(): Promise<void> {
@@ -1715,16 +1943,23 @@ class GenerationJobManagerClass {
       // expiry* and we haven't emitted here, relay the terminal error to our subscriber.
       // The `errorEvent` flag (set by emitError) keeps this idempotent vs the win path.
       const runtime = this.runtimeState.get(streamId);
-      if (
-        job?.status === 'aborted' &&
-        job.error === APPROVAL_EXPIRED_ERROR &&
-        !runtime?.errorEvent
-      ) {
-        try {
-          await this.emitError(streamId, APPROVAL_EXPIRED_ERROR);
-        } catch (err) {
-          logger.error(`[GenerationJobManager] Failed to relay expired approval ${streamId}`, err);
+      if (job?.status === 'aborted' && job.error === APPROVAL_EXPIRED_ERROR) {
+        if (!runtime?.errorEvent) {
+          try {
+            await this.emitError(streamId, APPROVAL_EXPIRED_ERROR);
+          } catch (err) {
+            logger.error(
+              `[GenerationJobManager] Failed to relay expired approval ${streamId}`,
+              err,
+            );
+          }
         }
+        // The winning store cleanup (`cleanupRequiresActionIndex`) transitions status
+        // directly and can't run host cleanup — do it on relay. Deliberately NOT gated on
+        // `errorEvent`: a reconnect seeds that flag from the aborted job, which must not
+        // suppress the (idempotent) prune. The handler dedups per runtime lifetime, which
+        // also covers approvals expired LOCALLY via expireApproval.
+        await this.runApprovalExpiredHandler(streamId, job);
         changed = this.runningJobs.delete(streamId) || changed;
         continue;
       }

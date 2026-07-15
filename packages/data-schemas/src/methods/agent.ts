@@ -906,6 +906,7 @@ export function createAgentMethods(
       author: 1,
       tools: 1,
       description: 1,
+      conversation_starters: 1,
       updatedAt: 1,
       category: 1,
       support_contact: 1,

@@ -54,6 +54,7 @@ export * from './rooms';
 export * from './replit';
 /* Skills */
 export * from './skills';
+export * from './favorites';
 /* Endpoints */
 export * from './endpoints';
 /* Files */
