@@ -111,11 +111,12 @@ endpoints:
       baseURL: 'https://ashleyn4-7611-resource.openai.azure.com/openai/v1'
       models:
         default:
+          - gpt-4o
           - gpt-5.4
           - gpt-5.5
         fetch: false
       titleConvo: true
-      titleModel: 'gpt-5.4'
+      titleModel: 'gpt-4o'
       modelDisplayLabel: 'Azure OpenAI'
       addParams:
         web_search: true
@@ -125,14 +126,14 @@ modelSpecs:
   enforce: false
   prioritize: true
   list:
-    - name: gieschat-general
-      label: GPT-5.4
+    - name: gieschat-general-4o
+      label: GPT-4o
       default: true
       iconURL: openAI
       description: Fast all-rounder — quick answers, summaries, and everyday questions.
       preset:
         endpoint: 'Azure OpenAI'
-        model: 'gpt-5.4'
+        model: 'gpt-4o'
         promptPrefix: &gieschat_baseline |
           You are GiesChat, a helpful assistant for students and staff at the Gies College of Business, University of Illinois Urbana-Champaign.
 
@@ -141,6 +142,14 @@ modelSpecs:
           Formatting: never use emojis. When you structure a reply with headings or subheadings, bold only the heading line itself; write the text beneath it as plain prose — never bold whole sentences or paragraphs.
 
           Support learning and academic integrity: help students understand and think through problems; do not complete graded assignments, quizzes, or exams for them. If you don't know something or lack context, say so briefly rather than guessing.
+    - name: gieschat-general
+      label: GPT-5.4
+      iconURL: openAI
+      description: Stronger reasoning — detailed explanations and tougher questions.
+      preset:
+        endpoint: 'Azure OpenAI'
+        model: 'gpt-5.4'
+        promptPrefix: *gieschat_baseline
     - name: gieschat-general-55
       label: GPT-5.5
       iconURL: openAI
