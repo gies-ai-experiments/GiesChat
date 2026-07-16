@@ -18,6 +18,7 @@ describe('resolveTourSteps', () => {
       'composer',
       'model-picker',
       'model-menu',
+      'report-issue',
       'course-tutors',
     ]);
   });

@@ -2170,6 +2170,8 @@
   "com_ui_tour_new_chat_title": "Start fresh anytime.",
   "com_ui_tour_next": "Next",
   "com_ui_tour_replay": "Take the tour",
+  "com_ui_tour_report_desc": "Hit a bug or something feeling off? Tap the bug button up top to send us a report — we'll take a look.",
+  "com_ui_tour_report_title": "Something not working? Let us know.",
   "com_ui_tour_rooms_desc": "Rooms are shared brainstorming spaces you can invite classmates into.",
   "com_ui_tour_rooms_title": "Brainstorm together in Rooms.",
   "com_ui_tour_skip": "Skip",

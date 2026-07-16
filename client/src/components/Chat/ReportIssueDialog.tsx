@@ -44,6 +44,7 @@ export default function ReportIssueDialog() {
     <>
       <button
         type="button"
+        data-tour="report-issue"
         onClick={() => setOpen(true)}
         aria-label={localize('com_ui_report_issue')}
         title={localize('com_ui_report_issue')}

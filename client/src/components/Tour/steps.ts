@@ -12,6 +12,7 @@ export interface TourStepDef {
     | 'composer'
     | 'model-picker'
     | 'model-menu'
+    | 'report-issue'
     | 'course-tutors';
   selector?: string;
   fallbackSelector?: string;
@@ -87,6 +88,13 @@ export const TOUR_STEPS: TourStepDef[] = [
     nextKey: 'com_ui_tour_next',
     advanceOnClick: true,
     clickTargetSelector: '[role="menuitemradio"],[role="option"]',
+  },
+  {
+    id: 'report-issue',
+    selector: '[data-tour="report-issue"]',
+    titleKey: 'com_ui_tour_report_title',
+    descKey: 'com_ui_tour_report_desc',
+    nextKey: 'com_ui_tour_next',
   },
   {
     id: 'course-tutors',
