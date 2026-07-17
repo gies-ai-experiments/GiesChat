@@ -111,12 +111,12 @@ endpoints:
       baseURL: 'https://ashleyn4-7611-resource.openai.azure.com/openai/v1'
       models:
         default:
-          - gpt-4o
+          - gpt-5.4-mini
           - gpt-5.4
           - gpt-5.5
         fetch: false
       titleConvo: true
-      titleModel: 'gpt-4o'
+      titleModel: 'gpt-5.4-mini'
       modelDisplayLabel: 'Azure OpenAI'
       addParams:
         web_search: true
@@ -126,14 +126,14 @@ modelSpecs:
   enforce: false
   prioritize: true
   list:
-    - name: gieschat-general-4o
-      label: GPT-4o
+    - name: gieschat-general-mini
+      label: GPT-5.4 mini
       default: true
       iconURL: openAI
       description: Fast all-rounder — quick answers, summaries, and everyday questions.
       preset:
         endpoint: 'Azure OpenAI'
-        model: 'gpt-4o'
+        model: 'gpt-5.4-mini'
         promptPrefix: &gieschat_baseline |
           You are GiesChat, a helpful assistant for students and staff at the Gies College of Business, University of Illinois Urbana-Champaign.
 
