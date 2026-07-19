@@ -13,10 +13,10 @@ Customized LibreChat deployment for Gies College of Business. Setup, dev command
 
 ## Current Focus
 
-Decide upstream-drift strategy (issue #11) and land or close the left-nav redesign proposal (PR #12, branch `design/nav-redesign-proposal`). Issue #8 (embed MindForum room features) is the larger backlog item.
+Faculty trial is live: invite sent 2026-07-19 to 40 BADM faculty (GiesChat + Quick continuum, fall-deployment framing) — respond to use-case replies as they arrive. Replit meeting 7/22 12pm CT (auth/Azure-deploy/DPA/credits — outcome may drop App Builder's personal-Replit-account requirement). Still pending: drift strategy (issue #11), nav redesign (PR #12), MindForum rooms (#8).
 
 ## Session Log
 
-### 2026-07-16
-- Completed: Created CLAUDE.md (un-ignored it in .gitignore). Pulled 118 commits (Ash's work + upstream sync). Reviewed issue #11 with fresh drift numbers (160 custom commits, 167 in-place edits — trajectory confirmed). Reviewed Replit-on-Azure email thread; sent Brandon a 5-item agenda for the 7/22 12pm CT meeting (auth model, Azure deploy mechanics, DPA, edu credits, feedback).
-- Next: Replit meeting 7/22 12:00–12:30pm CT (only 30 min booked for 5 agenda items — consider having Ash extend to 60). Issue #11 decision checkboxes still unanswered; PR #12 (nav redesign) and issue #8 (MindForum rooms) open.
+### 2026-07-19
+- Completed: **Sent the faculty trial invite to 40 BADM faculty** — one email positioning a continuum: Quick (quick.disruptionlab.illinois.edu) for classroom apps including students, GiesChat App Builder for faculty wanting more control (free personal Replit account required for now); Azure hosting + built-in AI as headline; CTA = bring a course or research use case for fall deployment. Draft in `docs/outreach/` (local-only, git-excluded via `.git/info/exclude` since Vishal doesn't develop in this repo). Composed via the Outlook skill (Thunderbird MCP wasn't connected). Also filed a promotion-dossier evidence note (`~/admin/associate-2026-promotion/evidence/gieschat-quick-summer-2026.md` — private, not shared with faculty). Pulled Ash's latest (default model → gpt-5.4-mini, tour step for report-issue).
+- Next: (1) **Respond to faculty use-case replies**; log them in `docs/outreach/responses.md` as they land. (2) **Before ANY faculty puts students on Quick: build the per-site daily AI cap + Azure Cost Management alert** (uniquick roadmap #4 — pre-committed hard gate). (3) Replit meeting 7/22 12pm CT; if the personal-account requirement drops, tell responding faculty. (4) Carry-over: issue #11 drift decisions, PR #12 nav redesign, issue #8 MindForum rooms.
