@@ -144,42 +144,43 @@ def register_question_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #2b2b2b; color: #ececec; border-radius: 16px;
-          padding: 14px 16px 12px; max-width: 720px; margin: 0 auto;
+  .card { background: #2b2b2b; color: #ececec; border-radius: 18px;
+          padding: 18px 20px 16px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .head { display: flex; align-items: center; gap: 10px; padding: 2px 4px 10px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 17.5px;
+  .head { display: flex; align-items: center; gap: 12px; padding: 2px 6px 16px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 19px;
            font-weight: 400; margin: 0; flex: 1; }
-  .pager { display: flex; align-items: center; gap: 4px; color: #9b9b9b;
-           font-size: 13px; white-space: nowrap; }
+  .pager { display: flex; align-items: center; gap: 8px; color: #9b9b9b;
+           font-size: 15px; white-space: nowrap; }
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
-  .nav, .close { color: #9b9b9b; font-size: 14px; width: 24px; height: 24px;
-                 border-radius: 6px; display: grid; place-items: center; }
+  .nav, .close { color: #9b9b9b; font-size: 16px; width: 28px; height: 28px;
+                 border-radius: 7px; display: grid; place-items: center; }
   .nav:disabled { opacity: .3; cursor: default; }
   .nav:not(:disabled):hover, .close:hover { color: #ececec; background: #3a3a3a; }
-  .close { margin-left: 4px; }
-  #opts { display: flex; flex-direction: column; gap: 2px; }
-  .opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-         color: #ececec; font-size: 15px; padding: 8px 10px 8px 8px;
-         border-radius: 12px; min-height: 44px; }
+  .close { margin-left: 6px; }
+  #opts { display: flex; flex-direction: column; }
+  .opt { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+         color: #ececec; font-size: 16.5px; padding: 12px 16px 12px 12px;
+         border-radius: 12px; min-height: 58px; }
+  .opt + .opt, .free { border-top: 1px solid #383838; }
   .opt:hover { background: #3a3a3a; }
-  .chip { width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid;
+  .chip { width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid;
           place-items: center; background: #3d3d3d; color: #9b9b9b;
-          font-size: 13px; font-weight: 500; }
+          font-size: 15px; font-weight: 500; }
   .opt:hover .chip { color: #ececec; background: #424242; }
-  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 15px; }
+  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 17px; }
   .opt:hover .arrow { opacity: 1; }
-  .free { display: flex; align-items: center; gap: 12px; padding: 6px 10px 6px 8px;
-          border-radius: 12px; min-height: 44px; }
+  .free { display: flex; align-items: center; gap: 16px; padding: 10px 16px 6px 12px;
+          border-radius: 12px; min-height: 58px; }
   .free:focus-within { background: #3a3a3a; }
-  .free .chip { font-size: 12px; }
+  .free .chip { font-size: 14px; }
   .free input { flex: 1; background: none; border: 0; outline: none; color: #ececec;
-                font: inherit; font-size: 15px; }
+                font: inherit; font-size: 16.5px; }
   .free input::placeholder { color: #9b9b9b; }
-  .skip { background: #3a3a3a; color: #ececec; font-size: 13px;
-          padding: 7px 14px; border-radius: 10px; }
+  .skip { background: #3a3a3a; color: #ececec; font-size: 15px;
+          padding: 10px 18px; border-radius: 11px; }
   .skip:hover { background: #424242; }
-  .done { font-size: 14px; color: #9b9b9b; padding: 6px 4px; }
+  .done { font-size: 15px; color: #9b9b9b; padding: 8px 6px; }
   .done b { color: #ececec; font-weight: 600; }
   button:focus-visible, input:focus-visible { outline: 2px solid #E84A27; outline-offset: 2px; }
 </style></head><body>

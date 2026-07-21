@@ -157,18 +157,18 @@ def register_upload_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #2b2b2b; color: #ececec; border-radius: 16px;
-          padding: 14px 16px 14px; max-width: 720px; margin: 0 auto;
+  .card { background: #2b2b2b; color: #ececec; border-radius: 18px;
+          padding: 18px 20px 16px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 17.5px;
-           font-weight: 400; margin: 0 0 10px; padding: 2px 4px 0; }
-  .zone { border: 1.5px dashed #404040; border-radius: 12px; padding: 20px 14px;
-          text-align: center; color: #9b9b9b; cursor: pointer; font-size: 14px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 19px;
+           font-weight: 400; margin: 0 0 14px; padding: 2px 6px 0; }
+  .zone { border: 1.5px dashed #404040; border-radius: 12px; padding: 28px 16px;
+          text-align: center; color: #9b9b9b; cursor: pointer; font-size: 16px; }
   .zone:hover, .zone.drag { background: #3a3a3a; color: #ececec; }
   .zone b { color: #ececec; font-weight: 600; }
-  .hint { font-size: 12px; color: #9b9b9b; margin-top: 8px; padding: 0 4px; }
-  .err { color: #e8927c; font-size: 13.5px; margin-top: 8px; padding: 0 4px; display: none; }
-  .done { font-size: 14px; color: #9b9b9b; padding: 6px 4px; display: none; }
+  .hint { font-size: 13.5px; color: #9b9b9b; margin-top: 10px; padding: 0 6px; }
+  .err { color: #e8927c; font-size: 14.5px; margin-top: 10px; padding: 0 6px; display: none; }
+  .done { font-size: 15px; color: #9b9b9b; padding: 8px 6px; display: none; }
   .done b { color: #ececec; font-weight: 600; }
   input[type=file] { display: none; }
   .zone:focus-visible { outline: 2px solid #E84A27; outline-offset: 2px; }
