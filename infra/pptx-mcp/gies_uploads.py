@@ -14,6 +14,7 @@ import time
 from typing import Dict, Tuple
 
 from pptx import Presentation
+from pptx.oxml.ns import qn
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from mcp.server.fastmcp import FastMCP
@@ -42,6 +43,19 @@ def mint(user: str) -> str:
     token = secrets.token_urlsafe(24)
     _tokens[token] = (user, time.time() + TOKEN_TTL_SECONDS)
     return token
+
+
+def _strip_slides(pres: Presentation) -> int:
+    """Reduce an uploaded deck to a design shell: drop every slide, keep the
+    masters, layouts, theme, and fonts. 'Use my deck as the design' means its
+    look — never its old content leaking into the generated deck."""
+    slide_ids = pres.slides._sldIdLst
+    removed = 0
+    for slide_id in list(slide_ids):
+        pres.part.drop_rel(slide_id.get(qn("r:id")))
+        slide_ids.remove(slide_id)
+        removed += 1
+    return removed
 
 
 def _safe_name(raw: str) -> str:
@@ -90,13 +104,14 @@ async def upload(request: Request) -> Response:
 
     file_name = _safe_name(request.query_params.get("name", "design.pptx"))
     path = gies_sandbox.resolve(file_name, user)
-    with open(path, "wb") as f:
-        f.write(body)
+    slides_removed = _strip_slides(parsed)
+    parsed.save(path)
 
     _tokens.pop(token, None)
     _completed[token] = (user, path)
     return JSONResponse(
-        {"file_name": file_name, "slide_count": len(parsed.slides)},
+        {"file_name": file_name, "slides_removed": slides_removed,
+         "layouts": len(parsed.slide_layouts)},
         headers=_CORS,
     )
 
@@ -119,8 +134,10 @@ def ready(upload_id: str) -> Dict:
             for i, layout in enumerate(pres.slide_layouts)
         ],
         "message": (
-            f"Design uploaded. Build the deck with create_presentation_from_template "
-            f"using template_path \"{file_name}\" and pick layouts from the list above."
+            f"Design uploaded and reduced to an empty shell of its layouts — its "
+            f"original slides were removed. Build EVERY slide of the new deck "
+            f"yourself with create_presentation_from_template using template_path "
+            f"\"{file_name}\" and the layouts listed above."
         ),
     }
 

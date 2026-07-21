@@ -12,8 +12,13 @@ import gies_uploads as up
 
 
 def _pptx_bytes() -> bytes:
+    """A deck WITH content slides — uploads must be stripped to a design shell."""
+    pres = Presentation()
+    for title in ("Old project intro", "Old project data"):
+        slide = pres.slides.add_slide(pres.slide_layouts[0])
+        slide.placeholders[0].text_frame.text = title
     buf = io.BytesIO()
-    Presentation().save(buf)
+    pres.save(buf)
     return buf.getvalue()
 
 
@@ -35,11 +40,15 @@ async def test_valid_upload_lands_in_sandbox_and_consumes_token():
     async with _client() as c:
         r = await c.post(f"/upload/{token}?name=My Design (v2).pptx", content=_pptx_bytes())
     assert r.status_code == 200
-    name = r.json()["file_name"]
+    payload = r.json()
+    name = payload["file_name"]
     assert name.startswith("upload-") and name.endswith(".pptx")
+    assert payload["slides_removed"] == 2                 # old content stripped
     saved = sb.user_root("alice") / name
     assert saved.exists()
-    assert len(Presentation(str(saved)).slides) == 0      # reparses as a real deck
+    shell = Presentation(str(saved))
+    assert len(shell.slides) == 0                         # design shell: no slides
+    assert len(shell.slide_layouts) > 0                   # ...but layouts survive
     async with _client() as c:                       # token is one-shot
         r2 = await c.post(f"/upload/{token}?name=x.pptx", content=_pptx_bytes())
     assert r2.status_code == 404
