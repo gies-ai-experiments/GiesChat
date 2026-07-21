@@ -6,6 +6,9 @@ from pptx import Presentation
 from typing import Dict, List, Optional
 import os
 
+from gies_auth import current_user
+from gies_sandbox import resolve as _sandbox
+
 
 def create_presentation() -> Presentation:
     """
@@ -20,13 +23,14 @@ def create_presentation() -> Presentation:
 def open_presentation(file_path: str) -> Presentation:
     """
     Open an existing PowerPoint presentation.
-    
+
     Args:
         file_path: Path to the PowerPoint file
-        
+
     Returns:
         A Presentation object
     """
+    file_path = _sandbox(file_path, current_user())
     return Presentation(file_path)
 
 
@@ -44,6 +48,7 @@ def create_presentation_from_template(template_path: str) -> Presentation:
         FileNotFoundError: If the template file doesn't exist
         Exception: If the template file is corrupted or invalid
     """
+    template_path = _sandbox(template_path, current_user(), allow_template=True)
     if not os.path.exists(template_path):
         raise FileNotFoundError(f"Template file not found: {template_path}")
     
@@ -69,6 +74,7 @@ def save_presentation(presentation: Presentation, file_path: str) -> str:
     Returns:
         The file path where the presentation was saved
     """
+    file_path = _sandbox(file_path, current_user())
     presentation.save(file_path)
     return file_path
 
@@ -83,6 +89,7 @@ def get_template_info(template_path: str) -> Dict:
     Returns:
         Dictionary containing template information
     """
+    template_path = _sandbox(template_path, current_user(), allow_template=True)
     if not os.path.exists(template_path):
         raise FileNotFoundError(f"Template file not found: {template_path}")
     

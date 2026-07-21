@@ -27,9 +27,11 @@ app = FastMCP(
     name="ppt-mcp-server"
 )
 
-# Global state to store presentations in memory
-presentations = {}
-current_presentation_id = None
+# Gies: per-user scoped state (see gies_state.py). Replaces the shared dict and
+# the single current_presentation_id global so concurrent users are isolated.
+# get_current_presentation_id is passed into the register_*_tools calls below.
+from gies_state import ScopedPresentations, get_current_presentation_id
+presentations = ScopedPresentations()
 
 # Template configuration
 def get_template_search_directories():
@@ -66,21 +68,6 @@ def get_template_search_directories():
     return ['.', './templates', './assets', './resources']
 
 # ---- Helper Functions ----
-
-def get_current_presentation():
-    """Get the current presentation object or raise an error if none is loaded."""
-    if current_presentation_id is None or current_presentation_id not in presentations:
-        raise ValueError("No presentation is currently loaded. Please create or open a presentation first.")
-    return presentations[current_presentation_id]
-
-def get_current_presentation_id():
-    """Get the current presentation ID."""
-    return current_presentation_id
-
-def set_current_presentation_id(pres_id):
-    """Set the current presentation ID."""
-    global current_presentation_id
-    current_presentation_id = pres_id
 
 def validate_parameters(params):
     """
@@ -187,43 +174,7 @@ def add_shape_direct(slide, shape_type: str, left: float, top: float, width: flo
     except Exception as e:
         raise ValueError(f"Failed to create '{shape_type}' shape using direct value {shape_value}: {str(e)}")
 
-# ---- Custom presentation management wrapper ----
-
-class PresentationManager:
-    """Wrapper to handle presentation state updates."""
-    
-    def __init__(self, presentations_dict):
-        self.presentations = presentations_dict
-    
-    def store_presentation(self, pres, pres_id):
-        """Store a presentation and set it as current."""
-        self.presentations[pres_id] = pres
-        set_current_presentation_id(pres_id)
-        return pres_id
-
 # ---- Register Tools ----
-
-# Create presentation manager wrapper
-presentation_manager = PresentationManager(presentations)
-
-# Wrapper functions to handle state management
-def create_presentation_wrapper(original_func):
-    """Wrapper to handle presentation creation with state management."""
-    def wrapper(*args, **kwargs):
-        result = original_func(*args, **kwargs)
-        if "presentation_id" in result and result["presentation_id"] in presentations:
-            set_current_presentation_id(result["presentation_id"])
-        return result
-    return wrapper
-
-def open_presentation_wrapper(original_func):
-    """Wrapper to handle presentation opening with state management."""
-    def wrapper(*args, **kwargs):
-        result = original_func(*args, **kwargs)
-        if "presentation_id" in result and result["presentation_id"] in presentations:
-            set_current_presentation_id(result["presentation_id"])
-        return result
-    return wrapper
 
 # Register all tool modules
 register_presentation_tools(
@@ -268,16 +219,9 @@ register_template_tools(
     get_current_presentation_id
 )
 
-register_hyperlink_tools(
-    app,
-    presentations,
-    get_current_presentation_id,
-    validate_parameters,
-    is_positive,
-    is_non_negative,
-    is_in_range,
-    is_valid_rgb
-)
+# Gies: dropped hyperlink/connector/master/transition modules to keep the tool
+# set lean for the model (see plan Task 6). Kept: presentation, content,
+# structural, professional, template, chart.
 
 register_chart_tools(
     app,
@@ -291,116 +235,10 @@ register_chart_tools(
 )
 
 
-register_connector_tools(
-    app,
-    presentations,
-    get_current_presentation_id,
-    validate_parameters,
-    is_positive,
-    is_non_negative,
-    is_in_range,
-    is_valid_rgb
-)
-
-register_master_tools(
-    app,
-    presentations,
-    get_current_presentation_id,
-    validate_parameters,
-    is_positive,
-    is_non_negative,
-    is_in_range,
-    is_valid_rgb
-)
-
-register_transition_tools(
-    app,
-    presentations,
-    get_current_presentation_id,
-    validate_parameters,
-    is_positive,
-    is_non_negative,
-    is_in_range,
-    is_valid_rgb
-)
-
-
-# ---- Additional Utility Tools ----
-
-@app.tool()
-def list_presentations() -> Dict:
-    """List all loaded presentations."""
-    return {
-        "presentations": [
-            {
-                "id": pres_id,
-                "slide_count": len(pres.slides),
-                "is_current": pres_id == current_presentation_id
-            }
-            for pres_id, pres in presentations.items()
-        ],
-        "current_presentation_id": current_presentation_id,
-        "total_presentations": len(presentations)
-    }
-
-@app.tool()
-def switch_presentation(presentation_id: str) -> Dict:
-    """Switch to a different loaded presentation."""
-    if presentation_id not in presentations:
-        return {
-            "error": f"Presentation '{presentation_id}' not found. Available presentations: {list(presentations.keys())}"
-        }
-    
-    global current_presentation_id
-    old_id = current_presentation_id
-    current_presentation_id = presentation_id
-    
-    return {
-        "message": f"Switched from presentation '{old_id}' to '{presentation_id}'",
-        "previous_presentation_id": old_id,
-        "current_presentation_id": current_presentation_id
-    }
-
-@app.tool()
-def get_server_info() -> Dict:
-    """Get information about the MCP server."""
-    return {
-        "name": "PowerPoint MCP Server - Enhanced Edition",
-        "version": "2.1.0",
-        "total_tools": 32,  # Organized into 11 specialized modules
-        "loaded_presentations": len(presentations),
-        "current_presentation": current_presentation_id,
-        "features": [
-            "Presentation Management (7 tools)",
-            "Content Management (6 tools)", 
-            "Template Operations (7 tools)",
-            "Structural Elements (4 tools)",
-            "Professional Design (3 tools)",
-            "Specialized Features (5 tools)"
-        ],
-        "improvements": [
-            "32 specialized tools organized into 11 focused modules",
-            "68+ utility functions across 7 organized utility modules",
-            "Enhanced parameter handling and validation",
-            "Unified operation interfaces with comprehensive coverage",
-            "Advanced template system with auto-generation capabilities",
-            "Professional design tools with multiple effects and styling",
-            "Specialized features including hyperlinks, connectors, slide masters",
-            "Dynamic text sizing and intelligent wrapping",
-            "Advanced visual effects and styling",
-            "Content-aware optimization and validation",
-            "Complete PowerPoint lifecycle management",
-            "Modular architecture for better maintainability"
-        ],
-        "new_enhanced_features": [
-            "Hyperlink Management - Add, update, remove, and list hyperlinks in text",
-            "Advanced Chart Data Updates - Replace chart data with new categories and series",
-            "Advanced Text Run Formatting - Apply formatting to specific text runs",
-            "Shape Connectors - Add connector lines and arrows between points",
-            "Slide Master Management - Access and manage slide masters and layouts",
-            "Slide Transitions - Basic transition management (placeholder for future)"
-        ]
-    }
+# Gies: removed the inline list_presentations / switch_presentation /
+# get_server_info tools — they referenced the old single-user
+# current_presentation_id global and add noise to the tool set. Per-user
+# "current presentation" is handled inside gies_state.ScopedPresentations.
 
 # ---- Main Function ----
 def main(transport: str = "stdio", port: int = 8000):

@@ -137,9 +137,11 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
         # Save the presentation
         try:
             saved_path = ppt_utils.save_presentation(presentations[pres_id], file_path)
+            from gies_downloads import download_url
+            url = download_url(saved_path)
             return {
-                "message": f"Presentation saved to {saved_path}",
-                "file_path": saved_path
+                "message": f"Presentation saved. Give the user this download link: {url}",
+                "download_url": url,
             }
         except Exception as e:
             return {
