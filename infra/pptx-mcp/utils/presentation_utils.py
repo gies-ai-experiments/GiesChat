@@ -107,9 +107,11 @@ def save_presentation(presentation: Presentation, file_path: str) -> str:
         The file path where the presentation was saved
     """
     file_path = _sandbox(file_path, current_user())
-    _strip_empty_placeholders(presentation)
-    _bump_small_fonts(presentation)
     presentation.save(file_path)
+    polished = Presentation(file_path)
+    _strip_empty_placeholders(polished)
+    _bump_small_fonts(polished)
+    polished.save(file_path)
     return file_path
 
 

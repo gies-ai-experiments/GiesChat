@@ -32,6 +32,17 @@ def test_save_strips_empty_placeholders_and_bumps_fonts():
     assert run.font.size >= Pt(pu.MIN_FONT_PT)
 
 
+def test_save_polishes_the_file_not_the_live_deck():
+    """Regression: polish must run on a reopened copy — stripping the live
+    object deleted placeholders the user hadn't filled yet, breaking
+    save-then-keep-editing."""
+    pres = Presentation()
+    slide = pres.slides.add_slide(pres.slide_layouts[1])   # title + content, empty
+    before = len(slide.placeholders)
+    pu.save_presentation(pres, "wip.pptx")
+    assert len(slide.placeholders) == before               # live deck untouched
+
+
 def test_save_keeps_filled_placeholders():
     pres = Presentation()
     slide = pres.slides.add_slide(pres.slide_layouts[1])
