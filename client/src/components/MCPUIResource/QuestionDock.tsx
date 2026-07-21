@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
+import { useRecoilValue } from 'recoil';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import { Constants, Tools } from 'librechat-data-provider';
 import type { TMessage, UIResource } from 'librechat-data-provider';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import { useChatContext } from '~/Providers';
-import { handleUIAction } from '~/utils';
+import { handleUIAction, cn } from '~/utils';
 import { useLocalize } from '~/hooks';
+import store from '~/store';
 
 export const QUESTION_CARD_PREFIX = 'ui://pptx/questions/';
 
@@ -42,6 +44,8 @@ export default function QuestionDock() {
   const { ask, conversation } = useChatContext();
   const conversationId = conversation?.conversationId;
 
+  const maximizeChatSpace = useRecoilValue(store.maximizeChatSpace);
+
   const { data: messages } = useGetMessagesByConvoId(conversationId ?? '', {
     enabled: !!conversationId && conversationId !== Constants.SEARCH,
   });
@@ -56,7 +60,10 @@ export default function QuestionDock() {
     <div
       role="group"
       aria-label={localize('com_ui_deck_questions')}
-      className="mx-auto mb-2 w-full px-2 md:max-w-4xl xl:max-w-6xl"
+      className={cn(
+        'mx-auto mb-2 w-full transition-[max-width] duration-300 sm:px-2',
+        maximizeChatSpace ? 'max-w-full' : 'md:max-w-3xl xl:max-w-4xl',
+      )}
     >
       <UIResourceRenderer
         resource={card}
