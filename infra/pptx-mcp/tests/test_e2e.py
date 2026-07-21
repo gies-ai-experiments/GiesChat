@@ -11,7 +11,8 @@ import uvicorn
 from pptx import Presentation
 
 _OWNED = {"gies_auth", "gies_sandbox", "gies_downloads", "gies_state",
-          "gies_questions", "ppt_mcp_server", "gies_server", "utils", "tools"}
+          "gies_questions", "gies_uploads", "ppt_mcp_server", "gies_server",
+          "utils", "tools"}
 
 
 def _free_port():
@@ -145,6 +146,49 @@ async def test_users_are_isolated(server, tmp_path):
     alice_deck = tmp_path / "alice.pptx"; alice_deck.write_bytes(alice.content)
     assert len(Presentation(str(bob_deck)).slides) == 0     # bob's blank deck
     assert len(Presentation(str(alice_deck)).slides) == 1   # alice's, untouched
+
+
+@pytest.mark.asyncio
+async def test_uploaded_design_builds_deck(server, tmp_path):
+    """Full custom-template path: upload card → HTTP POST → upload_ready →
+    create from the uploaded file → download → reparse."""
+    import io
+    from pptx import Presentation as P
+    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.session import ClientSession
+    base, _ = server
+    headers = {"X-Gies-Key": "testkey", "X-Gies-User": "carol"}
+    design = io.BytesIO()
+    P().save(design)
+    async with streamablehttp_client(f"{base}/mcp", headers=headers) as (r, w, _sid):
+        async with ClientSession(r, w) as session:
+            await session.initialize()
+            presented = await session.call_tool("present_upload_card", {})
+            upload_url = next(
+                str(block.resource.uri) for block in presented.content
+                if getattr(block, "type", "") == "resource"
+            ).replace("ui://pptx", base)
+            async with httpx.AsyncClient() as c:
+                posted = await c.post(
+                    f"{upload_url}?name=my-course-design.pptx", content=design.getvalue())
+            assert posted.status_code == 200
+            token = upload_url.rsplit("/", 1)[-1]
+            info = await session.call_tool("upload_ready", {"upload_id": token})
+            file_name = _json(info)["file_name"]
+            assert file_name == "upload-my-course-design.pptx"
+            await _answer_questions(session)
+            created = await session.call_tool(
+                "create_presentation_from_template", {"template_path": file_name})
+            pid = _json(created)["presentation_id"]
+            saved = await session.call_tool(
+                "save_presentation", {"file_path": "from-design.pptx", "presentation_id": pid})
+            url = _json(saved)["download_url"]
+    async with httpx.AsyncClient() as c:
+        got = await c.get(url)
+    assert got.status_code == 200
+    out = tmp_path / "from-design.pptx"
+    out.write_bytes(got.content)
+    P(str(out))                                       # parses — built from the upload
 
 
 @pytest.mark.asyncio

@@ -227,6 +227,10 @@ register_template_tools(
 from gies_questions import register_question_tools
 register_question_tools(app)
 
+# Gies: user-supplied design upload (see gies_uploads.py).
+from gies_uploads import register_upload_tools
+register_upload_tools(app)
+
 register_chart_tools(
     app,
     presentations,

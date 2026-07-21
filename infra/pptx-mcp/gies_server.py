@@ -14,6 +14,7 @@ from starlette.routing import Route
 from ppt_mcp_server import app
 from gies_auth import AuthMiddleware
 from gies_downloads import download
+from gies_uploads import upload
 
 _PORT = int(os.environ.get("PORT", "8000"))
 app.settings.host = "0.0.0.0"
@@ -22,8 +23,9 @@ app.settings.port = _PORT
 assert hasattr(app, "streamable_http_app"), "mcp version lacks streamable_http_app()"
 _starlette = app.streamable_http_app()
 _starlette.router.routes.append(Route("/download/{token}", download, methods=["GET"]))
+_starlette.router.routes.append(Route("/upload/{token}", upload, methods=["POST", "OPTIONS"]))
 
-asgi = AuthMiddleware(_starlette)
+asgi = AuthMiddleware(_starlette, exempt_prefixes=("/download", "/upload"))
 
 if __name__ == "__main__":
     uvicorn.run(asgi, host="0.0.0.0", port=_PORT)

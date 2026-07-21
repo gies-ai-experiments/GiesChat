@@ -9,7 +9,17 @@ from mcp.types import ToolAnnotations
 import utils as ppt_utils
 
 import gies_questions
+import gies_sandbox
 from gies_auth import current_user
+
+
+def _prefer_sandboxed(path: str, *, allow_template: bool = False) -> str:
+    """Gies: user files live in the per-user sandbox, but upstream's tools check
+    os.path.exists on the raw name before the sandbox ever runs. Resolve into the
+    sandbox first so relative names (uploaded designs, previously saved decks)
+    are found; fall back to the raw path for absolute/template paths."""
+    candidate = gies_sandbox.resolve(path, current_user(), allow_template=allow_template)
+    return candidate if os.path.exists(candidate) else path
 
 
 def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_presentation_id, get_template_search_directories):
@@ -50,6 +60,7 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
         """Create a new PowerPoint presentation from a template file."""
         if not gies_questions.has_unlock(current_user()):
             return gies_questions.GATE_ERROR
+        template_path = _prefer_sandboxed(template_path, allow_template=True)
         # Check if template file exists
         if not os.path.exists(template_path):
             # Try to find the template by searching in configured directories
@@ -99,6 +110,7 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
     )
     def open_presentation(file_path: str, id: Optional[str] = None) -> Dict:
         """Open an existing PowerPoint presentation from a file."""
+        file_path = _prefer_sandboxed(file_path)
         # Check if file exists
         if not os.path.exists(file_path):
             return {
@@ -190,6 +202,7 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
     )
     def get_template_file_info(template_path: str) -> Dict:
         """Get information about a template file including layouts and properties."""
+        template_path = _prefer_sandboxed(template_path, allow_template=True)
         # Check if template file exists
         if not os.path.exists(template_path):
             # Try to find the template by searching in configured directories
