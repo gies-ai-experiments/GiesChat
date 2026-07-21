@@ -2,6 +2,7 @@ import React from 'react';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
+import { QUESTION_CARD_PREFIX } from './QuestionDock';
 import { handleUIAction } from '~/utils';
 import { useLocalize } from '~/hooks';
 
@@ -23,6 +24,10 @@ export function MCPUIResource(props: MCPUIResourceProps) {
   const conversationResourceMap = useConversationUIResources(conversationId ?? undefined);
 
   const uiResource = conversationResourceMap.get(resourceId ?? '');
+
+  if (uiResource?.uri?.startsWith(QUESTION_CARD_PREFIX)) {
+    return null;
+  }
 
   if (!uiResource) {
     return (

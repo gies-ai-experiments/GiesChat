@@ -15,6 +15,7 @@ import {
   useLocalize,
 } from '~/hooks';
 import { ChatContext, AddedChatContext, ChatFormProvider, useFileMapContext } from '~/Providers';
+import QuestionDock from '~/components/MCPUIResource/QuestionDock';
 import ConversationStarters from './Input/ConversationStarters';
 import { useOnboardingTour } from '~/components/Tour';
 import { useGetMessagesByConvoId } from '~/data-provider';
@@ -128,6 +129,7 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
                   >
                     {isProjectLandingPage && project && <ProjectLandingChip project={project} />}
                     {isLandingPage && <ConversationStarters />}
+                    {!isLandingPage && <QuestionDock />}
                     <ChatForm index={index} placeholder={chatFormPlaceholder} />
                     {!isLandingPage && <Footer />}
                   </div>

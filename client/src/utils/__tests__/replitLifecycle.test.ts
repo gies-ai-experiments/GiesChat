@@ -63,6 +63,9 @@ describe('replitLifecycle', () => {
       previewUrl: 'https://student-demo.replit.app/',
     });
 
+    if (event == null) {
+      throw new Error('expected a build event');
+    }
     const artifact = createReplitExternalUrlArtifact(event);
     expect(artifact).toEqual(
       expect.objectContaining({
