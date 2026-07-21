@@ -144,43 +144,44 @@ def register_question_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #2b2b2b; color: #ececec; border-radius: 18px;
-          padding: 18px 20px 16px;
+  .card { background: #2b2b2b; color: #ececec; border-radius: 16px;
+          padding: 12px 16px 10px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .head { display: flex; align-items: center; gap: 12px; padding: 2px 6px 16px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 19px;
-           font-weight: 400; margin: 0; flex: 1; }
-  .pager { display: flex; align-items: center; gap: 8px; color: #9b9b9b;
-           font-size: 15px; white-space: nowrap; }
+  .head { display: flex; align-items: center; gap: 10px; padding: 2px 6px 8px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 18px;
+           font-weight: 400; margin: 0; flex: 1; white-space: nowrap;
+           overflow: hidden; text-overflow: ellipsis; }
+  .pager { display: flex; align-items: center; gap: 6px; color: #9b9b9b;
+           font-size: 14px; white-space: nowrap; }
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
-  .nav, .close { color: #9b9b9b; font-size: 16px; width: 28px; height: 28px;
+  .nav, .close { color: #9b9b9b; font-size: 15px; width: 26px; height: 26px;
                  border-radius: 7px; display: grid; place-items: center; }
   .nav:disabled { opacity: .3; cursor: default; }
   .nav:not(:disabled):hover, .close:hover { color: #ececec; background: #3a3a3a; }
-  .close { margin-left: 6px; }
+  .close { margin-left: 4px; }
   #opts { display: flex; flex-direction: column; }
-  .opt { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
-         color: #ececec; font-size: 16.5px; padding: 12px 16px 12px 12px;
-         border-radius: 12px; min-height: 58px; }
+  .opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+         color: #ececec; font-size: 16px; padding: 7px 14px 7px 9px;
+         border-radius: 11px; min-height: 48px; }
   .opt + .opt, .free { border-top: 1px solid #383838; }
   .opt:hover { background: #3a3a3a; }
-  .chip { width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid;
+  .chip { width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid;
           place-items: center; background: #3d3d3d; color: #9b9b9b;
-          font-size: 15px; font-weight: 500; }
+          font-size: 14px; font-weight: 500; }
   .opt:hover .chip { color: #ececec; background: #424242; }
-  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 17px; }
+  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 16px; }
   .opt:hover .arrow { opacity: 1; }
-  .free { display: flex; align-items: center; gap: 16px; padding: 10px 16px 6px 12px;
-          border-radius: 12px; min-height: 58px; }
+  .free { display: flex; align-items: center; gap: 14px; padding: 6px 14px 2px 9px;
+          border-radius: 11px; min-height: 48px; }
   .free:focus-within { background: #3a3a3a; }
-  .free .chip { font-size: 14px; }
+  .free .chip { font-size: 13px; }
   .free input { flex: 1; background: none; border: 0; outline: none; color: #ececec;
-                font: inherit; font-size: 16.5px; }
+                font: inherit; font-size: 16px; }
   .free input::placeholder { color: #9b9b9b; }
-  .skip { background: #3a3a3a; color: #ececec; font-size: 15px;
-          padding: 10px 18px; border-radius: 11px; }
+  .skip { background: #3a3a3a; color: #ececec; font-size: 14px;
+          padding: 8px 16px; border-radius: 10px; }
   .skip:hover { background: #424242; }
-  .done { font-size: 15px; color: #9b9b9b; padding: 8px 6px; }
+  .done { font-size: 14.5px; color: #9b9b9b; padding: 6px 5px; }
   .done b { color: #ececec; font-weight: 600; }
   button:focus-visible, input:focus-visible { outline: 2px solid #E84A27; outline-offset: 2px; }
 </style></head><body>

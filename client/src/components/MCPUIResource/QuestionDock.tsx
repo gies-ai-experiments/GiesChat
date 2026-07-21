@@ -56,7 +56,7 @@ export default function QuestionDock() {
     <div
       role="group"
       aria-label={localize('com_ui_deck_questions')}
-      className="mx-auto mb-2 w-full px-2 md:max-w-3xl xl:max-w-4xl"
+      className="mx-auto mb-2 w-full px-2 md:max-w-4xl xl:max-w-6xl"
     >
       <UIResourceRenderer
         resource={card}
