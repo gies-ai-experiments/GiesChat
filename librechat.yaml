@@ -102,21 +102,35 @@ mcpServers:
   powerpoint:
     type: streamable-http
     url: https://pptx-mcp.azurewebsites.net/mcp
+    requiresOAuth: false
     headers:
       X-Gies-Key: "${PPTX_MCP_KEY}"
       X-Gies-User: "{{LIBRECHAT_USER_ID}}"
     title: PowerPoint
     description: Generate PowerPoint slide decks and download them as .pptx files.
-    iconPath: "/assets/mcp-powerpoint.png"
+    iconPath: "/assets/mcp-powerpoint.svg"
     timeout: 120000
     initTimeout: 60000
     serverInstructions: |
       PowerPoint deck builder. Follow these steps exactly:
+      0. Before building anything, call present_deck_questions with 3-4 short
+         questions tailored to the user's idea - narrative arc, audience,
+         depth, and visual style are good templates, but adapt them to the
+         topic. Each question needs 2-4 options. The user answers in an
+         embedded card which calls submit_deck_answers itself - NEVER call
+         submit_deck_answers yourself, and never invent answers. Deck creation
+         is locked until the card is answered; if create_presentation returns
+         a "questions" error, re-present the card. Use the recorded answers to
+         shape the outline, depth, and style of every slide.
       1. Start every deck by calling create_presentation_from_template with
          template_path "/app/templates/gies.pptx". Keep the returned
          presentation_id and pass it explicitly to every later tool call.
       2. Build slides with the content and structural tools, always passing the
-         same presentation_id.
+         same presentation_id. Set each slide's title with add_slide's title
+         parameter - never draw a separate text box for the title. Put body
+         content into the slide's placeholder or a single text box with at most
+         5 short bullets, font size 20pt or larger (titles 36pt or larger).
+         Never leave a slide's placeholders empty while adding your own boxes.
       3. Finish by calling save_presentation with a short descriptive file_path
          such as "supply-chain-risk.pptx" and the presentation_id.
       4. save_presentation returns a download_url. Give it to the user as a
