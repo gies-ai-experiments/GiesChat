@@ -156,20 +156,22 @@ def register_upload_tools(app: FastMCP) -> None:
 
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
-         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #262421; color: #ece9e2; border-radius: 14px;
-          padding: 18px 22px 18px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 20px;
-           font-weight: 400; margin: 0 0 12px; }
-  .zone { border: 1.5px dashed #4a4841; border-radius: 12px; padding: 26px 16px;
-          text-align: center; color: #8f8b82; cursor: pointer; }
-  .zone.drag { background: #2e2c28; color: #ece9e2; }
-  .zone b { color: #ece9e2; font-weight: 600; }
-  .hint { font-size: 12.5px; color: #8f8b82; margin-top: 10px; }
-  .err { color: #e8927c; font-size: 14px; margin-top: 10px; display: none; }
-  .done { font-size: 14.5px; color: #8f8b82; padding: 4px 0; display: none; }
-  .done b { color: #ece9e2; font-weight: 600; }
+         font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .card { background: #2b2b2b; color: #ececec; border-radius: 16px;
+          padding: 14px 16px 14px; max-width: 720px; margin: 0 auto;
+          box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 17.5px;
+           font-weight: 400; margin: 0 0 10px; padding: 2px 4px 0; }
+  .zone { border: 1.5px dashed #404040; border-radius: 12px; padding: 20px 14px;
+          text-align: center; color: #9b9b9b; cursor: pointer; font-size: 14px; }
+  .zone:hover, .zone.drag { background: #3a3a3a; color: #ececec; }
+  .zone b { color: #ececec; font-weight: 600; }
+  .hint { font-size: 12px; color: #9b9b9b; margin-top: 8px; padding: 0 4px; }
+  .err { color: #e8927c; font-size: 13.5px; margin-top: 8px; padding: 0 4px; display: none; }
+  .done { font-size: 14px; color: #9b9b9b; padding: 6px 4px; display: none; }
+  .done b { color: #ececec; font-weight: 600; }
   input[type=file] { display: none; }
+  .zone:focus-visible { outline: 2px solid #E84A27; outline-offset: 2px; }
 </style></head><body>
 <div class="card">
   <h2 class="title">Upload your slide design</h2>

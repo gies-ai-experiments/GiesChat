@@ -62,8 +62,9 @@ export default function QuestionDock() {
         resource={card}
         onUIAction={async (result) => handleUIAction(result, ask)}
         htmlProps={{
-          autoResizeIframe: { width: true, height: true },
+          autoResizeIframe: { height: true },
           sandboxPermissions: 'allow-popups',
+          style: { width: '100%' },
         }}
       />
     </div>
