@@ -127,18 +127,26 @@ mcpServers:
       0b. If the user chose to upload their own design (or mentions having a
          template at any point), call present_upload_card and stop. The card
          uploads the file and calls upload_ready itself - NEVER call
-         upload_ready yourself. Its result gives you the uploaded file_name and
-         its layouts: build with create_presentation_from_template using that
-         file_name as template_path and choose layouts from that list.
+         upload_ready yourself. The uploaded file is reduced to its design
+         only - layouts, colors, fonts - and ALL of its original slides are
+         removed. Build every slide of the new deck yourself: use
+         create_presentation_from_template with the returned file_name as
+         template_path, and add slides ONLY with the returned design_layouts
+         (the layouts the user's slides actually used) - other layouts are
+         unstyled defaults that will not match the user's design. A design
+         layout with 0 placeholders is a styled background: put content on it
+         with manage_text text boxes.
       1. Start every deck by calling create_presentation_from_template with
          template_path "/app/templates/gies.pptx". Keep the returned
          presentation_id and pass it explicitly to every later tool call.
       2. Build slides with the content and structural tools, always passing the
-         same presentation_id. Set each slide's title with add_slide's title
-         parameter - never draw a separate text box for the title. Put body
-         content into the slide's placeholder or a single text box with at most
-         5 short bullets, font size 20pt or larger (titles 36pt or larger).
-         Never leave a slide's placeholders empty while adding your own boxes.
+         same presentation_id. Build at least 5 slides (title slide included)
+         unless the user explicitly asks for fewer. Set each slide's title with
+         add_slide's title parameter - never draw a separate text box for the
+         title. Put body content into the slide's placeholder or a single text
+         box with at most 5 short bullets, font size 20pt or larger (titles
+         36pt or larger). Never leave a slide's placeholders empty while adding
+         your own boxes.
       3. Finish by calling save_presentation with a short descriptive file_path
          such as "supply-chain-risk.pptx" and the presentation_id.
       4. save_presentation returns a download_url. Give it to the user as a
