@@ -99,6 +99,29 @@ mcpServers:
       Use it only to read and search the user's Outlook mail, calendar, and contacts.
       Do not send email, create or edit calendar events, update contacts, delete items, or otherwise modify Microsoft 365 data.
       If a user asks for a write action, explain that the current Microsoft 365 integration is read-only.
+  powerpoint:
+    type: streamable-http
+    url: https://pptx-mcp.azurewebsites.net/mcp
+    headers:
+      X-Gies-Key: "${PPTX_MCP_KEY}"
+      X-Gies-User: "{{LIBRECHAT_USER_ID}}"
+    title: PowerPoint
+    description: Generate PowerPoint slide decks and download them as .pptx files.
+    iconPath: "/assets/mcp-powerpoint.png"
+    timeout: 120000
+    initTimeout: 60000
+    serverInstructions: |
+      PowerPoint deck builder. Follow these steps exactly:
+      1. Start every deck by calling create_presentation_from_template with
+         template_path "/app/templates/gies.pptx". Keep the returned
+         presentation_id and pass it explicitly to every later tool call.
+      2. Build slides with the content and structural tools, always passing the
+         same presentation_id.
+      3. Finish by calling save_presentation with a short descriptive file_path
+         such as "supply-chain-risk.pptx" and the presentation_id.
+      4. save_presentation returns a download_url. Give it to the user as a
+         markdown link, for example "[Download your deck](the-url)". Never show
+         server file paths. That link downloads the .pptx to the user's computer.
 
 endpoints:
   agents:
