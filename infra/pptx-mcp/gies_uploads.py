@@ -65,12 +65,21 @@ async def upload(request: Request) -> Response:
         )
     user, _ = entry
 
-    body = await request.body()
-    if len(body) > MAX_BYTES:
-        return PlainTextResponse(
-            f"File is too large — the limit is {MAX_BYTES // (1024 * 1024)} MB.",
-            status_code=413, headers=_CORS,
-        )
+    too_large = PlainTextResponse(
+        f"File is too large — the limit is {MAX_BYTES // (1024 * 1024)} MB.",
+        status_code=413, headers=_CORS,
+    )
+    declared = request.headers.get("content-length")
+    if declared is not None and declared.isdigit() and int(declared) > MAX_BYTES:
+        return too_large
+    chunks: list = []
+    received = 0
+    async for chunk in request.stream():
+        received += len(chunk)
+        if received > MAX_BYTES:
+            return too_large
+        chunks.append(chunk)
+    body = b"".join(chunks)
     try:
         parsed = Presentation(io.BytesIO(body))
     except Exception:
