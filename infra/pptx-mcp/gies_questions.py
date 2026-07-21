@@ -148,7 +148,7 @@ CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
           padding: 8px 12px 6px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
   .head { display: flex; align-items: center; gap: 7px; padding: 0 4px 4px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 15px;
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 14.5px;
            font-weight: 400; margin: 0; flex: 1; white-space: nowrap;
            overflow: hidden; text-overflow: ellipsis; }
   .pager { display: flex; align-items: center; gap: 4px; color: #9b9b9b;
@@ -161,8 +161,8 @@ CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   .close { margin-left: 2px; }
   #opts { display: flex; flex-direction: column; }
   .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-         color: #ececec; font-size: 13.5px; padding: 4px 10px 4px 6px;
-         border-radius: 8px; min-height: 34px; }
+         color: #ececec; font-size: 13px; padding: 3px 9px 3px 5px;
+         border-radius: 8px; min-height: 32px; }
   .opt + .opt, .free { border-top: 1px solid #383838; }
   .opt:hover { background: #3a3a3a; }
   .chip { width: 24px; height: 24px; border-radius: 7px; flex: none; display: grid;
@@ -171,12 +171,12 @@ CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   .opt:hover .chip { color: #ececec; background: #424242; }
   .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 13px; }
   .opt:hover .arrow { opacity: 1; }
-  .free { display: flex; align-items: center; gap: 10px; padding: 3px 10px 0 6px;
-          border-radius: 8px; min-height: 34px; }
+  .free { display: flex; align-items: center; gap: 10px; padding: 2px 9px 0 5px;
+          border-radius: 8px; min-height: 32px; }
   .free:focus-within { background: #3a3a3a; }
   .free .chip { font-size: 11px; }
   .free input { flex: 1; background: none; border: 0; outline: none; color: #ececec;
-                font: inherit; font-size: 13.5px; }
+                font: inherit; font-size: 13px; }
   .free input::placeholder { color: #9b9b9b; }
   .skip { background: #3a3a3a; color: #ececec; font-size: 12px;
           padding: 5px 11px; border-radius: 8px; }
