@@ -144,44 +144,44 @@ def register_question_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #2b2b2b; color: #ececec; border-radius: 14px;
-          padding: 10px 14px 8px;
+  .card { background: #2b2b2b; color: #ececec; border-radius: 12px;
+          padding: 8px 12px 6px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .head { display: flex; align-items: center; gap: 8px; padding: 1px 5px 6px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 16px;
+  .head { display: flex; align-items: center; gap: 7px; padding: 0 4px 4px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 15px;
            font-weight: 400; margin: 0; flex: 1; white-space: nowrap;
            overflow: hidden; text-overflow: ellipsis; }
-  .pager { display: flex; align-items: center; gap: 5px; color: #9b9b9b;
-           font-size: 13px; white-space: nowrap; }
+  .pager { display: flex; align-items: center; gap: 4px; color: #9b9b9b;
+           font-size: 12px; white-space: nowrap; }
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
-  .nav, .close { color: #9b9b9b; font-size: 14px; width: 24px; height: 24px;
+  .nav, .close { color: #9b9b9b; font-size: 13px; width: 22px; height: 22px;
                  border-radius: 6px; display: grid; place-items: center; }
   .nav:disabled { opacity: .3; cursor: default; }
   .nav:not(:disabled):hover, .close:hover { color: #ececec; background: #3a3a3a; }
-  .close { margin-left: 3px; }
+  .close { margin-left: 2px; }
   #opts { display: flex; flex-direction: column; }
-  .opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-         color: #ececec; font-size: 14.5px; padding: 5px 12px 5px 7px;
-         border-radius: 10px; min-height: 40px; }
+  .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+         color: #ececec; font-size: 13.5px; padding: 4px 10px 4px 6px;
+         border-radius: 8px; min-height: 34px; }
   .opt + .opt, .free { border-top: 1px solid #383838; }
   .opt:hover { background: #3a3a3a; }
-  .chip { width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid;
+  .chip { width: 24px; height: 24px; border-radius: 7px; flex: none; display: grid;
           place-items: center; background: #3d3d3d; color: #9b9b9b;
-          font-size: 13px; font-weight: 500; }
+          font-size: 12px; font-weight: 500; }
   .opt:hover .chip { color: #ececec; background: #424242; }
-  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 14px; }
+  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 13px; }
   .opt:hover .arrow { opacity: 1; }
-  .free { display: flex; align-items: center; gap: 12px; padding: 4px 12px 1px 7px;
-          border-radius: 10px; min-height: 40px; }
+  .free { display: flex; align-items: center; gap: 10px; padding: 3px 10px 0 6px;
+          border-radius: 8px; min-height: 34px; }
   .free:focus-within { background: #3a3a3a; }
-  .free .chip { font-size: 12px; }
+  .free .chip { font-size: 11px; }
   .free input { flex: 1; background: none; border: 0; outline: none; color: #ececec;
-                font: inherit; font-size: 14.5px; }
+                font: inherit; font-size: 13.5px; }
   .free input::placeholder { color: #9b9b9b; }
-  .skip { background: #3a3a3a; color: #ececec; font-size: 13px;
-          padding: 6px 13px; border-radius: 9px; }
+  .skip { background: #3a3a3a; color: #ececec; font-size: 12px;
+          padding: 5px 11px; border-radius: 8px; }
   .skip:hover { background: #424242; }
-  .done { font-size: 13.5px; color: #9b9b9b; padding: 5px 4px; }
+  .done { font-size: 13px; color: #9b9b9b; padding: 4px 4px; }
   .done b { color: #ececec; font-weight: 600; }
   button:focus-visible, input:focus-visible { outline: 2px solid #E84A27; outline-offset: 2px; }
 </style></head><body>
