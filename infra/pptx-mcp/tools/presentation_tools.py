@@ -8,6 +8,9 @@ from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 import utils as ppt_utils
 
+import gies_questions
+from gies_auth import current_user
+
 
 def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_presentation_id, get_template_search_directories):
     """Register presentation management tools with the FastMCP app"""
@@ -19,17 +22,19 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
     )
     def create_presentation(id: Optional[str] = None) -> Dict:
         """Create a new PowerPoint presentation."""
+        if not gies_questions.has_unlock(current_user()):
+            return gies_questions.GATE_ERROR
         # Create a new presentation
         pres = ppt_utils.create_presentation()
-        
+
         # Generate an ID if not provided
         if id is None:
             id = f"presentation_{len(presentations) + 1}"
-        
+
         # Store the presentation
         presentations[id] = pres
-        # Set as current presentation (this would need to be handled by caller)
-        
+        gies_questions.consume_unlock(current_user())
+
         return {
             "presentation_id": id,
             "message": f"Created new presentation with ID: {id}",
@@ -43,6 +48,8 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
     )
     def create_presentation_from_template(template_path: str, id: Optional[str] = None) -> Dict:
         """Create a new PowerPoint presentation from a template file."""
+        if not gies_questions.has_unlock(current_user()):
+            return gies_questions.GATE_ERROR
         # Check if template file exists
         if not os.path.exists(template_path):
             # Try to find the template by searching in configured directories
@@ -71,10 +78,11 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
         # Generate an ID if not provided
         if id is None:
             id = f"presentation_{len(presentations) + 1}"
-        
+
         # Store the presentation
         presentations[id] = pres
-        
+        gies_questions.consume_unlock(current_user())
+
         return {
             "presentation_id": id,
             "message": f"Created new presentation from template '{template_path}' with ID: {id}",

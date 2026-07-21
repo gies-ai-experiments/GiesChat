@@ -11,7 +11,7 @@ import uvicorn
 from pptx import Presentation
 
 _OWNED = {"gies_auth", "gies_sandbox", "gies_downloads", "gies_state",
-          "ppt_mcp_server", "gies_server", "utils", "tools"}
+          "gies_questions", "ppt_mcp_server", "gies_server", "utils", "tools"}
 
 
 def _free_port():
@@ -67,6 +67,22 @@ def _json(result):
     raise AssertionError(f"no json in tool result: {result}")
 
 
+QUESTIONS = [{"question": "Who is the audience?", "options": ["Classmates", "Faculty"]}]
+
+
+async def _answer_questions(session):
+    presented = await session.call_tool("present_deck_questions", {"questions": QUESTIONS})
+    set_id = next(
+        str(block.resource.uri).rsplit("/", 1)[-1]
+        for block in presented.content if getattr(block, "type", "") == "resource"
+    )
+    submitted = await session.call_tool("submit_deck_answers", {
+        "set_id": set_id,
+        "answers": [{"question": "Who is the audience?", "answer": "Classmates"}],
+    })
+    assert "error" not in _json(submitted)
+
+
 async def _make_deck(base, user, template):
     from mcp.client.streamable_http import streamablehttp_client
     from mcp.client.session import ClientSession
@@ -74,6 +90,10 @@ async def _make_deck(base, user, template):
     async with streamablehttp_client(f"{base}/mcp", headers=headers) as (r, w, _):
         async with ClientSession(r, w) as session:
             await session.initialize()
+            blocked = await session.call_tool(
+                "create_presentation_from_template", {"template_path": template})
+            assert "questions" in _json(blocked)["error"]      # gate shut until answered
+            await _answer_questions(session)
             created = await session.call_tool(
                 "create_presentation_from_template", {"template_path": template})
             pid = _json(created)["presentation_id"]
@@ -111,6 +131,7 @@ async def test_users_are_isolated(server, tmp_path):
     ) as (r, w, _):
         async with ClientSession(r, w) as session:
             await session.initialize()
+            await _answer_questions(session)
             created = await session.call_tool("create_presentation", {})
             pid = _json(created)["presentation_id"]
             assert pid == "presentation_1"       # same id string as alice's first deck

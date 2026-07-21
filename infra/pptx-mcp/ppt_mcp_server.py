@@ -223,6 +223,10 @@ register_template_tools(
 # set lean for the model (see plan Task 6). Kept: presentation, content,
 # structural, professional, template, chart.
 
+# Gies: pre-build question card + creation gate (see gies_questions.py).
+from gies_questions import register_question_tools
+register_question_tools(app)
+
 register_chart_tools(
     app,
     presentations,
