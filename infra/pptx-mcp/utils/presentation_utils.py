@@ -63,18 +63,52 @@ def create_presentation_from_template(template_path: str) -> Presentation:
         raise Exception(f"Failed to load template file '{template_path}': {str(e)}")
 
 
+MIN_FONT_PT = 18
+
+
+def _strip_empty_placeholders(presentation: Presentation) -> None:
+    """Gies: delete placeholders the model never filled, so downloaded decks
+    don't show "Click to add title"/"Click to add text" prompts overlapping
+    the text boxes the model drew instead."""
+    for slide in presentation.slides:
+        for shape in list(slide.placeholders):
+            if shape.has_text_frame and not shape.text_frame.text.strip():
+                element = shape._element
+                element.getparent().remove(element)
+
+
+def _bump_small_fonts(presentation: Presentation) -> None:
+    """Gies: enforce a floor on explicitly-set font sizes; models routinely
+    pick 10-14pt body text that is unreadable on a projected slide."""
+    from pptx.util import Pt
+
+    floor = Pt(MIN_FONT_PT)
+    for slide in presentation.slides:
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            for paragraph in shape.text_frame.paragraphs:
+                if paragraph.font.size is not None and paragraph.font.size < floor:
+                    paragraph.font.size = floor
+                for run in paragraph.runs:
+                    if run.font.size is not None and run.font.size < floor:
+                        run.font.size = floor
+
+
 def save_presentation(presentation: Presentation, file_path: str) -> str:
     """
     Save a PowerPoint presentation to a file.
-    
+
     Args:
         presentation: The Presentation object
         file_path: Path where the file should be saved
-        
+
     Returns:
         The file path where the presentation was saved
     """
     file_path = _sandbox(file_path, current_user())
+    _strip_empty_placeholders(presentation)
+    _bump_small_fonts(presentation)
     presentation.save(file_path)
     return file_path
 
