@@ -44,6 +44,8 @@ async def test_valid_upload_lands_in_sandbox_and_consumes_token():
     name = payload["file_name"]
     assert name.startswith("upload-") and name.endswith(".pptx")
     assert payload["slides_removed"] == 2                 # old content stripped
+    assert payload["design_layouts"][0]["index"] == 0     # layout the slides used
+    assert payload["design_layouts"][0]["slides_used"] == 2
     saved = sb.user_root("alice") / name
     assert saved.exists()
     shell = Presentation(str(saved))
@@ -94,8 +96,9 @@ async def test_upload_ready_scoped_to_user():
     assert "error" not in info
     assert info["file_name"].startswith("upload-")
     assert info["slide_count"] == 0
-    assert isinstance(info["layouts"], list) and len(info["layouts"]) > 0
-    assert {"index", "name", "placeholders"} <= set(info["layouts"][0])
+    assert info["design_layouts"][0]["slides_used"] == 2
+    assert isinstance(info["all_layouts"], list) and len(info["all_layouts"]) > 0
+    assert {"index", "name", "placeholders"} <= set(info["all_layouts"][0])
 
 
 def test_ready_without_upload_errors():

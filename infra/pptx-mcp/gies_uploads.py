@@ -28,7 +28,7 @@ TOKEN_TTL_SECONDS = 15 * 60
 MAX_BYTES = 15 * 1024 * 1024
 
 _tokens: Dict[str, Tuple[str, float]] = {}      # token -> (user, expires_at)
-_completed: Dict[str, Tuple[str, str]] = {}     # token -> (user, saved_path)
+_completed: Dict[str, Tuple[str, str, list]] = {}   # token -> (user, saved_path, design_layouts)
 
 _CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -43,6 +43,26 @@ def mint(user: str) -> str:
     token = secrets.token_urlsafe(24)
     _tokens[token] = (user, time.time() + TOKEN_TTL_SECONDS)
     return token
+
+
+def _design_layouts(pres: Presentation) -> list:
+    """Which layouts the uploaded deck's slides actually use, most-used first.
+    Real decks often ride on one or two custom layouts while the same master
+    still carries Office's unstyled defaults — building on those defaults is
+    how generated slides come out looking nothing like the upload."""
+    layouts = list(pres.slide_layouts)
+    usage: Dict[int, int] = {}
+    for slide in pres.slides:
+        element = slide.slide_layout._element
+        for i, layout in enumerate(layouts):
+            if layout._element is element:
+                usage[i] = usage.get(i, 0) + 1
+                break
+    return [
+        {"index": i, "name": layouts[i].name,
+         "placeholders": len(layouts[i].placeholders), "slides_used": count}
+        for i, count in sorted(usage.items(), key=lambda kv: -kv[1])
+    ]
 
 
 def _strip_slides(pres: Presentation) -> int:
@@ -104,14 +124,15 @@ async def upload(request: Request) -> Response:
 
     file_name = _safe_name(request.query_params.get("name", "design.pptx"))
     path = gies_sandbox.resolve(file_name, user)
+    design = _design_layouts(parsed)
     slides_removed = _strip_slides(parsed)
     parsed.save(path)
 
     _tokens.pop(token, None)
-    _completed[token] = (user, path)
+    _completed[token] = (user, path, design)
     return JSONResponse(
         {"file_name": file_name, "slides_removed": slides_removed,
-         "layouts": len(parsed.slide_layouts)},
+         "design_layouts": design},
         headers=_CORS,
     )
 
@@ -120,7 +141,7 @@ def ready(upload_id: str) -> Dict:
     entry = _completed.get(upload_id)
     if entry is None or entry[0] != current_user():
         return {"error": "No completed upload found for this id. Re-present the upload card with present_upload_card."}
-    _, path = entry
+    _, path, design = entry
     try:
         pres = Presentation(path)
     except Exception:
@@ -129,15 +150,20 @@ def ready(upload_id: str) -> Dict:
     return {
         "file_name": file_name,
         "slide_count": len(pres.slides),
-        "layouts": [
+        "design_layouts": design,
+        "all_layouts": [
             {"index": i, "name": layout.name, "placeholders": len(layout.placeholders)}
             for i, layout in enumerate(pres.slide_layouts)
         ],
         "message": (
-            f"Design uploaded and reduced to an empty shell of its layouts — its "
-            f"original slides were removed. Build EVERY slide of the new deck "
-            f"yourself with create_presentation_from_template using template_path "
-            f"\"{file_name}\" and the layouts listed above."
+            f"Design uploaded and reduced to an empty shell — its original slides "
+            f"were removed. Build EVERY slide yourself with "
+            f"create_presentation_from_template using template_path \"{file_name}\". "
+            f"Use ONLY the design_layouts (the layouts the user's slides actually "
+            f"used, most-used first) — the other layouts are unstyled defaults and "
+            f"will not look like the user's deck. A design layout with 0 "
+            f"placeholders is a styled background: put content on it with "
+            f"manage_text text boxes instead of placeholder tools."
         ),
     }
 
