@@ -157,13 +157,13 @@ def register_upload_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #13294B; color: #edf1f7; border-radius: 12px;
-          padding: 8px 12px 8px;
+  .card { background: #13294B; color: #edf1f7; border-radius: 14px;
+          padding: 10px 14px 10px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 15px;
-           font-weight: 400; margin: 0 0 6px; padding: 0 4px 0; }
-  .zone { border: 1.5px dashed #2d4b7d; border-radius: 9px; padding: 10px 12px;
-          text-align: center; color: #9fb1cc; cursor: pointer; font-size: 13px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 16px;
+           font-weight: 400; margin: 0 0 8px; padding: 0 4px 0; }
+  .zone { border: 1.5px dashed #2d4b7d; border-radius: 10px; padding: 14px 14px;
+          text-align: center; color: #9fb1cc; cursor: pointer; font-size: 14px; }
   .zone:hover, .zone.drag { background: #1e3a66; color: #edf1f7; }
   .zone b { color: #edf1f7; font-weight: 600; }
   .hint { font-size: 13.5px; color: #9fb1cc; margin-top: 10px; padding: 0 6px; }

@@ -144,42 +144,42 @@ def register_question_tools(app: FastMCP) -> None:
 CARD_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8"><style>
   body { margin: 0; background: transparent;
          font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .card { background: #13294B; color: #edf1f7; border-radius: 12px;
-          padding: 8px 12px 6px;
+  .card { background: #13294B; color: #edf1f7; border-radius: 14px;
+          padding: 10px 14px 8px;
           box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-  .head { display: flex; align-items: center; gap: 7px; padding: 0 4px 4px; }
-  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 15px;
+  .head { display: flex; align-items: center; gap: 8px; padding: 1px 5px 6px; }
+  .title { font-family: "Iowan Old Style", Georgia, serif; font-size: 16px;
            font-weight: 400; margin: 0; flex: 1; white-space: nowrap;
            overflow: hidden; text-overflow: ellipsis; }
   .pager { display: flex; align-items: center; gap: 4px; color: #9fb1cc;
-           font-size: 12px; white-space: nowrap; }
+           font-size: 13px; white-space: nowrap; }
   button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }
-  .nav, .close { color: #9fb1cc; font-size: 13px; width: 22px; height: 22px;
+  .nav, .close { color: #9fb1cc; font-size: 14px; width: 24px; height: 24px;
                  border-radius: 6px; display: grid; place-items: center; }
   .nav:disabled { opacity: .3; cursor: default; }
   .nav:not(:disabled):hover, .close:hover { color: #edf1f7; background: #1e3a66; }
   .close { margin-left: 2px; }
   #opts { display: flex; flex-direction: column; }
   .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-         color: #edf1f7; font-size: 13.5px; padding: 4px 10px 4px 6px;
-         border-radius: 8px; min-height: 34px; }
+         color: #edf1f7; font-size: 14.5px; padding: 5px 12px 5px 7px;
+         border-radius: 10px; min-height: 40px; }
   .opt + .opt, .free { border-top: 1px solid #1f3a63; }
   .opt:hover { background: #1e3a66; }
-  .chip { width: 24px; height: 24px; border-radius: 7px; flex: none; display: grid;
+  .chip { width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid;
           place-items: center; background: #24406e; color: #9fb1cc;
-          font-size: 12px; font-weight: 500; }
+          font-size: 13px; font-weight: 500; }
   .opt:hover .chip { color: #edf1f7; background: #2d4b7d; }
-  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 13px; }
+  .arrow { margin-left: auto; color: #E84A27; opacity: 0; font-size: 14px; }
   .opt:hover .arrow { opacity: 1; }
-  .free { display: flex; align-items: center; gap: 10px; padding: 3px 10px 0 6px;
-          border-radius: 8px; min-height: 34px; }
+  .free { display: flex; align-items: center; gap: 12px; padding: 4px 12px 1px 7px;
+          border-radius: 10px; min-height: 40px; }
   .free:focus-within { background: #1e3a66; }
   .free .chip { font-size: 11px; }
   .free input { flex: 1; background: none; border: 0; outline: none; color: #edf1f7;
-                font: inherit; font-size: 13.5px; }
+                font: inherit; font-size: 14.5px; }
   .free input::placeholder { color: #9fb1cc; }
-  .skip { background: #24406e; color: #edf1f7; font-size: 12px;
-          padding: 5px 11px; border-radius: 8px; }
+  .skip { background: #24406e; color: #edf1f7; font-size: 13px;
+          padding: 6px 13px; border-radius: 9px; }
   .skip:hover { background: #2d4b7d; }
   .done { font-size: 13px; color: #9fb1cc; padding: 4px 4px; }
   .done b { color: #edf1f7; font-weight: 600; }
