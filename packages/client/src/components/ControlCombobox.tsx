@@ -166,7 +166,13 @@ function ControlCombobox({
         className={cn(
           'animate-popover overflow-hidden rounded-xl border border-border-light bg-surface-secondary shadow-lg',
         )}
-        style={{ zIndex: popoverZIndex, width: isCollapsed ? '300px' : (buttonWidth ?? '300px') }}
+        style={{
+          zIndex: popoverZIndex,
+          width: isCollapsed ? '300px' : (buttonWidth ?? '300px'),
+          /* Radix modal dialogs set `pointer-events: none` on <body>; this popover portals
+           * to <body> as a sibling of the dialog, so without this it renders but is inert */
+          pointerEvents: 'auto',
+        }}
       >
         <div className="py-1.5">
           <div className="relative">

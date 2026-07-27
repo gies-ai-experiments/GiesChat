@@ -88,7 +88,7 @@ const Menu: React.FC<MenuProps> = ({
       finalFocus={finalFocus}
       unmountOnHide={unmountOnHide}
       preserveTabOrder={preserveTabOrder}
-      style={{ zIndex, ...style }}
+      style={{ zIndex, pointerEvents: 'auto', ...style }}
       className={cn('popover-ui', className)}
       {...props}
     >
