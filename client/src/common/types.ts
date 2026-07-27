@@ -6,6 +6,7 @@ import type { SetterOrUpdater, RecoilState } from 'recoil';
 import type { ColumnDef } from '@tanstack/react-table';
 import type * as t from 'librechat-data-provider';
 import type { LucideIcon } from 'lucide-react';
+import type { PendingContextFile } from './agents-types';
 import type { TranslationKeys } from '~/hooks';
 import { MCPServerDefinition } from '~/hooks/MCP/useMCPServerManager';
 
@@ -239,6 +240,11 @@ export type AgentPanelContextType = {
   mcpToolsLoading: boolean;
   availableMCPServers: MCPServerDefinition[];
   availableMCPServersMap: t.MCPServersListResponse | undefined;
+  /** File Context files picked before the agent exists. Held here rather than in the
+   * builder because `AgentConfig` unmounts and the form is reset once the agent is
+   * created; they are uploaded as soon as there is an agent to attach them to. */
+  pendingContextFiles: PendingContextFile[];
+  setPendingContextFiles: React.Dispatch<React.SetStateAction<PendingContextFile[]>>;
 };
 
 export type AgentModelPanelProps = {

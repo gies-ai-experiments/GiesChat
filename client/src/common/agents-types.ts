@@ -58,3 +58,9 @@ export type AgentForm = {
   avatar_preview?: string | null;
   avatar_action?: 'upload' | 'reset' | null;
 } & TAgentCapabilities;
+
+/** A File Context file chosen before the agent it belongs to exists yet */
+export type PendingContextFile = {
+  id: string;
+  file: File;
+};

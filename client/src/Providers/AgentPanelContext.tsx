@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
 import { EModelEndpoint } from 'librechat-data-provider';
 import type { MCP, Action, TPlugin } from 'librechat-data-provider';
-import type { AgentPanelContextType, MCPServerInfo } from '~/common';
+import type { AgentPanelContextType, MCPServerInfo, PendingContextFile } from '~/common';
 import {
   useAvailableToolsQuery,
   useGetActionsQuery,
@@ -34,6 +34,7 @@ export function AgentPanelProvider({ children }: { children: React.ReactNode }) 
   const [action, setAction] = useState<Action | undefined>(undefined);
   const [activePanel, setActivePanel] = useState<Panel>(Panel.builder);
   const [agent_id, setCurrentAgentId] = useState<string | undefined>(undefined);
+  const [pendingContextFiles, setPendingContextFiles] = useState<PendingContextFile[]>([]);
   const { availableMCPServers, isLoading, availableMCPServersMap } = useMCPServerManager();
   const { data: startupConfig } = useGetStartupConfig();
   const { data: actions } = useGetActionsQuery(EModelEndpoint.agents, {
@@ -157,6 +158,8 @@ export function AgentPanelProvider({ children }: { children: React.ReactNode }) 
     setCurrentAgentId,
     availableMCPServers,
     availableMCPServersMap,
+    pendingContextFiles,
+    setPendingContextFiles,
   };
 
   return <AgentPanelContext.Provider value={value}>{children}</AgentPanelContext.Provider>;
