@@ -38,6 +38,7 @@ const { loadAuthValues } = require('~/server/services/Tools/credentials');
 const { getFileStrategy } = require('~/server/utils/getFileStrategy');
 const { checkCapability } = require('~/server/services/Config');
 const { LB_QueueAsyncCall } = require('~/server/utils/queue');
+const { registerPowerpointDesign, isPowerpointDesignUpload } = require('./design');
 const { getRetentionExpiry, getAgentFileRetentionExpiry } = require('./retention');
 const { getStrategyFunctions } = require('./strategies');
 const { determineFileType } = require('~/server/utils');
@@ -679,6 +680,31 @@ const processAgentFileUpload = async ({ req, res, metadata }) => {
 
   if (!messageAttachment && !agent_id) {
     throw new Error('No agent ID provided for agent file upload');
+  }
+
+  /* A deck attached in the composer is the design for the deck being built, not
+   * chat content. Text extraction would keep a title string and drop the binary,
+   * losing the design before the model can ask for it. */
+  if (isPowerpointDesignUpload({ req, metadata })) {
+    const design = await registerPowerpointDesign({ req });
+    if (design) {
+      const fileInfo = removeNullishValues({
+        file_id,
+        temp_file_id,
+        bytes: file.size,
+        user: req.user.id,
+        type: file.mimetype,
+        filepath: FileSources.text,
+        filename: file.originalname,
+        source: FileSources.text,
+        context: FileContext.message_attachment,
+        text: `PowerPoint design registered as "${design.file_name}". Build on it with create_presentation_from_template, or call use_attached_design for its layouts.`,
+        tenantId: req.user.tenantId,
+      });
+      const result = await db.createFile(fileInfo, true);
+      res.status(200).json({ message: 'Design registered', ...result });
+      return;
+    }
   }
 
   const isImage = file.mimetype.startsWith('image');

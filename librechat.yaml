@@ -124,8 +124,13 @@ mcpServers:
          card is answered; if create_presentation returns a "questions" error,
          re-present the card. Use the recorded answers to shape the outline,
          depth, and style of every slide.
+      0a. If the user attached a .pptx to the chat, it is ALREADY registered as
+         the design - call use_attached_design to get its file_name and
+         design_layouts, then skip straight to building. Do NOT show the upload
+         card in that case, and never ask them to upload the same file again.
       0b. If the user chose to upload their own design (or mentions having a
-         template at any point), call present_upload_card and stop. The card
+         template at any point) and nothing is attached, call
+         present_upload_card and stop. The card
          uploads the file and calls upload_ready itself - NEVER call
          upload_ready yourself. The uploaded file is reduced to its design
          only - layouts, colors, fonts - and ALL of its original slides are

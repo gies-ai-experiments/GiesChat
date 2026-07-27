@@ -29,6 +29,7 @@ MAX_BYTES = 15 * 1024 * 1024
 
 _tokens: Dict[str, Tuple[str, float]] = {}      # token -> (user, expires_at)
 _completed: Dict[str, Tuple[str, str, list]] = {}   # token -> (user, saved_path, design_layouts)
+_attached: Dict[str, Tuple[str, list]] = {}     # user -> (saved_path, design_layouts)
 
 _CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -83,6 +84,107 @@ def _safe_name(raw: str) -> str:
     if stem.lower().endswith(".pptx"):
         stem = stem[:-5]
     return f"upload-{stem[:60]}.pptx"
+
+
+def _save_design(body: bytes, raw_name: str, user: str) -> Tuple[str, str, list, int]:
+    """Strip an uploaded deck to its design shell and save it to the user's sandbox.
+
+    Shared by both on-ramps: the browser upload card and a deck attached in the
+    chat composer. Raises ValueError when the bytes are not a readable .pptx.
+    """
+    parsed = Presentation(io.BytesIO(body))
+    file_name = _safe_name(raw_name)
+    path = gies_sandbox.resolve(file_name, user)
+    design = _design_layouts(parsed)
+    slides_removed = _strip_slides(parsed)
+    parsed.save(path)
+    return file_name, path, design, slides_removed
+
+
+def _design_payload(file_name: str, design: list, all_layouts: list, slide_count: int) -> Dict:
+    return {
+        "file_name": file_name,
+        "slide_count": slide_count,
+        "design_layouts": design,
+        "all_layouts": all_layouts,
+        "message": (
+            f"Design uploaded and reduced to an empty shell — its original slides "
+            f"were removed. Build EVERY slide yourself with "
+            f"create_presentation_from_template using template_path \"{file_name}\". "
+            f"Use ONLY the design_layouts (the layouts the user's slides actually "
+            f"used, most-used first) — the other layouts are unstyled defaults and "
+            f"will not look like the user's deck. A design layout with 0 "
+            f"placeholders is a styled background: put content on it with "
+            f"manage_text text boxes instead of placeholder tools."
+        ),
+    }
+
+
+async def design_upload(request: Request) -> Response:
+    """Register a deck the user attached in the chat composer as their design.
+
+    Unlike /upload/<token>, the caller here is LibreChat's backend rather than a
+    browser, so it authenticates with the shared secret the middleware already
+    checks - no token to mint, no round trip. The bytes never pass through the
+    model, which is what makes composer attachments workable at all: a real
+    template runs to megabytes.
+    """
+    user = current_user()
+    if not user:
+        return JSONResponse({"error": "No user bound to this request."}, status_code=401)
+
+    too_large = JSONResponse(
+        {"error": f"File is too large — the limit is {MAX_BYTES // (1024 * 1024)} MB."},
+        status_code=413,
+    )
+    declared = request.headers.get("content-length")
+    if declared is not None and declared.isdigit() and int(declared) > MAX_BYTES:
+        return too_large
+    chunks: list = []
+    received = 0
+    async for chunk in request.stream():
+        received += len(chunk)
+        if received > MAX_BYTES:
+            return too_large
+        chunks.append(chunk)
+
+    try:
+        file_name, path, design, slides_removed = _save_design(
+            b"".join(chunks), request.query_params.get("name", "design.pptx"), user
+        )
+    except Exception:
+        return JSONResponse(
+            {"error": "That file could not be read as a PowerPoint (.pptx) presentation."},
+            status_code=400,
+        )
+
+    _attached[user] = (path, design)
+    return JSONResponse(
+        {"file_name": file_name, "slides_removed": slides_removed, "design_layouts": design}
+    )
+
+
+def attached(user: str) -> Dict:
+    entry = _attached.get(user)
+    if entry is None:
+        return {
+            "error": "No deck has been attached to this chat. Ask the user to attach a "
+                     ".pptx, or call present_upload_card to show the upload card."
+        }
+    path, design = entry
+    try:
+        pres = Presentation(path)
+    except Exception:
+        return {"error": "The attached design is no longer readable. Ask the user to attach it again."}
+    return _design_payload(
+        path.rsplit("/", 1)[-1],
+        design,
+        [
+            {"index": i, "name": layout.name, "placeholders": len(layout.placeholders)}
+            for i, layout in enumerate(pres.slide_layouts)
+        ],
+        len(pres.slides),
+    )
 
 
 async def upload(request: Request) -> Response:
@@ -179,6 +281,12 @@ def render_card(token: str) -> str:
 
 
 def register_upload_tools(app: FastMCP) -> None:
+    @app.tool()
+    def use_attached_design() -> Dict:
+        """Use the .pptx the user attached in the chat as this deck's design. Call
+        this instead of present_upload_card whenever a deck is already attached."""
+        return attached(current_user())
+
     @app.tool()
     def present_upload_card() -> list:
         """Show the user a card to upload their own .pptx design/outline. Wait for

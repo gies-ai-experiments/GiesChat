@@ -15,7 +15,7 @@ from starlette.routing import Route
 from ppt_mcp_server import app
 from gies_auth import AuthMiddleware
 from gies_downloads import download
-from gies_uploads import upload
+from gies_uploads import upload, design_upload
 
 _PORT = int(os.environ.get("PORT", "8000"))
 app.settings.host = "0.0.0.0"
@@ -47,6 +47,9 @@ assert hasattr(app, "streamable_http_app"), "mcp version lacks streamable_http_a
 _starlette = app.streamable_http_app()
 _starlette.router.routes.append(Route("/download/{token}", download, methods=["GET"]))
 _starlette.router.routes.append(Route("/upload/{token}", upload, methods=["POST", "OPTIONS"]))
+# Composer attachments: posted by LibreChat's backend, so this route keeps header
+# auth rather than joining the token-authenticated /upload exemption.
+_starlette.router.routes.append(Route("/design", design_upload, methods=["POST"]))
 
 asgi = AuthMiddleware(_starlette, exempt_prefixes=("/download", "/upload"))
 
