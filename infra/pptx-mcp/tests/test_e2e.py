@@ -120,32 +120,37 @@ async def test_round_trip_downloads_valid_pptx(server, tmp_path):
 
 @pytest.mark.asyncio
 async def test_users_are_isolated(server, tmp_path):
-    """Same guessable id 'presentation_1' must resolve to each user's own deck."""
+    """Same guessable id 'presentation_1' must resolve to each user's own deck.
+
+    Both users are fresh — `alice` already built a deck in an earlier test, and
+    reusing her here would give her `presentation_2`, so the ids under
+    comparison would never have collided in the first place.
+    """
     base, template = server
-    # Alice builds from the template (its slide layouts) and adds one slide.
-    alice_url = await _make_deck(base, "alice", template)
-    # Bob builds a blank deck with no template — his presentation_1 is different.
+    # Carol builds from the template (its slide layouts) and adds one slide.
+    carol_url = await _make_deck(base, "carol", template)
+    # Dave builds a blank deck with no template — his presentation_1 is different.
     from mcp.client.streamable_http import streamablehttp_client
     from mcp.client.session import ClientSession
     async with streamablehttp_client(
-        f"{base}/mcp", headers={"X-Gies-Key": "testkey", "X-Gies-User": "bob"}
+        f"{base}/mcp", headers={"X-Gies-Key": "testkey", "X-Gies-User": "dave"}
     ) as (r, w, _):
         async with ClientSession(r, w) as session:
             await session.initialize()
             await _answer_questions(session)
             created = await session.call_tool("create_presentation", {})
             pid = _json(created)["presentation_id"]
-            assert pid == "presentation_1"       # same id string as alice's first deck
+            assert pid == "presentation_1"       # same id string as carol's deck
             saved = await session.call_tool(
-                "save_presentation", {"file_path": "bob.pptx", "presentation_id": pid})
-            bob_url = _json(saved)["download_url"]
+                "save_presentation", {"file_path": "dave.pptx", "presentation_id": pid})
+            dave_url = _json(saved)["download_url"]
     async with httpx.AsyncClient() as c:
-        bob = await c.get(bob_url)
-        alice = await c.get(alice_url)
-    bob_deck = tmp_path / "bob.pptx"; bob_deck.write_bytes(bob.content)
-    alice_deck = tmp_path / "alice.pptx"; alice_deck.write_bytes(alice.content)
-    assert len(Presentation(str(bob_deck)).slides) == 0     # bob's blank deck
-    assert len(Presentation(str(alice_deck)).slides) == 1   # alice's, untouched
+        dave = await c.get(dave_url)
+        carol = await c.get(carol_url)
+    dave_deck = tmp_path / "dave.pptx"; dave_deck.write_bytes(dave.content)
+    carol_deck = tmp_path / "carol.pptx"; carol_deck.write_bytes(carol.content)
+    assert len(Presentation(str(dave_deck)).slides) == 0     # dave's blank deck
+    assert len(Presentation(str(carol_deck)).slides) == 1    # carol's, untouched
 
 
 @pytest.mark.asyncio

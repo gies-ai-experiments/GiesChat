@@ -24,25 +24,38 @@ from gies_auth import current_user
 QUESTIONS_TTL_SECONDS = int(os.environ.get("PPTX_QUESTIONS_TTL", str(30 * 60)))
 
 _pending: Dict[str, Dict] = {}   # user -> {set_id, questions, ts}
-_unlocked: Dict[str, int] = {}   # user -> permitted create calls
+_answered: Dict[str, Dict] = {}  # user -> {answers, ts}
 
 
 def _sweep() -> None:
     cutoff = time.monotonic() - QUESTIONS_TTL_SECONDS
     for user in [u for u, p in _pending.items() if p["ts"] <= cutoff]:
         _pending.pop(user, None)
+    for user in [u for u, a in _answered.items() if a["ts"] <= cutoff]:
+        _answered.pop(user, None)
 
 
 def has_unlock(user: str) -> bool:
-    return _unlocked.get(user, 0) > 0
+    """The gate is open while this user has a live answer set.
+
+    Deliberately not a one-shot counter. A counter meant a build that crashed
+    after `create_presentation` — the fan-out turns are long enough that this
+    happens — burned the unlock, and the user was asked to answer the same card
+    again before they could retry. Answers stay valid until the next card is
+    presented, so retries work and an unanswered user still cannot build.
+    """
+    return _answered.get(user) is not None
 
 
-def consume_unlock(user: str) -> None:
-    remaining = _unlocked.get(user, 0) - 1
-    if remaining > 0:
-        _unlocked[user] = remaining
-    else:
-        _unlocked.pop(user, None)
+def recorded_answers(user: str) -> List[Dict]:
+    """This user's submitted answers, for replaying back to the model.
+
+    The card posts answers to the server, not into the chat, so the model never
+    sees them unless we hand them back. Without this it has to infer what the
+    user picked and may stall asking for them instead of building.
+    """
+    entry = _answered.get(user)
+    return list(entry["answers"]) if entry else []
 
 
 GATE_ERROR = {
@@ -66,6 +79,7 @@ def present(questions: List[Dict]) -> Dict:
     user = current_user()
     set_id = secrets.token_urlsafe(8)
     _pending[user] = {"set_id": set_id, "questions": questions, "ts": time.monotonic()}
+    _answered.pop(user, None)
     return {"set_id": set_id}
 
 
@@ -86,7 +100,7 @@ def submit(set_id: str, answers: List[Dict]) -> Dict:
         }
 
     _pending.pop(user, None)
-    _unlocked[user] = 1
+    _answered[user] = {"answers": answered, "ts": time.monotonic()}
     summary = "; ".join(f"{a['question']}: {a['answer']}" for a in answered)
     return {
         "message": f"Answers recorded — build the deck now, shaped by them. {summary}",

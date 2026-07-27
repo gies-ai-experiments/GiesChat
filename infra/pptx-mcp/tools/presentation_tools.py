@@ -43,12 +43,12 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
 
         # Store the presentation
         presentations[id] = pres
-        gies_questions.consume_unlock(current_user())
 
         return {
             "presentation_id": id,
             "message": f"Created new presentation with ID: {id}",
-            "slide_count": len(pres.slides)
+            "slide_count": len(pres.slides),
+            "answers": gies_questions.recorded_answers(current_user())
         }
 
     @app.tool(
@@ -92,14 +92,14 @@ def register_presentation_tools(app: FastMCP, presentations: Dict, get_current_p
 
         # Store the presentation
         presentations[id] = pres
-        gies_questions.consume_unlock(current_user())
 
         return {
             "presentation_id": id,
             "message": f"Created new presentation from template '{template_path}' with ID: {id}",
             "template_path": template_path,
             "slide_count": len(pres.slides),
-            "layout_count": len(pres.slide_layouts)
+            "layout_count": len(pres.slide_layouts),
+            "answers": gies_questions.recorded_answers(current_user())
         }
 
     @app.tool(
