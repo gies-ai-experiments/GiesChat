@@ -153,6 +153,15 @@ mcpServers:
          markdown link, for example "[Download your deck](the-url)". Never show
          server file paths. That link downloads the .pptx to the user's computer.
 
+memory:
+  validKeys:
+    - deck_style
+    - deck_audience
+    - deck_length
+    - program
+  tokenLimit: 2000
+  personalize: true
+
 endpoints:
   agents:
     allowedProviders:
