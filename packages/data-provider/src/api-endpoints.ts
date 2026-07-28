@@ -486,6 +486,18 @@ export const updateMarketplacePermissions = (roleName: string) =>
   `${getRole(roleName)}/marketplace`;
 export const updateSkillPermissions = (roleName: string) => `${getRole(roleName)}/skills`;
 
+export const adminEffectiveCapabilities = () => `${BASE_URL}/api/admin/grants/effective`;
+
+export const adminGroupList = (params: q.AdminGroupListParams = {}) =>
+  `${BASE_URL}/api/admin/groups${buildQuery(params)}`;
+
+/* Admin usage — agent activity for the professors who own the agents */
+export const adminAgentUsage = (params: q.AdminUsageParams = {}) =>
+  `${BASE_URL}/api/admin/usage/agents${buildQuery(params)}`;
+
+export const adminAgentStudentUsage = (agentId: string, params: q.AdminUsageParams = {}) =>
+  `${BASE_URL}/api/admin/usage/agents/${encodeURIComponent(agentId)}/students${buildQuery(params)}`;
+
 /* Conversation Tags */
 export const conversationTags = (tag?: string) =>
   `${BASE_URL}/api/tags${tag != null && tag ? `/${encodeURIComponent(tag)}` : ''}`;

@@ -1259,6 +1259,28 @@ export function deleteGitHubSkillSyncCredential(
   return request.delete(endpoints.adminSkillsSyncCredential(credentialKey));
 }
 
+export function getAdminEffectiveCapabilities(): Promise<q.AdminEffectiveCapabilitiesResponse> {
+  return request.get(endpoints.adminEffectiveCapabilities());
+}
+
+export function getAdminGroups(params?: q.AdminGroupListParams): Promise<q.AdminGroupListResponse> {
+  return request.get(endpoints.adminGroupList(params));
+}
+
+/* Admin usage */
+export function getAdminAgentUsage(
+  params?: q.AdminUsageParams,
+): Promise<q.AdminAgentUsageResponse> {
+  return request.get(endpoints.adminAgentUsage(params));
+}
+
+export function getAdminAgentStudentUsage(
+  agentId: string,
+  params?: q.AdminUsageParams,
+): Promise<q.AdminAgentStudentUsageResponse> {
+  return request.get(endpoints.adminAgentStudentUsage(agentId, params));
+}
+
 /* Roles */
 export function listRoles(): Promise<q.ListRolesResponse> {
   return request.get(`${endpoints.adminRoles()}?limit=200`);

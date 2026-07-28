@@ -197,6 +197,75 @@ export type ListRolesResponse = {
   offset?: number;
 };
 
+/**
+ * Capabilities held by the calling user, with implications already expanded.
+ * The endpoint is gated by `access:admin`, so a 403 means the caller holds none.
+ */
+export type AdminEffectiveCapabilitiesResponse = {
+  capabilities: string[];
+};
+
+export type AdminGroupListParams = {
+  search?: string;
+  source?: string;
+  limit?: number;
+  offset?: number;
+};
+
+/** A group as returned by the admin groups endpoint; a "class" in professor-facing UI. */
+export type AdminGroup = {
+  _id: string;
+  name: string;
+  description?: string;
+  source?: string;
+  memberIds?: string[];
+};
+
+export type AdminGroupListResponse = {
+  groups: AdminGroup[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+/** Shared filters for the admin usage endpoints; both are optional and unset means unfiltered. */
+export type AdminUsageParams = {
+  /** Restrict activity to members of this group. */
+  groupId?: string;
+  /** Only count activity from the last `days` days. */
+  days?: number;
+};
+
+/** Activity counters common to every admin usage row. */
+export type AdminUsageCounts = {
+  conversationCount: number;
+  messageCount: number;
+  /** ISO 8601 timestamp of the most recent activity, or `null` when there is none. */
+  lastActivity: string | null;
+};
+
+export type AdminAgentUsage = AdminUsageCounts & {
+  agent_id: string;
+  name: string;
+  /** Distinct users who have used the agent within the requested window. */
+  userCount: number;
+};
+
+export type AdminAgentUsageResponse = {
+  agents: AdminAgentUsage[];
+};
+
+export type AdminStudentUsage = AdminUsageCounts & {
+  userId: string;
+  name: string;
+  email: string;
+};
+
+export type AdminAgentStudentUsageResponse = {
+  agent_id: string;
+  students: AdminStudentUsage[];
+};
+
 export interface MCPServerStatus {
   requiresOAuth: boolean;
   connectionState: 'disconnected' | 'connecting' | 'connected' | 'error';

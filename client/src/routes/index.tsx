@@ -71,6 +71,11 @@ const loadWelcome = () =>
     Component: m.default,
   }));
 
+const loadAdminDashboard = () =>
+  import('~/components/Admin/Dashboard').then((m) => ({
+    Component: m.default,
+  }));
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -212,6 +217,10 @@ export const router = createBrowserRouter(
             {
               path: 'projects/:projectId',
               lazy: loadProjectWorkspace,
+            },
+            {
+              path: 'admin',
+              lazy: loadAdminDashboard,
             },
             {
               path: 'agents',

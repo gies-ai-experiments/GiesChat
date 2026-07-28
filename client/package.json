@@ -37,6 +37,7 @@
     "@headlessui/react": "^2.1.2",
     "@hyperdx/browser": "^0.24.0",
     "@librechat/client": "*",
+    "@librechat/data-schemas": "*",
     "@marsidev/react-turnstile": "^1.1.0",
     "@mcp-ui/client": "^5.7.0",
     "@monaco-editor/react": "^4.7.0",

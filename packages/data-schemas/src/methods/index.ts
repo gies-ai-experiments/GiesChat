@@ -48,6 +48,8 @@ import { createConversationTagMethods, type ConversationTagMethods } from './con
 import { createMessageMethods, type MessageMethods } from './message';
 import { createConversationMethods, type ConversationMethods } from './conversation';
 import { createChatProjectMethods, type ChatProjectMethods } from './chatProject';
+import { createUsageMethods, type UsageMethods } from './usage';
+export type { AgentUsageRow, AgentUsageScope, StudentUsageRow, StudentUsageScope } from './usage';
 export type {
   AssignConversationToProjectResult,
   ChatProjectSortBy,
@@ -148,6 +150,7 @@ export type AllMethods = UserMethods &
   MessageMethods &
   ConversationMethods &
   ChatProjectMethods &
+  UsageMethods &
   TxMethods &
   TransactionMethods &
   SpendTokensMethods &
@@ -280,6 +283,7 @@ export function createMethods(
     ...messageMethods,
     ...conversationMethods,
     ...createChatProjectMethods(mongoose),
+    ...createUsageMethods(mongoose),
     /* Tier 3 */
     ...txMethods,
     ...transactionMethods,
@@ -325,6 +329,7 @@ export type {
   MessageMethods,
   ConversationMethods,
   ChatProjectMethods,
+  UsageMethods,
   TxMethods,
   TransactionMethods,
   SpendTokensMethods,

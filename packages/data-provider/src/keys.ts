@@ -87,6 +87,12 @@ export enum QueryKeys {
   skillStates = 'skillStates',
   /* General user favorites */
   favorites = 'favorites',
+  /* Admin capabilities held by the caller, and the groups they can read */
+  adminEffectiveCapabilities = 'adminEffectiveCapabilities',
+  adminGroups = 'adminGroups',
+  /* Admin usage (agent activity) */
+  adminAgentUsage = 'adminAgentUsage',
+  adminAgentStudentUsage = 'adminAgentStudentUsage',
 }
 
 // Dynamic query keys that require parameters
