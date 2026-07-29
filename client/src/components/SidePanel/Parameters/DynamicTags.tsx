@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import { Label, Input, HoverCard, HoverCardTrigger, Tag, useToastContext } from '@librechat/client';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { TranslationKeys, useLocalize, useParameterEffects } from '~/hooks';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 import { cn } from '~/utils';
@@ -26,7 +26,7 @@ function DynamicTags({
   maxTags,
 }: DynamicSettingProps) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
   const { showToast } = useToastContext();
   const inputRef = useRef<HTMLInputElement>(null);
   const [tagText, setTagText] = useState<string>('');

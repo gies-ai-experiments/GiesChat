@@ -3,7 +3,7 @@ import { OptionTypes } from 'librechat-data-provider';
 import { Label, HoverCard, HoverCardTrigger, SelectDropDown } from '@librechat/client';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { TranslationKeys, useLocalize, useParameterEffects } from '~/hooks';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 import { cn } from '~/utils';
@@ -28,7 +28,7 @@ function DynamicDropdown({
   conversation,
 }: DynamicSettingProps) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
   const [inputValue, setInputValue] = useState<string | null>(null);
 
   const selectedValue = useMemo(() => {

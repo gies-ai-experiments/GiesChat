@@ -3,7 +3,7 @@ import { OptionTypes } from 'librechat-data-provider';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { Label, Checkbox, HoverCard, HoverCardTrigger } from '@librechat/client';
 import { TranslationKeys, useLocalize, useDebouncedInput, useParameterEffects } from '~/hooks';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 
@@ -22,7 +22,7 @@ function DynamicCheckbox({
   conversation,
 }: DynamicSettingProps) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
 
   const [setInputValue, inputValue, setLocalValue] = useDebouncedInput<boolean>({
     optionKey: settingKey,

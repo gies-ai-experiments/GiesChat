@@ -3,7 +3,7 @@ import { Label, Input, HoverCard, HoverCardTrigger } from '@librechat/client';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { useLocalize, useDebouncedInput, useParameterEffects, TranslationKeys } from '~/hooks';
 import { cn, sanitizeIntegerInput } from '~/utils';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 
@@ -26,7 +26,7 @@ function DynamicInput({
   conversation,
 }: DynamicSettingProps) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
 
   const [setInputValue, inputValue, setLocalValue] = useDebouncedInput<string | number>({
     optionKey: settingKey,

@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { Label, HoverCard, HoverCardTrigger, ControlCombobox } from '@librechat/client';
 import { TranslationKeys, useLocalize, useParameterEffects } from '~/hooks';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 import { cn } from '~/utils';
@@ -29,7 +29,7 @@ function DynamicCombobox({
   searchPlaceholder = '',
 }: DynamicSettingProps & { isCollapsed?: boolean; SelectIcon?: React.ReactNode }) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
   const [inputValue, setInputValue] = useState<string | null>(null);
 
   const selectedValue = useMemo(() => {

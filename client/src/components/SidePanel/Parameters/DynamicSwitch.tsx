@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { DynamicSettingProps } from 'librechat-data-provider';
 import { Label, Switch, HoverCard, HoverCardTrigger } from '@librechat/client';
 import { TranslationKeys, useLocalize, useParameterEffects } from '~/hooks';
-import { useChatContext } from '~/Providers';
+import { useChatContextOptional } from '~/Providers';
 import OptionHover from './OptionHover';
 import { ESide } from '~/common';
 
@@ -20,7 +20,7 @@ function DynamicSwitch({
   conversation,
 }: DynamicSettingProps) {
   const localize = useLocalize();
-  const { preset } = useChatContext();
+  const preset = useChatContextOptional()?.preset ?? null;
   const [inputValue, setInputValue] = useState<boolean>(!!(defaultValue as boolean | undefined));
   useParameterEffects({
     preset,
