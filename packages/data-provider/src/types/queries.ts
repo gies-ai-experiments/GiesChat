@@ -249,6 +249,8 @@ export type AdminAgentUsage = AdminUsageCounts & {
   name: string;
   /** Distinct users who have used the agent within the requested window. */
   userCount: number;
+  /** Whether the caller holds DELETE on this agent. EDIT scope alone does not imply it. */
+  canDelete: boolean;
 };
 
 export type AdminAgentUsageResponse = {

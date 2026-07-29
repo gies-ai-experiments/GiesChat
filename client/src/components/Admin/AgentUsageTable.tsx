@@ -10,6 +10,7 @@ import {
 } from '@librechat/client';
 import type { AdminAgentUsage } from 'librechat-data-provider';
 import { useAdminAgentUsageQuery } from '~/data-provider';
+import DeleteAgentButton from './DeleteAgentButton';
 import { formatLastActivity } from './activity';
 import { useLocalize } from '~/hooks';
 import QueryState from './QueryState';
@@ -55,6 +56,9 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
               {localize('com_ui_admin_col_messages')}
             </TableHead>
             <TableHead scope="col">{localize('com_ui_admin_col_last_activity')}</TableHead>
+            <TableHead scope="col" className="w-px text-right">
+              <span className="sr-only">{localize('com_ui_admin_col_actions')}</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -75,6 +79,11 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
               <TableCell className="text-right tabular-nums">{agent.messageCount}</TableCell>
               <TableCell className="whitespace-nowrap text-text-secondary">
                 {formatLastActivity(agent.lastActivity) ?? localize('com_ui_none')}
+              </TableCell>
+              <TableCell className="text-right">
+                {agent.canDelete && (
+                  <DeleteAgentButton agentId={agent.agent_id} agentName={agent.name} />
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -71,6 +71,8 @@ interface AgentUsageItem {
   userCount: number;
   messageCount: number;
   lastActivity: string | null;
+  /** Whether this caller holds DELETE on the agent — EDIT scope alone does not imply it. */
+  canDelete: boolean;
 }
 
 interface StudentUsageItem {
@@ -144,6 +146,25 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
     );
   }
 
+  function isAuthor(user: IUser, agent: IAgent): boolean {
+    return String(agent.author) === String(user._id);
+  }
+
+  /**
+   * DELETE is a distinct permission bit from EDIT, so an agent can be in scope for the
+   * usage list yet not be deletable by this caller. Reported per row so the dashboard
+   * never renders a delete control that would come back 403.
+   */
+  async function findDeletableAgentIds(user: IUser): Promise<Set<string>> {
+    const ids = await findAccessibleResources({
+      userId: String(user._id),
+      role: user.role,
+      resourceType: ResourceType.AGENT,
+      requiredPermissions: PermissionBits.DELETE,
+    });
+    return new Set(ids.map((id) => String(id)));
+  }
+
   /**
    * `memberIds` holds `idOnTheSource` (an Entra GUID for every SSO user), not user
    * ObjectIds, while conversations and messages key on the mongo `_id`. Resolving
@@ -214,7 +235,8 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
   }
 
   async function listAgentUsageHandler(req: ServerRequest, res: Response) {
-    if (!req.user?._id) {
+    const caller = req.user;
+    if (!caller?._id) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -231,12 +253,15 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
         return res.status(404).json({ error: 'Group not found' });
       }
 
-      const agents = await findScopedAgents(req.user);
-      const usage = await aggregateAgentUsage({
-        agentIds: agents.map((agent) => agent.id),
-        userIds: scope.userIds,
-        since,
-      });
+      const agents = await findScopedAgents(caller);
+      const [usage, deletableIds] = await Promise.all([
+        aggregateAgentUsage({
+          agentIds: agents.map((agent) => agent.id),
+          userIds: scope.userIds,
+          since,
+        }),
+        findDeletableAgentIds(caller),
+      ]);
       const usageByAgent = new Map(usage.map((row) => [row.agentId, row]));
 
       const items: AgentUsageItem[] = agents.map((agent) => {
@@ -248,6 +273,7 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
           userCount: row?.userCount ?? 0,
           messageCount: row?.messageCount ?? 0,
           lastActivity: row?.lastActivity?.toISOString() ?? null,
+          canDelete: isAuthor(caller, agent) || deletableIds.has(String(agent._id)),
         };
       });
       items.sort(byUsageThenName);

@@ -16,6 +16,7 @@ const mockGetAdminGroups = jest.fn();
 const mockGetAdminAgentUsage = jest.fn();
 const mockGetAdminAgentStudentUsage = jest.fn();
 const mockGetAgentById = jest.fn();
+const mockDeleteAgent = jest.fn();
 
 jest.mock('librechat-data-provider', () => {
   const actual = jest.requireActual('librechat-data-provider');
@@ -28,6 +29,7 @@ jest.mock('librechat-data-provider', () => {
       getAdminAgentUsage: (params?: unknown) => mockGetAdminAgentUsage(params),
       getAdminAgentStudentUsage: () => mockGetAdminAgentStudentUsage(),
       getAgentById: () => mockGetAgentById(),
+      deleteAgent: (body: unknown) => mockDeleteAgent(body),
     },
   };
 });
@@ -75,6 +77,7 @@ const agentUsage: AdminAgentUsageResponse = {
       userCount: 4,
       messageCount: 96,
       lastActivity: '2026-07-20T10:00:00.000Z',
+      canDelete: true,
     },
   ],
 };
@@ -125,6 +128,7 @@ describe('AdminDashboard', () => {
     mockGetAdminAgentUsage.mockResolvedValue(agentUsage);
     mockGetAdminAgentStudentUsage.mockResolvedValue(studentUsage);
     mockGetAgentById.mockResolvedValue({ _id: 'db-id-1', id: 'agent_1', name: 'Case Study Coach' });
+    mockDeleteAgent.mockResolvedValue(undefined);
   });
 
   it('opens the agent builder inline without leaving the dashboard', async () => {
@@ -233,6 +237,33 @@ describe('AdminDashboard', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Conversations' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '96' })).toBeInTheDocument();
+  });
+
+  /**
+   * DELETE is a separate permission bit from the EDIT that puts an agent in the dashboard's
+   * scope, so the server reports `canDelete` per row. Rendering the control off anything else
+   * hands the professor a button that comes back 403.
+   */
+  it('deletes an agent only after the confirm step, then refetches usage', async () => {
+    renderDashboard();
+    await userEvent.click(await screen.findByRole('button', { name: /Delete Case Study Coach/ }));
+    expect(mockDeleteAgent).not.toHaveBeenCalled();
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Delete$/ }));
+    await waitFor(() => expect(mockDeleteAgent).toHaveBeenCalledWith({ agent_id: 'agent_1' }));
+    await waitFor(() => expect(mockGetAdminAgentUsage.mock.calls.length).toBeGreaterThan(1));
+  });
+
+  it('hides the delete control for an agent the caller cannot delete', async () => {
+    mockGetAdminAgentUsage.mockResolvedValue({
+      agents: [{ ...agentUsage.agents[0], canDelete: false }],
+    });
+    renderDashboard();
+
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Delete Case Study Coach/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders an empty state when the professor has no agents', async () => {

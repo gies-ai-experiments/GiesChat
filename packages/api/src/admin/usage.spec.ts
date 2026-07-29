@@ -295,6 +295,8 @@ interface WorldFixture {
   conversations: ConversationFixture[];
   /** Agent `_id`s the caller holds an EDIT ACL grant on. */
   editableAgentObjectIds: Types.ObjectId[];
+  /** Agent `_id`s the caller holds a DELETE ACL grant on. Defaults to none. */
+  deletableAgentObjectIds: Types.ObjectId[];
 }
 
 interface TestDeps extends AdminUsageDeps {
@@ -314,12 +316,17 @@ function createDeps(world: Partial<WorldFixture> = {}, overrides: DepOverrides =
   const groups = world.groups ?? [];
   const conversations = world.conversations ?? [];
   const editable = world.editableAgentObjectIds ?? [];
+  const deletable = world.deletableAgentObjectIds ?? [];
 
   const deps: TestDeps = {
     findAgents: jest.fn(async (filter: unknown) =>
       agents.filter((agent) => matchesFilter(readAgentField, agent, filter)),
     ),
-    findAccessibleResources: jest.fn(async () => editable),
+    /** Honours the permission bit — EDIT scopes the list, DELETE decides `canDelete`. */
+    findAccessibleResources: jest.fn(
+      async ({ requiredPermissions }: { requiredPermissions: number }) =>
+        requiredPermissions === PermissionBits.DELETE ? deletable : editable,
+    ),
     findGroupById: jest.fn(async (id: unknown) => {
       if (typeof id !== 'string') {
         throw new Error(`Non-string groupId reached the database layer: ${JSON.stringify(id)}`);
@@ -366,6 +373,7 @@ interface AgentUsageResponseItem {
   userCount: number;
   messageCount: number;
   lastActivity: string | null;
+  canDelete: boolean;
 }
 
 interface StudentUsageResponseItem {
@@ -410,6 +418,8 @@ function baseWorld(overrides: Partial<WorldFixture> = {}): WorldFixture {
     conversations: [],
     /** caller can EDIT `beta` via ACL; authors `alpha` and `delta`; `gamma` is off-limits. */
     editableAgentObjectIds: [beta._id as Types.ObjectId],
+    /** No DELETE grants by default — EDIT scope must not imply deletability. */
+    deletableAgentObjectIds: [],
     ...overrides,
   };
 }
@@ -480,6 +490,77 @@ describe('createAdminUsageHandlers', () => {
             requiredPermissions: PermissionBits.EDIT,
           }),
         );
+      });
+
+      /**
+       * DELETE is a distinct bit from the EDIT that scopes the list. Reporting it per row is
+       * what stops the dashboard rendering a delete control that comes back 403.
+       */
+      describe('canDelete', () => {
+        it('is true for an agent the caller authored', async () => {
+          const deps = createDeps(baseWorld());
+          const handlers = createAdminUsageHandlers(deps);
+          const { req, res, json } = createReqRes();
+
+          await handlers.listAgentUsage(req, res);
+
+          const byId = new Map(agentBody(json).agents.map((a) => [a.agent_id, a.canDelete]));
+          expect(byId.get('agent_alpha')).toBe(true);
+          expect(byId.get('agent_delta')).toBe(true);
+        });
+
+        it('is false for an agent reachable only through an EDIT grant', async () => {
+          const deps = createDeps(baseWorld());
+          const handlers = createAdminUsageHandlers(deps);
+          const { req, res, json } = createReqRes();
+
+          await handlers.listAgentUsage(req, res);
+
+          const beta_ = agentBody(json).agents.find((a) => a.agent_id === 'agent_beta');
+          expect(beta_?.canDelete).toBe(false);
+        });
+
+        it('is true for an agent the caller holds a DELETE grant on', async () => {
+          const deps = createDeps(
+            baseWorld({ deletableAgentObjectIds: [beta._id as Types.ObjectId] }),
+          );
+          const handlers = createAdminUsageHandlers(deps);
+          const { req, res, json } = createReqRes();
+
+          await handlers.listAgentUsage(req, res);
+
+          const beta_ = agentBody(json).agents.find((a) => a.agent_id === 'agent_beta');
+          expect(beta_?.canDelete).toBe(true);
+        });
+
+        it('requests the DELETE bit separately from the EDIT scoping call', async () => {
+          const deps = createDeps(baseWorld());
+          const handlers = createAdminUsageHandlers(deps);
+          const { req, res } = createReqRes();
+
+          await handlers.listAgentUsage(req, res);
+
+          expect(deps.findAccessibleResources).toHaveBeenCalledWith(
+            expect.objectContaining({
+              userId: callerId.toString(),
+              resourceType: ResourceType.AGENT,
+              requiredPermissions: PermissionBits.DELETE,
+            }),
+          );
+        });
+
+        it('never grants delete on an agent outside the caller scope', async () => {
+          const deps = createDeps(
+            baseWorld({ deletableAgentObjectIds: [gamma._id as Types.ObjectId] }),
+          );
+          const handlers = createAdminUsageHandlers(deps);
+          const { req, res, json } = createReqRes();
+
+          await handlers.listAgentUsage(req, res);
+
+          const ids = agentBody(json).agents.map((a) => a.agent_id);
+          expect(ids).not.toContain('agent_gamma');
+        });
       });
 
       it('returns an empty list when the caller authors nothing and has no grants', async () => {
@@ -896,6 +977,7 @@ describe('createAdminUsageHandlers', () => {
         const [row] = agentBody(json).agents;
         expect(Object.keys(row).sort()).toEqual([
           'agent_id',
+          'canDelete',
           'conversationCount',
           'lastActivity',
           'messageCount',
