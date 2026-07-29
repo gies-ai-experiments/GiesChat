@@ -10,12 +10,18 @@ interface AgentCardProps {
   agent: t.Agent;
   onSelect?: (agent: t.Agent) => void;
   className?: string;
+  canDelete?: boolean;
 }
 
 /**
  * Card component to display agent information with integrated detail dialog
  */
-const AgentCard: React.FC<AgentCardProps> = ({ agent, onSelect, className = '' }) => {
+const AgentCard: React.FC<AgentCardProps> = ({
+  agent,
+  onSelect,
+  className = '',
+  canDelete = false,
+}) => {
   const localize = useLocalize();
   const { categories } = useAgentCategories();
   const [isOpen, setIsOpen] = useState(false);
@@ -109,7 +115,7 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, onSelect, className = '' }
         </div>
       </OGDialogTrigger>
 
-      <AgentDetailContent agent={agent} />
+      <AgentDetailContent agent={agent} canDelete={canDelete} onDeleted={() => setIsOpen(false)} />
     </OGDialog>
   );
 };

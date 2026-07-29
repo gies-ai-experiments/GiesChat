@@ -207,7 +207,11 @@ const AgentGrid: React.FC<AgentGridProps> = ({
             >
               {currentAgents.map((agent: t.Agent, index: number) => (
                 <div key={`${agent.id}-${index}`} role="gridcell">
-                  <AgentCard agent={agent} onSelect={onSelectAgent} />
+                  <AgentCard
+                    agent={agent}
+                    onSelect={onSelectAgent}
+                    canDelete={category === MY_AGENTS_CATEGORY}
+                  />
                 </div>
               ))}
             </div>

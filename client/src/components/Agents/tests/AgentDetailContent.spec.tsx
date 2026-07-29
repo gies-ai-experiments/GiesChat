@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import AgentDetailContent from '../AgentDetailContent';
@@ -23,6 +23,8 @@ jest.mock('librechat-data-provider', () => ({
   },
 }));
 
+const mockMutate = jest.fn();
+
 jest.mock(
   '@librechat/client',
   () => ({
@@ -32,12 +34,32 @@ jest.mock(
     Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
       <button {...props}>{children}</button>
     ),
+    Label: ({ children }: { children: React.ReactNode }) => <label>{children}</label>,
+    OGDialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    OGDialogTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    OGDialogTemplate: ({
+      main,
+      selection,
+    }: {
+      main: React.ReactNode;
+      selection: { selectHandler: () => void; selectText: string };
+    }) => (
+      <div>
+        {main}
+        <button onClick={selection.selectHandler}>{selection.selectText}</button>
+      </div>
+    ),
+    TrashIcon: () => <span data-testid="trash-icon" />,
     useToastContext: () => ({
       showToast: jest.fn(),
     }),
   }),
   { virtual: true },
 );
+
+jest.mock('~/data-provider', () => ({
+  useDeleteAgentMutation: () => ({ mutate: mockMutate, isLoading: false }),
+}));
 
 jest.mock('~/hooks', () => ({
   useDefaultConvo: () => jest.fn((value) => value.conversation),
@@ -58,6 +80,10 @@ jest.mock('~/hooks', () => ({
       com_ui_pin: 'Pin',
       com_ui_unpin: 'Unpin',
       com_agents_copy_link: 'Copy link',
+      com_ui_delete: 'Delete',
+      com_ui_delete_agent: 'Delete Agent',
+      com_ui_delete_agent_named: `Delete ${values?.name ?? ''}`,
+      com_ui_delete_agent_named_confirm: `Delete "${values?.name ?? ''}"? This cannot be undone.`,
     };
     return translations[key] || key;
   },
@@ -131,5 +157,24 @@ describe('AgentDetailContent', () => {
       'href',
       'mailto:owner@example.com',
     );
+  });
+
+  it('hides the delete control unless the caller opts in', () => {
+    renderWithClient(<AgentDetailContent agent={baseAgent as any} />);
+
+    expect(screen.queryByRole('button', { name: 'Delete Agent One' })).not.toBeInTheDocument();
+  });
+
+  it('deletes the agent only after the confirm step', () => {
+    mockMutate.mockClear();
+    renderWithClient(<AgentDetailContent agent={baseAgent as any} canDelete />);
+
+    expect(screen.getByRole('button', { name: 'Delete Agent One' })).toBeInTheDocument();
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(screen.getByText('Delete "Agent One"? This cannot be undone.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(mockMutate).toHaveBeenCalledWith({ agent_id: 'agent-1' });
   });
 });

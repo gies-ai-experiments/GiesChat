@@ -1,4 +1,6 @@
 import React, { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKeys } from 'librechat-data-provider';
 import {
   Table,
   TableRow,
@@ -9,8 +11,8 @@ import {
   TableCaption,
 } from '@librechat/client';
 import type { AdminAgentUsage } from 'librechat-data-provider';
+import DeleteAgentButton from '~/components/Agents/DeleteAgentButton';
 import { useAdminAgentUsageQuery } from '~/data-provider';
-import DeleteAgentButton from './DeleteAgentButton';
 import { formatLastActivity } from './activity';
 import { useLocalize } from '~/hooks';
 import QueryState from './QueryState';
@@ -23,8 +25,14 @@ interface AgentUsageTableProps {
 
 export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentUsageTableProps) {
   const localize = useLocalize();
+  const queryClient = useQueryClient();
   const params = { days, ...(groupId ? { groupId } : {}) };
   const { data, isLoading, error, refetch } = useAdminAgentUsageQuery(params);
+
+  const handleDeleted = useCallback(
+    () => queryClient.invalidateQueries([QueryKeys.adminAgentUsage]),
+    [queryClient],
+  );
 
   const handleRetry = useCallback(() => {
     void refetch();
@@ -82,7 +90,14 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
               </TableCell>
               <TableCell className="text-right">
                 {agent.canDelete && (
-                  <DeleteAgentButton agentId={agent.agent_id} agentName={agent.name} />
+                  <DeleteAgentButton
+                    agentId={agent.agent_id}
+                    agentName={agent.name}
+                    confirmText={localize('com_ui_admin_delete_agent_confirm', {
+                      name: agent.name,
+                    })}
+                    onDeleted={handleDeleted}
+                  />
                 )}
               </TableCell>
             </TableRow>

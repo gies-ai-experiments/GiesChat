@@ -6,6 +6,7 @@ import { AutoSizer, List as VirtualList, WindowScroller } from 'react-virtualize
 import type t from 'librechat-data-provider';
 import { useMarketplaceAgentsInfiniteQuery } from '~/data-provider/Agents';
 import { useAgentCategories, useLocalize } from '~/hooks';
+import { MY_AGENTS_CATEGORY } from './AgentGrid';
 import { useHasData } from './SmartLoader';
 import ErrorDisplay from './ErrorDisplay';
 import AgentCard from './AgentCard';
@@ -175,7 +176,11 @@ const VirtualizedAgentGrid: React.FC<VirtualizedAgentGridProps> = ({
               const globalIndex = index * cardsPerRow + cardIndex;
               return (
                 <div key={`${agent.id}-${globalIndex}`} role="gridcell">
-                  <AgentCard agent={agent} onSelect={onSelectAgent} />
+                  <AgentCard
+                    agent={agent}
+                    onSelect={onSelectAgent}
+                    canDelete={category === MY_AGENTS_CATEGORY}
+                  />
                 </div>
               );
             })}
@@ -196,6 +201,7 @@ const VirtualizedAgentGrid: React.FC<VirtualizedAgentGridProps> = ({
       );
     },
     [
+      category,
       currentAgents,
       getCardsPerRow,
       getRowItems,

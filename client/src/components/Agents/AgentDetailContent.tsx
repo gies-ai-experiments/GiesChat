@@ -13,18 +13,25 @@ import {
 import type t from 'librechat-data-provider';
 import { useLocalize, useDefaultConvo, useFavorites } from '~/hooks';
 import { renderAgentAvatar, clearMessagesCache } from '~/utils';
+import DeleteAgentButton from './DeleteAgentButton';
 import { useChatContext } from '~/Providers';
 import AgentContact from './AgentContact';
 
 interface AgentDetailContentProps {
   agent: t.Agent;
+  canDelete?: boolean;
+  onDeleted?: () => void;
 }
 
 /**
  * Dialog content for displaying agent details
  * Used inside OGDialog with OGDialogTrigger for proper focus management
  */
-const AgentDetailContent: React.FC<AgentDetailContentProps> = ({ agent }) => {
+const AgentDetailContent: React.FC<AgentDetailContentProps> = ({
+  agent,
+  canDelete = false,
+  onDeleted,
+}) => {
   const localize = useLocalize();
   const queryClient = useQueryClient();
   const { showToast } = useToastContext();
@@ -137,6 +144,16 @@ const AgentDetailContent: React.FC<AgentDetailContentProps> = ({ agent }) => {
         >
           <Link className="h-4 w-4" aria-hidden="true" />
         </Button>
+        {canDelete && (
+          <DeleteAgentButton
+            agentId={agent.id}
+            agentName={agent.name ?? ''}
+            confirmText={localize('com_ui_delete_agent_named_confirm', { name: agent.name ?? '' })}
+            onDeleted={onDeleted}
+            variant="outline"
+            size="icon"
+          />
+        )}
         <Button
           variant="submit"
           className="w-full max-w-xs"
