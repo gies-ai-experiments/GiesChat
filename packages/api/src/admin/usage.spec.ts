@@ -8,6 +8,7 @@ import type {
   AgentUsageScope,
   StudentUsageRow,
   StudentUsageScope,
+  AgentAnalyticsRaw,
 } from './usage';
 import type { ServerRequest } from '~/types/http';
 import { createAdminUsageHandlers } from './usage';
@@ -306,7 +307,20 @@ interface TestDeps extends AdminUsageDeps {
   findUsers: jest.Mock;
   aggregateAgentUsage: jest.Mock;
   aggregateStudentUsage: jest.Mock;
+  aggregateAgentAnalytics: jest.Mock;
 }
+
+/** The shape the analytics pipeline returns when nothing happened in the window. */
+const EMPTY_ANALYTICS_RAW: AgentAnalyticsRaw = {
+  conversationCount: 0,
+  activeStudents: 0,
+  returningStudents: 0,
+  assistantMessageCount: 0,
+  erroredMessageCount: 0,
+  turnDistribution: [],
+  studentDistribution: [],
+  daily: [],
+};
 
 type DepOverrides = Partial<Record<keyof AdminUsageDeps, jest.Mock>>;
 
@@ -338,6 +352,7 @@ function createDeps(world: Partial<WorldFixture> = {}, overrides: DepOverrides =
     ),
     aggregateAgentUsage: jest.fn(fakeAggregateAgentUsage(conversations)),
     aggregateStudentUsage: jest.fn(fakeAggregateStudentUsage(conversations)),
+    aggregateAgentAnalytics: jest.fn(async () => EMPTY_ANALYTICS_RAW),
     ...overrides,
   };
 
@@ -391,6 +406,23 @@ function agentBody(json: jest.Mock): { agents: AgentUsageResponseItem[] } {
 
 function studentBody(json: jest.Mock): { agent_id: string; students: StudentUsageResponseItem[] } {
   return json.mock.calls[0][0] as { agent_id: string; students: StudentUsageResponseItem[] };
+}
+
+interface AnalyticsResponseBody {
+  activeStudents: number;
+  enrolledStudents: number;
+  conversationCount: number;
+  medianTurns: number;
+  returnRate: number;
+  dailyActivity: { date: string; conversationCount: number }[];
+  reachBuckets: { label: string; count: number }[];
+  depthBuckets: { label: string; count: number }[];
+  oneTurnShare: number;
+  errorRate: number;
+}
+
+function analyticsBody(json: jest.Mock): AnalyticsResponseBody {
+  return json.mock.calls[0][0] as AnalyticsResponseBody;
 }
 
 function errorBody(json: jest.Mock): { error?: string; stack?: string; message?: string } {
@@ -1756,6 +1788,192 @@ describe('createAdminUsageHandlers', () => {
       expect(status).toHaveBeenCalledWith(200);
       expect(studentBody(json).students).toEqual([]);
       expect(deps.findUsers).not.toHaveBeenCalled();
+    });
+  });
+  /* ================================================================ *
+   * listAgentAnalytics
+   * ================================================================ */
+
+  describe('listAgentAnalytics', () => {
+    const populatedRaw: AgentAnalyticsRaw = {
+      conversationCount: 10,
+      activeStudents: 4,
+      returningStudents: 3,
+      assistantMessageCount: 100,
+      erroredMessageCount: 5,
+      turnDistribution: [
+        { turns: 1, conversations: 2 },
+        { turns: 4, conversations: 8 },
+      ],
+      studentDistribution: [
+        { conversations: 1, students: 1 },
+        { conversations: 3, students: 3 },
+      ],
+      daily: [{ date: '2026-07-28', conversations: 10 }],
+    };
+
+    it('shapes raw distributions into the dashboard response', async () => {
+      const deps = createDeps(baseWorld(), {
+        aggregateAgentAnalytics: jest.fn(async () => populatedRaw),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status, json } = createReqRes({ query: { days: '7' } });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(200);
+      const body = analyticsBody(json);
+      expect(body.conversationCount).toBe(10);
+      expect(body.activeStudents).toBe(4);
+      expect(body.medianTurns).toBe(4);
+      expect(body.returnRate).toBeCloseTo(0.75);
+      expect(body.oneTurnShare).toBeCloseTo(0.2);
+      expect(body.errorRate).toBeCloseTo(0.05);
+      expect(body.depthBuckets).toEqual([
+        { label: '1', count: 2 },
+        { label: '2', count: 0 },
+        { label: '3', count: 0 },
+        { label: '4\u20135', count: 8 },
+        { label: '6\u20139', count: 0 },
+        { label: '10+', count: 0 },
+      ]);
+      expect(body.reachBuckets).toEqual([
+        { label: '1', count: 1 },
+        { label: '2\u20134', count: 3 },
+        { label: '5\u20139', count: 0 },
+        { label: '10+', count: 0 },
+      ]);
+    });
+
+    it('zero-fills every day of the window, inclusive of both ends', async () => {
+      const deps = createDeps(baseWorld(), {
+        aggregateAgentAnalytics: jest.fn(async () => populatedRaw),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, json } = createReqRes({ query: { days: '7' } });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      const { dailyActivity } = analyticsBody(json);
+      expect(dailyActivity).toHaveLength(8);
+      expect(dailyActivity[dailyActivity.length - 1]).toEqual({
+        date: '2026-07-28',
+        conversationCount: 10,
+      });
+      expect(dailyActivity[0]).toEqual({ date: '2026-07-21', conversationCount: 0 });
+    });
+
+    it('reports enrolled size from the class roster', async () => {
+      const deps = createDeps(baseWorld(), {
+        aggregateAgentAnalytics: jest.fn(async () => ({
+          ...EMPTY_ANALYTICS_RAW,
+          conversationCount: 1,
+          activeStudents: 1,
+          assistantMessageCount: 2,
+          turnDistribution: [{ turns: 1, conversations: 1 }],
+          studentDistribution: [{ conversations: 1, students: 1 }],
+        })),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status, json } = createReqRes({
+        query: { groupId: groupId.toString(), days: '30' },
+      });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(200);
+      expect(analyticsBody(json).enrolledStudents).toBe(2);
+      expect(analyticsBody(json).activeStudents).toBe(1);
+    });
+
+    it('falls back to the active count for enrolled when no class is selected', async () => {
+      const deps = createDeps(baseWorld(), {
+        aggregateAgentAnalytics: jest.fn(async () => populatedRaw),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, json } = createReqRes();
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(analyticsBody(json).enrolledStudents).toBe(4);
+    });
+
+    it('returns zeros rather than NaN when nothing happened', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status, json } = createReqRes();
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(200);
+      const body = analyticsBody(json);
+      expect(body.returnRate).toBe(0);
+      expect(body.errorRate).toBe(0);
+      expect(body.oneTurnShare).toBe(0);
+      expect(body.medianTurns).toBe(0);
+    });
+
+    it('never aggregates agents outside the caller scope', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res } = createReqRes();
+
+      await handlers.listAgentAnalytics(req, res);
+
+      const scope = deps.aggregateAgentAnalytics.mock.calls[0][0] as { agentIds: string[] };
+      expect(scope.agentIds).not.toContain('agent_gamma');
+      expect([...scope.agentIds].sort()).toEqual(['agent_alpha', 'agent_beta', 'agent_delta']);
+    });
+
+    it('404s an unknown group without touching the aggregation', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({
+        query: { groupId: new Types.ObjectId().toString() },
+      });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(404);
+      expect(deps.aggregateAgentAnalytics).not.toHaveBeenCalled();
+    });
+
+    it('401s an unauthenticated caller', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({ user: undefined });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(401);
+    });
+
+    it('400s a non-string groupId', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({
+        query: { groupId: ['a', 'b'] as unknown as string },
+      });
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(400);
+    });
+
+    it('500s when the aggregation throws, without leaking the error', async () => {
+      const deps = createDeps(baseWorld(), {
+        aggregateAgentAnalytics: jest.fn(async () => {
+          throw new Error('pipeline exploded');
+        }),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status, json } = createReqRes();
+
+      await handlers.listAgentAnalytics(req, res);
+
+      expect(status).toHaveBeenCalledWith(500);
+      expect(errorBody(json).error).toBe('Failed to load analytics');
+      expect(JSON.stringify(errorBody(json))).not.toContain('pipeline exploded');
     });
   });
 });

@@ -4,6 +4,13 @@ import type { IUser, IAgent, IGroup } from '@librechat/data-schemas';
 import type { FilterQuery, Types } from 'mongoose';
 import type { Response } from 'express';
 import type { ServerRequest } from '~/types/http';
+import {
+  toBuckets,
+  zeroFillDays,
+  medianFromDistribution,
+  TURN_BUCKETS,
+  REACH_BUCKETS,
+} from './analytics';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_DAYS = 30;
@@ -44,6 +51,26 @@ export interface StudentUsageScope {
   since: Date;
 }
 
+export interface AgentAnalyticsScope {
+  agentIds: string[];
+  /** `null` means every user; `[]` means no user (an empty group). */
+  userIds: string[] | null;
+  since: Date;
+}
+
+/** Raw distributions from the pipeline. Buckets, medians, and zero-fill happen here. */
+export interface AgentAnalyticsRaw {
+  conversationCount: number;
+  activeStudents: number;
+  /** Students active on two or more distinct UTC days. */
+  returningStudents: number;
+  assistantMessageCount: number;
+  erroredMessageCount: number;
+  turnDistribution: { turns: number; conversations: number }[];
+  studentDistribution: { conversations: number; students: number }[];
+  daily: { date: string; conversations: number }[];
+}
+
 export interface AdminUsageDeps {
   findAgents: (
     filter: FilterQuery<IAgent>,
@@ -62,6 +89,22 @@ export interface AdminUsageDeps {
   ) => Promise<IUser[]>;
   aggregateAgentUsage: (scope: AgentUsageScope) => Promise<AgentUsageRow[]>;
   aggregateStudentUsage: (scope: StudentUsageScope) => Promise<StudentUsageRow[]>;
+  aggregateAgentAnalytics: (scope: AgentAnalyticsScope) => Promise<AgentAnalyticsRaw>;
+}
+
+/** The dashboard's analytics section — aggregate only, no student is identified. */
+interface AnalyticsResponse {
+  activeStudents: number;
+  /** Class roster size; equals `activeStudents` when no class filter is applied. */
+  enrolledStudents: number;
+  conversationCount: number;
+  medianTurns: number;
+  returnRate: number;
+  dailyActivity: { date: string; conversationCount: number }[];
+  reachBuckets: { label: string; count: number }[];
+  depthBuckets: { label: string; count: number }[];
+  oneTurnShare: number;
+  errorRate: number;
 }
 
 interface AgentUsageItem {
@@ -115,6 +158,7 @@ function byUsageThenName<T extends { conversationCount: number; name: string }>(
 export function createAdminUsageHandlers(deps: AdminUsageDeps): {
   listAgentUsage: (req: ServerRequest, res: Response) => Promise<Response>;
   listAgentStudentUsage: (req: ServerRequest, res: Response) => Promise<Response>;
+  listAgentAnalytics: (req: ServerRequest, res: Response) => Promise<Response>;
 } {
   const {
     findAgents,
@@ -123,6 +167,7 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
     findUsers,
     aggregateAgentUsage,
     aggregateStudentUsage,
+    aggregateAgentAnalytics,
   } = deps;
 
   /**
@@ -346,8 +391,68 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
     }
   }
 
+  /** Guards a rate against a zero denominator so the dashboard never receives NaN. */
+  function rate(numerator: number, denominator: number): number {
+    return denominator === 0 ? 0 : numerator / denominator;
+  }
+
+  async function listAgentAnalyticsHandler(req: ServerRequest, res: Response) {
+    const caller = req.user;
+    if (!caller?._id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const rawGroupId = req.query.groupId;
+    if (rawGroupId !== undefined && typeof rawGroupId !== 'string') {
+      return res.status(400).json({ error: 'groupId must be a string' });
+    }
+
+    const since = resolveSince(req.query.days);
+
+    try {
+      const scope = await resolveMemberScope(rawGroupId);
+      if (!scope.found) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+
+      const agents = await findScopedAgents(caller);
+      const raw = await aggregateAgentAnalytics({
+        agentIds: agents.map((agent) => agent.id),
+        userIds: scope.userIds,
+        since,
+      });
+
+      const oneTurnCount =
+        raw.turnDistribution.find((entry) => entry.turns === 1)?.conversations ?? 0;
+
+      const body: AnalyticsResponse = {
+        activeStudents: raw.activeStudents,
+        enrolledStudents: scope.userIds?.length ?? raw.activeStudents,
+        conversationCount: raw.conversationCount,
+        medianTurns: medianFromDistribution(raw.turnDistribution, 'turns', 'conversations'),
+        returnRate: rate(raw.returningStudents, raw.activeStudents),
+        dailyActivity: zeroFillDays(raw.daily, since, new Date()),
+        reachBuckets: toBuckets(
+          raw.studentDistribution,
+          'conversations',
+          'students',
+          REACH_BUCKETS,
+        ),
+        depthBuckets: toBuckets(raw.turnDistribution, 'turns', 'conversations', TURN_BUCKETS),
+        oneTurnShare: rate(oneTurnCount, raw.conversationCount),
+        errorRate: rate(raw.erroredMessageCount, raw.assistantMessageCount),
+      };
+
+      return res.status(200).json(body);
+    } catch (error) {
+      logger.error('[adminUsage] listAgentAnalytics error:', error);
+      return res.status(500).json({ error: 'Failed to load analytics' });
+    }
+  }
+
   return {
     listAgentUsage: listAgentUsageHandler,
     listAgentStudentUsage: listAgentStudentUsageHandler,
+    listAgentAnalytics: listAgentAnalyticsHandler,
   };
 }
