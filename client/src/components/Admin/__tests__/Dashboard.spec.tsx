@@ -7,6 +7,7 @@ import '@testing-library/jest-dom/extend-expect';
 import type {
   AdminAgentUsageResponse,
   AdminGroupListResponse,
+  AdminAnalyticsResponse,
   AdminAgentStudentUsageResponse,
 } from 'librechat-data-provider';
 import AdminDashboard from '../Dashboard';
@@ -15,6 +16,7 @@ const mockGetAdminEffectiveCapabilities = jest.fn();
 const mockGetAdminGroups = jest.fn();
 const mockGetAdminAgentUsage = jest.fn();
 const mockGetAdminAgentStudentUsage = jest.fn();
+const mockGetAdminAgentAnalytics = jest.fn();
 const mockGetAgentById = jest.fn();
 const mockDeleteAgent = jest.fn();
 
@@ -28,6 +30,7 @@ jest.mock('librechat-data-provider', () => {
       getAdminGroups: () => mockGetAdminGroups(),
       getAdminAgentUsage: (params?: unknown) => mockGetAdminAgentUsage(params),
       getAdminAgentStudentUsage: () => mockGetAdminAgentStudentUsage(),
+      getAdminAgentAnalytics: (params?: unknown) => mockGetAdminAgentAnalytics(params),
       getAgentById: () => mockGetAgentById(),
       deleteAgent: (body: unknown) => mockDeleteAgent(body),
     },
@@ -104,6 +107,44 @@ const studentUsage: AdminAgentStudentUsageResponse = {
   ],
 };
 
+const analytics: AdminAnalyticsResponse = {
+  activeStudents: 4,
+  enrolledStudents: 9,
+  conversationCount: 12,
+  medianTurns: 3,
+  returnRate: 0.5,
+  dailyActivity: [{ date: '2026-07-20', conversationCount: 12 }],
+  reachBuckets: [
+    { label: '1', count: 2 },
+    { label: '2–4', count: 2 },
+    { label: '5–9', count: 0 },
+    { label: '10+', count: 0 },
+  ],
+  depthBuckets: [
+    { label: '1', count: 3 },
+    { label: '2', count: 4 },
+    { label: '3', count: 3 },
+    { label: '4–5', count: 2 },
+    { label: '6–9', count: 0 },
+    { label: '10+', count: 0 },
+  ],
+  oneTurnShare: 0.25,
+  errorRate: 0,
+};
+
+const emptyAnalytics: AdminAnalyticsResponse = {
+  activeStudents: 0,
+  enrolledStudents: 0,
+  conversationCount: 0,
+  medianTurns: 0,
+  returnRate: 0,
+  dailyActivity: [],
+  reachBuckets: [],
+  depthBuckets: [],
+  oneTurnShare: 0,
+  errorRate: 0,
+};
+
 const renderDashboard = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -127,6 +168,7 @@ describe('AdminDashboard', () => {
     mockGetAdminGroups.mockResolvedValue(groups);
     mockGetAdminAgentUsage.mockResolvedValue(agentUsage);
     mockGetAdminAgentStudentUsage.mockResolvedValue(studentUsage);
+    mockGetAdminAgentAnalytics.mockResolvedValue(analytics);
     mockGetAgentById.mockResolvedValue({ _id: 'db-id-1', id: 'agent_1', name: 'Case Study Coach' });
     mockDeleteAgent.mockResolvedValue(undefined);
   });
@@ -160,7 +202,7 @@ describe('AdminDashboard', () => {
   it('hides the build button from a professor without create permission', async () => {
     mockUseHasAccess.mockReturnValue(false);
     renderDashboard();
-    await screen.findByRole('heading', { name: /agents/i });
+    await screen.findByRole('heading', { name: 'Your agents' });
     expect(screen.queryByRole('button', { name: /build an agent/i })).not.toBeInTheDocument();
   });
 
@@ -341,5 +383,57 @@ describe('AdminDashboard', () => {
     await userEvent.click(screen.getByRole('button', { name: /Messages/ }));
     await waitFor(() => expect(messagesHeader()).toHaveAttribute('aria-sort', 'ascending'));
     expect(screen.getAllByRole('row')[1].textContent ?? '').toContain('Quiet Student');
+  });
+  describe('analytics section', () => {
+    it('renders the analytics panels above the agents table', async () => {
+      renderDashboard();
+
+      expect(await screen.findByText('How the class is using your agents')).toBeInTheDocument();
+      expect(await screen.findByText('Students who used an agent')).toBeInTheDocument();
+      expect(await screen.findByText('Conversation depth')).toBeInTheDocument();
+    });
+
+    it('shows the empty state when the window holds no activity', async () => {
+      mockGetAdminAgentAnalytics.mockResolvedValue(emptyAnalytics);
+
+      renderDashboard();
+
+      expect(await screen.findByText('No agent activity in this window yet.')).toBeInTheDocument();
+    });
+
+    it('hides the analytics section on the per-student drill-down', async () => {
+      renderDashboard();
+
+      const agentLink = await screen.findByRole('button', {
+        name: 'View student progress for Case Study Coach',
+      });
+      await userEvent.click(agentLink);
+
+      await waitFor(() =>
+        expect(screen.queryByText('How the class is using your agents')).not.toBeInTheDocument(),
+      );
+    });
+
+    it('scales the conversation bar to the busiest agent in view', async () => {
+      mockGetAdminAgentUsage.mockResolvedValue({
+        agents: [
+          { ...agentUsage.agents[0], agent_id: 'agent_1', conversationCount: 12 },
+          {
+            ...agentUsage.agents[0],
+            agent_id: 'agent_2',
+            name: 'Quiet Agent',
+            conversationCount: 3,
+          },
+        ],
+      });
+
+      const { container } = renderDashboard();
+      await screen.findByText('Quiet Agent');
+
+      const bars = container.querySelectorAll('[data-usage-bar]');
+      expect(bars).toHaveLength(2);
+      expect((bars[0] as HTMLElement).style.width).toBe('100%');
+      expect((bars[1] as HTMLElement).style.width).toBe('25%');
+    });
   });
 });

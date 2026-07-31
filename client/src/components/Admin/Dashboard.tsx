@@ -11,6 +11,7 @@ import { useHasAccess, useLocalize } from '~/hooks';
 import StudentProgressTable from './StudentProgressTable';
 import AgentUsageTable from './AgentUsageTable';
 import ShareWithClass from './ShareWithClass';
+import AnalyticsSection from './Analytics';
 
 const DAY_WINDOWS = [7, 30, 90] as const;
 /** Sentinel for "no class filter". Must be non-empty — `Dropdown` renders an empty label for `''`. */
@@ -160,6 +161,9 @@ export default function AdminDashboard() {
           })}
         </p>
       )}
+
+      {/* Class-wide, so it belongs with the agent list rather than a single student's drill-down. */}
+      {selectedAgent == null && <AnalyticsSection groupId={groupFilter} days={days} />}
 
       {selectedAgent == null ? (
         <section aria-labelledby="admin-agents-heading">

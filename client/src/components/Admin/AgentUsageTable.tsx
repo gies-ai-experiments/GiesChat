@@ -39,6 +39,8 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
   }, [refetch]);
 
   const agents = data?.agents ?? [];
+  /** Ranks agents against the busiest one in view, so a chart repeating this column isn't needed. */
+  const maxConversations = Math.max(1, ...agents.map((agent) => agent.conversationCount));
 
   return (
     <QueryState
@@ -82,7 +84,23 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
                   {agent.name}
                 </button>
               </TableCell>
-              <TableCell className="text-right tabular-nums">{agent.conversationCount}</TableCell>
+              <TableCell className="text-right tabular-nums">
+                <span className="flex items-center justify-end gap-2">
+                  <span
+                    className="h-1.5 w-14 overflow-hidden rounded-full bg-surface-secondary"
+                    aria-hidden="true"
+                  >
+                    <span
+                      data-usage-bar
+                      className="block h-full rounded-full bg-[#2a78d6] dark:bg-[#3987e5]"
+                      style={{
+                        width: `${(agent.conversationCount / maxConversations) * 100}%`,
+                      }}
+                    />
+                  </span>
+                  {agent.conversationCount}
+                </span>
+              </TableCell>
               <TableCell className="text-right tabular-nums">{agent.userCount}</TableCell>
               <TableCell className="text-right tabular-nums">{agent.messageCount}</TableCell>
               <TableCell className="whitespace-nowrap text-text-secondary">
