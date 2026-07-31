@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { AdminAnalyticsResponse } from 'librechat-data-provider';
 import { KpiRow, ActivityPanel, ReachPanel, DepthPanel, SignalsPanel } from '../Panels';
@@ -69,6 +69,33 @@ describe('ActivityPanel', () => {
 
     expect(container.querySelector('path[data-line]')).toBeInTheDocument();
   });
+
+  it('shows no tooltip until the pointer is over the plot', () => {
+    render(<ActivityPanel data={data} />);
+
+    expect(screen.queryByTestId('chart-tooltip')).not.toBeInTheDocument();
+  });
+
+  it('reveals the day under the pointer, and hides it again on leave', () => {
+    const { container } = render(<ActivityPanel data={data} />);
+    const surface = container.querySelector('[data-hover-surface]') as SVGRectElement;
+
+    fireEvent.pointerMove(surface, { clientX: 0 });
+    expect(screen.getByTestId('chart-tooltip')).toHaveTextContent('2026-07-01');
+    expect(screen.getByTestId('chart-tooltip')).toHaveTextContent('4');
+
+    fireEvent.pointerLeave(surface);
+    expect(screen.queryByTestId('chart-tooltip')).not.toBeInTheDocument();
+  });
+
+  it('marks the hovered point on the line', () => {
+    const { container } = render(<ActivityPanel data={data} />);
+    const surface = container.querySelector('[data-hover-surface]') as SVGRectElement;
+
+    expect(container.querySelector('[data-hover-marker]')).not.toBeInTheDocument();
+    fireEvent.pointerMove(surface, { clientX: 0 });
+    expect(container.querySelector('[data-hover-marker]')).toBeInTheDocument();
+  });
 });
 
 describe('ReachPanel', () => {
@@ -92,6 +119,20 @@ describe('DepthPanel', () => {
     const { container } = render(<DepthPanel data={data} />);
 
     expect(container.querySelectorAll('rect[data-bar]')).toHaveLength(6);
+  });
+
+  it('reveals a bucket tooltip on hover with its share of the total', () => {
+    const { container } = render(<DepthPanel data={data} />);
+    const targets = container.querySelectorAll('[data-hover-bar]');
+
+    fireEvent.pointerEnter(targets[0]);
+    const tooltip = screen.getByTestId('chart-tooltip');
+    expect(tooltip).toHaveTextContent('47');
+    /** 47 of 214 conversations. */
+    expect(tooltip).toHaveTextContent('22%');
+
+    fireEvent.pointerLeave(targets[0]);
+    expect(screen.queryByTestId('chart-tooltip')).not.toBeInTheDocument();
   });
 
   it('renders nothing to divide by when every bucket is empty', () => {

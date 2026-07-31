@@ -762,6 +762,7 @@
   "com_ui_admin_analytics_reach": "Reach",
   "com_ui_admin_analytics_reach_caption": "Who in the class has touched an agent.",
   "com_ui_admin_analytics_reach_never": "Never opened one",
+  "com_ui_admin_analytics_reach_unit": "Students",
   "com_ui_admin_analytics_reach_used": "Used an agent",
   "com_ui_admin_analytics_repeat": "Repeat use",
   "com_ui_admin_analytics_return_rate": "Came back another day",

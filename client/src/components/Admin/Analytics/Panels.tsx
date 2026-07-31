@@ -70,8 +70,17 @@ export function KpiRow({ data }: PanelProps) {
 
 export function ActivityPanel({ data }: PanelProps) {
   const localize = useLocalize();
-  const counts = data.dailyActivity.map((point) => point.conversationCount);
-  const peak = counts.length === 0 ? 0 : Math.max(...counts);
+  const peak =
+    data.dailyActivity.length === 0
+      ? 0
+      : Math.max(...data.dailyActivity.map((point) => point.conversationCount));
+
+  const points = data.dailyActivity.map((point) => ({
+    value: point.conversationCount,
+    tooltip: `${point.date} · ${point.conversationCount} ${localize(
+      'com_ui_admin_analytics_conversations',
+    ).toLowerCase()}`,
+  }));
 
   return (
     <Card
@@ -79,12 +88,27 @@ export function ActivityPanel({ data }: PanelProps) {
       caption={localize('com_ui_admin_analytics_activity_caption')}
     >
       <AreaChart
-        values={counts}
+        points={points}
         ariaLabel={localize('com_ui_admin_analytics_activity')}
         detail={localize('com_ui_admin_analytics_peak', { count: peak })}
       />
     </Card>
   );
+}
+
+/** Buckets carry their own share of the total, which is what a hover is really asking. */
+function withShares(
+  buckets: AdminAnalyticsResponse['depthBuckets'],
+  unit: string,
+): { label: string; count: number; tooltip: string }[] {
+  const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+  return buckets.map((bucket) => ({
+    ...bucket,
+    tooltip:
+      total === 0
+        ? `${bucket.count} ${unit}`
+        : `${bucket.count} ${unit} · ${Math.round((bucket.count / total) * 100)}%`,
+  }));
 }
 
 export function ReachPanel({ data }: PanelProps) {
@@ -122,7 +146,10 @@ export function ReachPanel({ data }: PanelProps) {
         {localize('com_ui_admin_analytics_repeat')}
       </p>
       <ColumnChart
-        buckets={data.reachBuckets}
+        buckets={withShares(
+          data.reachBuckets,
+          localize('com_ui_admin_analytics_reach_unit').toLowerCase(),
+        )}
         ariaLabel={localize('com_ui_admin_analytics_repeat')}
       />
     </Card>
@@ -137,7 +164,10 @@ export function DepthPanel({ data }: PanelProps) {
       caption={localize('com_ui_admin_analytics_depth_caption')}
     >
       <ColumnChart
-        buckets={data.depthBuckets}
+        buckets={withShares(
+          data.depthBuckets,
+          localize('com_ui_admin_analytics_conversations').toLowerCase(),
+        )}
         emphasizeIndex={0}
         ariaLabel={localize('com_ui_admin_analytics_depth')}
       />
