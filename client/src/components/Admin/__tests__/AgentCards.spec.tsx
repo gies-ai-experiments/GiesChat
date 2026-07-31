@@ -29,6 +29,7 @@ const usage: AdminAgentUsageResponse = {
       description: 'Walks students through Harvard-style cases.',
       avatar: { filepath: '/images/coach.png', source: 'local' },
       category: 'course',
+      course: 'BADM 350',
       conversationCount: 42,
       userCount: 18,
       messageCount: 310,
@@ -41,6 +42,7 @@ const usage: AdminAgentUsageResponse = {
       description: null,
       avatar: null,
       category: null,
+      course: null,
       conversationCount: 0,
       userCount: 0,
       messageCount: 0,
@@ -80,8 +82,14 @@ describe('AgentCards', () => {
 
     expect(await screen.findByText('Case Study Coach')).toBeInTheDocument();
     expect(screen.getByText('Walks students through Harvard-style cases.')).toBeInTheDocument();
-    expect(screen.getByText('42 convos · 18 students')).toBeInTheDocument();
+    expect(screen.getByText('BADM 350 · 42 convos · 18 students')).toBeInTheDocument();
     expect(screen.getByText('Bare Agent')).toBeInTheDocument();
+  });
+
+  it('omits the course from the stats line when the agent has none', async () => {
+    renderCards();
+
+    await screen.findByText('Bare Agent');
     expect(screen.getByText('0 convos · 0 students')).toBeInTheDocument();
   });
 

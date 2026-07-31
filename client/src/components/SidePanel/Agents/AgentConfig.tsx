@@ -149,6 +149,32 @@ export default function AgentConfig() {
         </div>
       </div>
 
+      {/* COURSE — free-text label shown on the professor dashboard */}
+      <div className="mb-3 flex flex-col">
+        <label
+          className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-text-secondary"
+          htmlFor="course"
+        >
+          {localize('com_ui_agent_course')}
+        </label>
+        <Controller
+          name="course"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              value={field.value ?? ''}
+              maxLength={64}
+              className={fieldClass}
+              id="course"
+              type="text"
+              placeholder={localize('com_agents_course_placeholder')}
+              aria-label={localize('com_ui_agent_course')}
+            />
+          )}
+        />
+      </div>
+
       {/* INSTRUCTIONS */}
       <Instructions />
 

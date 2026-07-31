@@ -687,6 +687,7 @@ export const agentBaseSchema: z.ZodObject<
       >
     >;
     category: z.ZodOptional<z.ZodString>;
+    course: z.ZodOptional<z.ZodString>;
   },
   'strip'
 > = z.object({
@@ -713,6 +714,7 @@ export const agentBaseSchema: z.ZodObject<
   subagents: agentSubagentsSchema,
   support_contact: agentSupportContactSchema,
   category: z.string().optional(),
+  course: z.string().max(64).optional(),
 });
 
 /** Create schema extends base with required fields for creation */
@@ -1037,6 +1039,7 @@ export const agentCreateSchema: z.ZodObject<
       >
     >;
     category: z.ZodOptional<z.ZodString>;
+    course: z.ZodOptional<z.ZodString>;
   } & {
     provider: z.ZodString;
     model: z.ZodNullable<z.ZodString>;
@@ -1352,6 +1355,7 @@ export const agentUpdateSchema: z.ZodObject<
       >
     >;
     category: z.ZodOptional<z.ZodString>;
+    course: z.ZodOptional<z.ZodString>;
   } & {
     avatar: z.ZodOptional<
       z.ZodUnion<

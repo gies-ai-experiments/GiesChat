@@ -365,6 +365,7 @@ export const defaultAgentFormValues = {
   [Tools.web_search]: false,
   [Tools.memory]: false,
   category: 'general',
+  course: '',
   support_contact: {
     name: '',
     email: '',

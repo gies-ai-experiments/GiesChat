@@ -17,7 +17,7 @@ const DEFAULT_DAYS = 30;
 const MIN_DAYS = 1;
 const MAX_DAYS = 365;
 
-const AGENT_SCOPE_FIELDS = '_id id name author description avatar category';
+const AGENT_SCOPE_FIELDS = '_id id name author description avatar category course';
 const STUDENT_FIELDS = '_id name email';
 
 /** Per-agent activity totals for the entities that actually have activity. */
@@ -113,6 +113,7 @@ interface AgentUsageItem {
   description: string | null;
   avatar: NonNullable<IAgent['avatar']> | null;
   category: string | null;
+  course: string | null;
   conversationCount: number;
   userCount: number;
   messageCount: number;
@@ -320,6 +321,7 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
           description: agent.description ?? null,
           avatar: agent.avatar ?? null,
           category: agent.category ?? null,
+          course: agent.course ?? null,
           conversationCount: row?.conversationCount ?? 0,
           userCount: row?.userCount ?? 0,
           messageCount: row?.messageCount ?? 0,

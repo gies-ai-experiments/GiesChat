@@ -56,6 +56,7 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
         <TableHeader>
           <TableRow>
             <TableHead scope="col">{localize('com_ui_admin_col_agent')}</TableHead>
+            <TableHead scope="col">{localize('com_ui_admin_col_course')}</TableHead>
             <TableHead scope="col" className="text-right">
               {localize('com_ui_admin_col_conversations')}
             </TableHead>
@@ -83,6 +84,11 @@ export default function AgentUsageTable({ groupId, days, onSelectAgent }: AgentU
                 >
                   {agent.name}
                 </button>
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-text-secondary">
+                {agent.course != null && agent.course !== ''
+                  ? agent.course
+                  : localize('com_ui_none')}
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 <span className="flex items-center justify-end gap-2">

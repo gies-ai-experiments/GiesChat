@@ -80,6 +80,7 @@ const agentUsage: AdminAgentUsageResponse = {
       description: 'Walks students through Harvard-style cases.',
       avatar: null,
       category: 'course',
+      course: 'BADM 350',
       conversationCount: 12,
       userCount: 4,
       messageCount: 96,
@@ -459,6 +460,23 @@ describe('AdminDashboard', () => {
 
       expect(await screen.findByRole('heading', { name: /Case Study Coach/ })).toBeInTheDocument();
       expect(card).toHaveAttribute('aria-current', 'true');
+    });
+
+    it('shows the course in the usage table, and a dash when an agent has none', async () => {
+      mockGetAdminAgentUsage.mockResolvedValue({
+        agents: [
+          agentUsage.agents[0],
+          { ...agentUsage.agents[0], agent_id: 'agent_2', name: 'No Course Agent', course: null },
+        ],
+      });
+      renderDashboard();
+
+      const table = await screen.findByRole('table');
+      expect(within(table).getByRole('columnheader', { name: 'Course' })).toBeInTheDocument();
+      expect(within(table).getByText('BADM 350')).toBeInTheDocument();
+
+      const row = within(table).getByText('No Course Agent').closest('tr') as HTMLElement;
+      expect(within(row).getByText('None')).toBeInTheDocument();
     });
 
     it('keeps the strip visible during the drill-down', async () => {

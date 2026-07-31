@@ -642,6 +642,7 @@ describe('createAdminUsageHandlers', () => {
                 description: 'Coaches students through case studies.',
                 avatar: { filepath: '/images/alpha.png', source: 'local' },
                 category: 'course',
+                course: 'BADM 350',
               }),
             ],
           }),
@@ -655,6 +656,7 @@ describe('createAdminUsageHandlers', () => {
         expect(agent.description).toBe('Coaches students through case studies.');
         expect(agent.avatar).toEqual({ filepath: '/images/alpha.png', source: 'local' });
         expect(agent.category).toBe('course');
+        expect(agent.course).toBe('BADM 350');
       });
 
       it('reports null for an agent with no description or avatar', async () => {
@@ -668,6 +670,7 @@ describe('createAdminUsageHandlers', () => {
         expect(agent.description).toBeNull();
         expect(agent.avatar).toBeNull();
         expect(agent.category).toBe('general');
+        expect(agent.course).toBeNull();
       });
 
       it('asks the data layer for the identity fields', async () => {
@@ -681,6 +684,7 @@ describe('createAdminUsageHandlers', () => {
         expect(fields).toContain('description');
         expect(fields).toContain('avatar');
         expect(fields).toContain('category');
+        expect(fields).toContain('course');
       });
     });
 
@@ -1072,6 +1076,7 @@ describe('createAdminUsageHandlers', () => {
           'canDelete',
           'category',
           'conversationCount',
+          'course',
           'description',
           'lastActivity',
           'messageCount',

@@ -103,6 +103,11 @@ const agentSchema: Schema<IAgent> = new Schema<IAgent>(
       index: true,
       default: 'general',
     },
+    course: {
+      type: String,
+      trim: true,
+      maxlength: 64,
+    },
     support_contact: {
       type: Schema.Types.Mixed,
       default: undefined,

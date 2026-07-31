@@ -83,10 +83,16 @@ export default function AgentCards({
                   </span>
                 )}
                 <span className="mt-1 text-xs tabular-nums text-text-secondary">
-                  {localize('com_ui_admin_card_stats', {
-                    convos: agent.conversationCount,
-                    students: agent.userCount,
-                  })}
+                  {agent.course == null || agent.course === ''
+                    ? localize('com_ui_admin_card_stats', {
+                        convos: agent.conversationCount,
+                        students: agent.userCount,
+                      })
+                    : localize('com_ui_admin_card_stats_course', {
+                        course: agent.course,
+                        convos: agent.conversationCount,
+                        students: agent.userCount,
+                      })}
                 </span>
               </span>
             </button>

@@ -252,6 +252,8 @@ export type AdminAgentUsage = AdminUsageCounts & {
   description: string | null;
   avatar: AgentAvatar | null;
   category: string | null;
+  /** Free-text course label. Display only. */
+  course: string | null;
   /** Distinct users who have used the agent within the requested window. */
   userCount: number;
   /** Whether the caller holds DELETE on this agent. EDIT scope alone does not imply it. */
