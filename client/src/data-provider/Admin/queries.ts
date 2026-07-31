@@ -6,6 +6,7 @@ import type { QueryObserverResult, UseQueryOptions } from '@tanstack/react-query
 import type {
   AdminUsageParams,
   AdminGroupListParams,
+  AdminAnalyticsResponse,
   AdminAgentUsageResponse,
   AdminGroupListResponse,
   AdminAgentStudentUsageResponse,
@@ -98,6 +99,16 @@ export const useAdminAgentUsageQuery = (
   useQuery<AdminAgentUsageResponse>(
     [QueryKeys.adminAgentUsage, params?.groupId ?? '', params?.days ?? 0],
     () => dataService.getAdminAgentUsage(params),
+    { ...adminQueryConfig, retry: false, ...config },
+  );
+
+export const useAdminAgentAnalyticsQuery = (
+  params?: AdminUsageParams,
+  config?: UseQueryOptions<AdminAnalyticsResponse>,
+): QueryObserverResult<AdminAnalyticsResponse> =>
+  useQuery<AdminAnalyticsResponse>(
+    [QueryKeys.adminAgentAnalytics, params?.groupId ?? '', params?.days ?? 0],
+    () => dataService.getAdminAgentAnalytics(params),
     { ...adminQueryConfig, retry: false, ...config },
   );
 
