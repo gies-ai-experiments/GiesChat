@@ -3,6 +3,7 @@ import type * as p from '../accessPermissions';
 import type * as a from '../types/agents';
 import type * as s from '../schemas';
 import type * as t from '../types';
+import type { AgentAvatar } from './assistants';
 
 export type Conversation = {
   id: string;
@@ -247,6 +248,10 @@ export type AdminUsageCounts = {
 export type AdminAgentUsage = AdminUsageCounts & {
   agent_id: string;
   name: string;
+  /** Identity for the dashboard's card strip; `null` when the agent has none set. */
+  description: string | null;
+  avatar: AgentAvatar | null;
+  category: string | null;
   /** Distinct users who have used the agent within the requested window. */
   userCount: number;
   /** Whether the caller holds DELETE on this agent. EDIT scope alone does not imply it. */

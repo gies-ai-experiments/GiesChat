@@ -625,6 +625,65 @@ describe('createAdminUsageHandlers', () => {
       });
     });
 
+    /**
+     * The dashboard's card strip renders agent identity, which only reaches the client
+     * if the projection asks for it. An agent with no avatar or description is the
+     * normal case, not an error — it must arrive as an explicit null.
+     */
+    describe('identity fields', () => {
+      it('projects description, avatar, and category from the agent document', async () => {
+        const deps = createDeps(
+          baseWorld({
+            agents: [
+              mockAgent({
+                id: 'agent_alpha',
+                name: 'Alpha',
+                author: callerId,
+                description: 'Coaches students through case studies.',
+                avatar: { filepath: '/images/alpha.png', source: 'local' },
+                category: 'course',
+              }),
+            ],
+          }),
+        );
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res, json } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        const [agent] = agentBody(json).agents;
+        expect(agent.description).toBe('Coaches students through case studies.');
+        expect(agent.avatar).toEqual({ filepath: '/images/alpha.png', source: 'local' });
+        expect(agent.category).toBe('course');
+      });
+
+      it('reports null for an agent with no description or avatar', async () => {
+        const deps = createDeps(baseWorld({ agents: [alpha] }));
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res, json } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        const [agent] = agentBody(json).agents;
+        expect(agent.description).toBeNull();
+        expect(agent.avatar).toBeNull();
+        expect(agent.category).toBe('general');
+      });
+
+      it('asks the data layer for the identity fields', async () => {
+        const deps = createDeps(baseWorld());
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        const [, fields] = deps.findAgents.mock.calls[0];
+        expect(fields).toContain('description');
+        expect(fields).toContain('avatar');
+        expect(fields).toContain('category');
+      });
+    });
+
     describe('security — group scoping', () => {
       it('restricts aggregation to the group memberIds', async () => {
         const deps = createDeps(baseWorld());
@@ -1009,8 +1068,11 @@ describe('createAdminUsageHandlers', () => {
         const [row] = agentBody(json).agents;
         expect(Object.keys(row).sort()).toEqual([
           'agent_id',
+          'avatar',
           'canDelete',
+          'category',
           'conversationCount',
+          'description',
           'lastActivity',
           'messageCount',
           'name',
