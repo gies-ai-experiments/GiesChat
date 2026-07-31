@@ -16,6 +16,13 @@ import { Panel } from '~/common';
 
 const fieldClass = 'h-9';
 
+/**
+ * Tool access is switched off across every agent builder for now (2026-07-31).
+ * Flip to `true` to restore the unified Tool Library — nothing else needs changing.
+ * File Context is deliberately unaffected; it is a separate section, not tool access.
+ */
+const TOOLS_ENABLED = false;
+
 export default function AgentConfig() {
   const localize = useLocalize();
   const methods = useFormContext<AgentForm>();
@@ -179,7 +186,7 @@ export default function AgentConfig() {
       <Instructions />
 
       {/* TOOLS — unified built-ins / tools / actions / mcp / skills */}
-      <ToolsSection agentId={agent_id} />
+      {TOOLS_ENABLED && <ToolsSection agentId={agent_id} />}
 
       {/* FILE CONTEXT — standalone section, separate from the tool library */}
       {contextEnabled && (

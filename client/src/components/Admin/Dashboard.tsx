@@ -125,13 +125,16 @@ export default function AdminDashboard() {
   return (
     <main data-testid="admin-scroll" className="h-full w-full overflow-y-auto">
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold text-text-primary">
-            {localize('com_ui_admin_dashboard')}
-          </h1>
-          <p className="mt-1 text-text-secondary">
-            {localize('com_ui_admin_dashboard_description')}
-          </p>
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-text-primary">
+              {localize('com_ui_admin_dashboard')}
+            </h1>
+            <p className="mt-1 text-text-secondary">
+              {localize('com_ui_admin_dashboard_description')}
+            </p>
+          </div>
+          <BackgroundToggle className="shrink-0" />
         </header>
 
         <section
@@ -153,7 +156,6 @@ export default function AdminDashboard() {
             testId="admin-days-select"
           />
           <div className="ml-auto flex items-center gap-2">
-            <BackgroundToggle />
             {selectedAgent != null && (
               <ShareWithClass
                 agentId={selectedAgent.agent_id}
