@@ -6,6 +6,7 @@ import { createModels } from '../models';
 let mongoServer: InstanceType<typeof MongoMemoryServer>;
 let aggregateAgentUsage: ReturnType<typeof createUsageMethods>['aggregateAgentUsage'];
 let aggregateStudentUsage: ReturnType<typeof createUsageMethods>['aggregateStudentUsage'];
+let aggregateAgentAnalytics: ReturnType<typeof createUsageMethods>['aggregateAgentAnalytics'];
 
 const HOUR = 60 * 60 * 1000;
 const now = new Date('2026-07-01T12:00:00.000Z');
@@ -22,6 +23,8 @@ interface ConvoFixture {
   userMessages?: Date[];
   /** `createdAt` of each assistant-authored message in this conversation. */
   assistantMessages?: Date[];
+  /** How many of the assistant messages carry `error: true`, counted from the first. */
+  erroredMessages?: number;
   /** Stamped on the conversation and, unless `untenantedMessages`, on its messages. */
   tenantId?: string;
   /** Pre-tenancy data: the conversation carries a tenant but its messages do not. */
@@ -69,6 +72,7 @@ async function seed(fixtures: ConvoFixture[]): Promise<void> {
         isCreatedByUser: false,
         createdAt,
         updatedAt: createdAt,
+        error: index < (fixture.erroredMessages ?? 0),
         ...tenant,
       })),
     ];
@@ -86,6 +90,7 @@ beforeAll(async () => {
   const methods = createUsageMethods(mongoose);
   aggregateAgentUsage = methods.aggregateAgentUsage;
   aggregateStudentUsage = methods.aggregateStudentUsage;
+  aggregateAgentAnalytics = methods.aggregateAgentAnalytics;
   await mongoose.connect(mongoServer.getUri());
 });
 
@@ -608,5 +613,114 @@ describe('tenant scoping of the message join', () => {
         lastActivity: ago(HOUR),
       },
     ]);
+  });
+});
+
+describe('aggregateAgentAnalytics', () => {
+  it('returns distributions, totals, and error counts for the scoped window', async () => {
+    await seed([
+      {
+        conversationId: 'c1',
+        user: 'alice',
+        agentId: 'agent_a',
+        updatedAt: ago(2 * HOUR),
+        userMessages: [ago(3 * HOUR), ago(2 * HOUR)],
+        assistantMessages: [ago(3 * HOUR), ago(2 * HOUR)],
+        erroredMessages: 1,
+      },
+      {
+        /** The previous UTC day, still inside the window: alice is a returning student. */
+        conversationId: 'c2',
+        user: 'alice',
+        agentId: 'agent_a',
+        updatedAt: ago(20 * HOUR),
+        userMessages: [ago(20 * HOUR)],
+        assistantMessages: [ago(20 * HOUR)],
+      },
+      {
+        conversationId: 'c3',
+        user: 'bob',
+        agentId: 'agent_a',
+        updatedAt: ago(HOUR),
+        userMessages: [ago(HOUR), ago(HOUR), ago(HOUR), ago(HOUR), ago(HOUR)],
+        assistantMessages: [ago(HOUR), ago(HOUR), ago(HOUR), ago(HOUR), ago(HOUR)],
+      },
+    ]);
+
+    const result = await aggregateAgentAnalytics({
+      agentIds: ['agent_a'],
+      userIds: null,
+      since,
+    });
+
+    expect(result.conversationCount).toBe(3);
+    expect(result.activeStudents).toBe(2);
+    expect(result.returningStudents).toBe(1);
+    expect(result.assistantMessageCount).toBe(8);
+    expect(result.erroredMessageCount).toBe(1);
+    expect(result.turnDistribution).toEqual([
+      { turns: 1, conversations: 1 },
+      { turns: 2, conversations: 1 },
+      { turns: 5, conversations: 1 },
+    ]);
+    expect(result.studentDistribution).toEqual([
+      { conversations: 1, students: 1 },
+      { conversations: 2, students: 1 },
+    ]);
+    expect(result.daily).toEqual([
+      { date: '2026-06-30', conversations: 1 },
+      { date: '2026-07-01', conversations: 2 },
+    ]);
+  });
+
+  it('returns an empty result for an empty class', async () => {
+    await seed([
+      {
+        conversationId: 'c1',
+        user: 'alice',
+        agentId: 'agent_a',
+        updatedAt: ago(HOUR),
+        userMessages: [ago(HOUR)],
+      },
+    ]);
+
+    const result = await aggregateAgentAnalytics({
+      agentIds: ['agent_a'],
+      userIds: [],
+      since,
+    });
+
+    expect(result).toEqual({
+      conversationCount: 0,
+      activeStudents: 0,
+      returningStudents: 0,
+      assistantMessageCount: 0,
+      erroredMessageCount: 0,
+      turnDistribution: [],
+      studentDistribution: [],
+      daily: [],
+    });
+  });
+
+  it('excludes conversations that fall outside the window', async () => {
+    await seed([
+      {
+        conversationId: 'old',
+        user: 'alice',
+        agentId: 'agent_a',
+        updatedAt: ago(48 * HOUR),
+        userMessages: [ago(48 * HOUR)],
+        assistantMessages: [ago(48 * HOUR)],
+      },
+    ]);
+
+    const result = await aggregateAgentAnalytics({
+      agentIds: ['agent_a'],
+      userIds: null,
+      since,
+    });
+
+    expect(result.conversationCount).toBe(0);
+    expect(result.daily).toEqual([]);
   });
 });
