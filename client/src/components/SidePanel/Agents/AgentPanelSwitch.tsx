@@ -6,15 +6,20 @@ import VersionPanel from './Version/VersionPanel';
 import AgentPanel from './AgentPanel';
 import store from '~/store';
 
-export default function AgentPanelSwitch() {
+interface AgentPanelSwitchProps {
+  /** Fired after an agent is created, so a host (e.g. a dialog) can react. */
+  onAgentCreated?: (agentId: string) => void;
+}
+
+export default function AgentPanelSwitch({ onAgentCreated }: AgentPanelSwitchProps = {}) {
   return (
     <AgentPanelProvider>
-      <AgentPanelSwitchWithContext />
+      <AgentPanelSwitchWithContext onAgentCreated={onAgentCreated} />
     </AgentPanelProvider>
   );
 }
 
-function AgentPanelSwitchWithContext() {
+function AgentPanelSwitchWithContext({ onAgentCreated }: AgentPanelSwitchProps) {
   const { activePanel, setCurrentAgentId } = useAgentPanelContext();
   const agentId = useRecoilValue(store.conversationAgentIdByIndex(0));
 
@@ -28,5 +33,5 @@ function AgentPanelSwitchWithContext() {
   if (activePanel === Panel.version) {
     return <VersionPanel />;
   }
-  return <AgentPanel />;
+  return <AgentPanel onAgentCreated={onAgentCreated} />;
 }

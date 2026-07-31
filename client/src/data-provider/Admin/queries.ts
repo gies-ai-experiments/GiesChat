@@ -99,7 +99,12 @@ export const useAdminAgentUsageQuery = (
   useQuery<AdminAgentUsageResponse>(
     [QueryKeys.adminAgentUsage, params?.groupId ?? '', params?.days ?? 0],
     () => dataService.getAdminAgentUsage(params),
-    { ...adminQueryConfig, retry: false, ...config },
+    /**
+     * Agents are created in a dialog on this page, so a stale list is the failure the
+     * user actually hits. Refetching on focus makes a missed invalidation recoverable
+     * without a full page reload.
+     */
+    { ...adminQueryConfig, refetchOnWindowFocus: true, retry: false, ...config },
   );
 
 export const useAdminAgentAnalyticsQuery = (

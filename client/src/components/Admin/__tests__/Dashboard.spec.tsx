@@ -43,10 +43,22 @@ jest.mock('~/components/Sharing/GenericGrantAccessDialog', () => ({
   default: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
-/** The real builder pulls in the whole agent-panel provider tree; only its presence matters here. */
+/**
+ * The real builder pulls in the whole agent-panel provider tree; only its presence
+ * matters here. The button stands in for a successful create so the `onAgentCreated`
+ * wiring can be exercised without the real mutation.
+ */
 jest.mock('~/components/SidePanel/Agents/AgentPanelSwitch', () => ({
   __esModule: true,
-  default: () => <div data-testid="agent-panel-switch" />,
+  default: ({ onAgentCreated }: { onAgentCreated?: (agentId: string) => void }) => (
+    <div data-testid="agent-panel-switch">
+      <button
+        type="button"
+        data-testid="simulate-create"
+        onClick={() => onAgentCreated?.('agent_new')}
+      />
+    </div>
+  ),
 }));
 
 /** Mocked at the leaf, not the `~/hooks` barrel — mocking the barrel deadlocks its circular requires. */
@@ -191,6 +203,26 @@ describe('AdminDashboard', () => {
     /** The modal aria-hides the page behind it, so "never left" is proved on close. */
     await userEvent.keyboard('{Escape}');
     expect(await screen.findByRole('heading', { name: /class dashboard/i })).toBeInTheDocument();
+  });
+
+  /**
+   * The builder never closes itself, so before this the new agent sat behind an open
+   * dialog and the list never refreshed — the usage query opts out of refetch-on-mount,
+   * making a full page reload the only recovery.
+   */
+  it('closes the builder and refetches usage when an agent is created', async () => {
+    renderDashboard();
+
+    await userEvent.click(await screen.findByRole('button', { name: /build an agent/i }));
+    await screen.findByTestId('agent-panel-switch');
+    const callsBefore = mockGetAdminAgentUsage.mock.calls.length;
+
+    await userEvent.click(screen.getByTestId('simulate-create'));
+
+    await waitFor(() => expect(screen.queryByTestId('agent-panel-switch')).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(mockGetAdminAgentUsage.mock.calls.length).toBeGreaterThan(callsBefore),
+    );
   });
 
   it('refetches usage when the builder closes so a new agent shows up', async () => {

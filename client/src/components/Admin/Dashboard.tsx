@@ -77,6 +77,16 @@ export default function AdminDashboard() {
     [queryClient],
   );
 
+  /**
+   * The builder does not close itself, so without this a freshly created agent sits
+   * behind an open dialog and the list never refreshes — the usage query opts out of
+   * refetch-on-mount, so only this invalidation brings it back.
+   */
+  const handleAgentCreated = useCallback(
+    () => handleBuilderOpenChange(false),
+    [handleBuilderOpenChange],
+  );
+
   const handleBack = useCallback(() => setSelectedAgent(null), []);
 
   /** The tables treat an empty string as "unfiltered", which is what `all` means here. */
@@ -205,7 +215,7 @@ export default function AdminDashboard() {
         <OGDialog open={isBuilding} onOpenChange={handleBuilderOpenChange}>
           <OGDialogContent className="max-h-[90vh] w-11/12 max-w-lg overflow-y-auto">
             <OGDialogTitle>{localize('com_agents_create')}</OGDialogTitle>
-            <AgentPanelSwitch />
+            <AgentPanelSwitch onAgentCreated={handleAgentCreated} />
           </OGDialogContent>
         </OGDialog>
       )}

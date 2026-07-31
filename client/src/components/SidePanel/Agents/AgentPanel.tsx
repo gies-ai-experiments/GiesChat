@@ -228,7 +228,12 @@ export const isAvatarUploadOnlyDirty = (
   return result.sawDirty && result.onlyAvatarDirty;
 };
 
-export default function AgentPanel() {
+interface AgentPanelProps {
+  /** Fired after an agent is created, so a host (e.g. a dialog) can react. */
+  onAgentCreated?: (agentId: string) => void;
+}
+
+export default function AgentPanel({ onAgentCreated }: AgentPanelProps = {}) {
   const localize = useLocalize();
   const { user } = useAuthContext();
   const { showToast } = useToastContext();
@@ -411,6 +416,8 @@ export default function AgentPanel() {
           status: 'error',
         });
       }
+
+      onAgentCreated?.(data.id);
     },
     onError: (err) => {
       const error = err as Error;
