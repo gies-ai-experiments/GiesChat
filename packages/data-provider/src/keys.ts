@@ -93,6 +93,7 @@ export enum QueryKeys {
   /* Admin usage (agent activity) */
   adminAgentUsage = 'adminAgentUsage',
   adminAgentStudentUsage = 'adminAgentStudentUsage',
+  adminAgentAnalytics = 'adminAgentAnalytics',
 }
 
 // Dynamic query keys that require parameters

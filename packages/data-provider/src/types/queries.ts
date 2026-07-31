@@ -268,6 +268,37 @@ export type AdminAgentStudentUsageResponse = {
   students: AdminStudentUsage[];
 };
 
+export type AdminAnalyticsBucket = {
+  label: string;
+  count: number;
+};
+
+export type AdminAnalyticsDailyPoint = {
+  /** UTC date, `YYYY-MM-DD`. */
+  date: string;
+  conversationCount: number;
+};
+
+/** Class-wide activity for the dashboard's analytics section. Identifies no student. */
+export type AdminAnalyticsResponse = {
+  activeStudents: number;
+  /** Class roster size; equals `activeStudents` when no class filter is applied. */
+  enrolledStudents: number;
+  conversationCount: number;
+  medianTurns: number;
+  /** Share of active students seen on two or more distinct days, 0–1. */
+  returnRate: number;
+  dailyActivity: AdminAnalyticsDailyPoint[];
+  /** Conversations per student: "1", "2–4", "5–9", "10+". */
+  reachBuckets: AdminAnalyticsBucket[];
+  /** Turns per conversation: "1", "2", "3", "4–5", "6–9", "10+". */
+  depthBuckets: AdminAnalyticsBucket[];
+  /** Share of conversations that ended after one turn, 0–1. */
+  oneTurnShare: number;
+  /** Share of assistant messages that errored, 0–1. */
+  errorRate: number;
+};
+
 export interface MCPServerStatus {
   requiresOAuth: boolean;
   connectionState: 'disconnected' | 'connecting' | 'connected' | 'error';

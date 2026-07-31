@@ -1281,6 +1281,12 @@ export function getAdminAgentStudentUsage(
   return request.get(endpoints.adminAgentStudentUsage(agentId, params));
 }
 
+export function getAdminAgentAnalytics(
+  params?: q.AdminUsageParams,
+): Promise<q.AdminAnalyticsResponse> {
+  return request.get(endpoints.adminAgentAnalytics(params));
+}
+
 /* Roles */
 export function listRoles(): Promise<q.ListRolesResponse> {
   return request.get(`${endpoints.adminRoles()}?limit=200`);

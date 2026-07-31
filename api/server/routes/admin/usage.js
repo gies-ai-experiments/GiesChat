@@ -25,6 +25,7 @@ const handlers = createAdminUsageHandlers({
   findUsers: db.findUsers,
   aggregateAgentUsage: db.aggregateAgentUsage,
   aggregateStudentUsage: db.aggregateStudentUsage,
+  aggregateAgentAnalytics: db.aggregateAgentAnalytics,
 });
 
 router.use(requireJwtAuth, requireAdminAccess);
@@ -38,6 +39,8 @@ router.use(requireJwtAuth, requireAdminAccess);
  * alone would enumerate or read another instructor's roster.
  */
 router.get('/agents', requireReadUsage, requireReadGroups, handlers.listAgentUsage);
+/** Reports class roster size, so it carries the same `read:groups` requirement as the others. */
+router.get('/analytics', requireReadUsage, requireReadGroups, handlers.listAgentAnalytics);
 router.get(
   '/agents/:agent_id/students',
   requireReadUsage,

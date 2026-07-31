@@ -498,6 +498,9 @@ export const adminAgentUsage = (params: q.AdminUsageParams = {}) =>
 export const adminAgentStudentUsage = (agentId: string, params: q.AdminUsageParams = {}) =>
   `${BASE_URL}/api/admin/usage/agents/${encodeURIComponent(agentId)}/students${buildQuery(params)}`;
 
+export const adminAgentAnalytics = (params: q.AdminUsageParams = {}) =>
+  `${BASE_URL}/api/admin/usage/analytics${buildQuery(params)}`;
+
 /* Conversation Tags */
 export const conversationTags = (tag?: string) =>
   `${BASE_URL}/api/tags${tag != null && tag ? `/${encodeURIComponent(tag)}` : ''}`;
