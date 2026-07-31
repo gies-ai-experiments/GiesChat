@@ -46,6 +46,8 @@ export interface IAgent extends Omit<Document, 'model'> {
   category: string;
   /** Free-text course label shown on the professor dashboard. Display only. */
   course?: string;
+  /** Which surface built this agent. A UI hint for filtering — never an access check. */
+  createdVia?: string;
   support_contact?: ISupportContact;
   is_promoted?: boolean;
   /** MCP server names extracted from tools for efficient querying */

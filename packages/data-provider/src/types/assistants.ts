@@ -304,6 +304,8 @@ export type Agent = {
   category?: string;
   /** Free-text course label shown on the professor dashboard. Display only. */
   course?: string;
+  /** Which surface built this agent. A UI hint for filtering — never an access check. */
+  createdVia?: string;
   support_contact?: SupportContact;
   owner_contact?: AgentOwnerContact;
   /** Per-tool configuration options (deferred loading, allowed callers, etc.) */
@@ -342,6 +344,7 @@ export type AgentCreateParams = {
   | 'recursion_limit'
   | 'category'
   | 'course'
+  | 'createdVia'
   | 'support_contact'
   | 'tool_options'
   | 'skills'
@@ -372,6 +375,7 @@ export type AgentUpdateParams = {
   | 'recursion_limit'
   | 'category'
   | 'course'
+  | 'createdVia'
   | 'support_contact'
   | 'tool_options'
   | 'skills'

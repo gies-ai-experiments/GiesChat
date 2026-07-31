@@ -50,8 +50,14 @@ jest.mock('~/components/Sharing/GenericGrantAccessDialog', () => ({
  */
 jest.mock('~/components/SidePanel/Agents/AgentPanelSwitch', () => ({
   __esModule: true,
-  default: ({ onAgentCreated }: { onAgentCreated?: (agentId: string) => void }) => (
-    <div data-testid="agent-panel-switch">
+  default: ({
+    onAgentCreated,
+    createdVia,
+  }: {
+    onAgentCreated?: (agentId: string) => void;
+    createdVia?: string;
+  }) => (
+    <div data-testid="agent-panel-switch" data-created-via={createdVia}>
       <button
         type="button"
         data-testid="simulate-create"
@@ -210,6 +216,21 @@ describe('AdminDashboard', () => {
    * dialog and the list never refreshed — the usage query opts out of refetch-on-mount,
    * making a full page reload the only recovery.
    */
+  /**
+   * The usage endpoint lists only agents carrying this stamp, so a builder opened here
+   * that failed to pass it would create agents invisible to the dashboard that made them.
+   */
+  it('stamps agents built here so the usage endpoint will list them', async () => {
+    renderDashboard();
+
+    await userEvent.click(await screen.findByRole('button', { name: /build an agent/i }));
+
+    expect(await screen.findByTestId('agent-panel-switch')).toHaveAttribute(
+      'data-created-via',
+      'dashboard',
+    );
+  });
+
   it('closes the builder and refetches usage when an agent is created', async () => {
     renderDashboard();
 
@@ -472,6 +493,19 @@ describe('AdminDashboard', () => {
       expect((bars[0] as HTMLElement).style.width).toBe('100%');
       expect((bars[1] as HTMLElement).style.width).toBe('25%');
     });
+  });
+
+  /**
+   * `Root` wraps every route in a fixed-height `overflow-hidden` shell, so a page with
+   * no scroll container of its own has everything below the fold clipped outright —
+   * the dashboard was only readable by zooming the browser out.
+   */
+  it('owns a vertical scroll container', async () => {
+    renderDashboard();
+
+    const scroller = await screen.findByTestId('admin-scroll');
+    expect(scroller.className).toContain('overflow-y-auto');
+    expect(scroller.className).toContain('h-full');
   });
 
   describe('agent card strip', () => {

@@ -108,6 +108,12 @@ const agentSchema: Schema<IAgent> = new Schema<IAgent>(
       trim: true,
       maxlength: 64,
     },
+    /** Which surface built this agent. A UI hint for filtering — never an access check. */
+    createdVia: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     support_contact: {
       type: Schema.Types.Mixed,
       default: undefined,

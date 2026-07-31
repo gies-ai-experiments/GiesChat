@@ -18,6 +18,8 @@ const MIN_DAYS = 1;
 const MAX_DAYS = 365;
 
 const AGENT_SCOPE_FIELDS = '_id id name author description avatar category course';
+/** Only agents built from the class dashboard are listed there. Must match the client. */
+const DASHBOARD_ORIGIN = 'dashboard';
 const STUDENT_FIELDS = '_id name email';
 
 /** Per-agent activity totals for the entities that actually have activity. */
@@ -177,6 +179,10 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
   /**
    * The security boundary: an agent is in scope only when the caller authored it
    * or holds an EDIT grant on it. Narrowing by `agentId` keeps the same boundary.
+   *
+   * `createdVia` narrows the list to agents built from the dashboard itself. It is a
+   * presentation filter, not a permission — a client can set it freely, so it must
+   * never be relied on for access. The `$or` below remains the only boundary.
    */
   async function findScopedAgents(user: IUser, agentId?: string): Promise<IAgent[]> {
     const callerId = String(user._id);
@@ -187,6 +193,7 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
       requiredPermissions: PermissionBits.EDIT,
     });
     const scope: FilterQuery<IAgent> = {
+      createdVia: DASHBOARD_ORIGIN,
       $or: [{ author: callerId }, { _id: { $in: editableIds } }],
     };
     return findAgents(

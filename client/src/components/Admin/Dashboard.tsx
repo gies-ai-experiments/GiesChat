@@ -19,6 +19,8 @@ const DAY_WINDOWS = [7, 30, 90] as const;
 /** Sentinel for "no class filter". Must be non-empty — `Dropdown` renders an empty label for `''`. */
 const ALL_CLASSES = 'all';
 const GROUP_PAGE_SIZE = 200;
+/** Stamped on agents built here; the usage endpoint lists only these. Must match the server. */
+const DASHBOARD_ORIGIN = 'dashboard';
 
 export default function AdminDashboard() {
   const localize = useLocalize();
@@ -115,110 +117,119 @@ export default function AdminDashboard() {
     );
   }
 
+  /**
+   * `Root` gives every route a fixed-height `overflow-hidden` shell and expects the
+   * route to own its scrolling, the way the marketplace does. Without this container
+   * everything below the fold is clipped outright.
+   */
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold text-text-primary">
-          {localize('com_ui_admin_dashboard')}
-        </h1>
-        <p className="mt-1 text-text-secondary">{localize('com_ui_admin_dashboard_description')}</p>
-      </header>
+    <main data-testid="admin-scroll" className="h-full w-full overflow-y-auto">
+      <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold text-text-primary">
+            {localize('com_ui_admin_dashboard')}
+          </h1>
+          <p className="mt-1 text-text-secondary">
+            {localize('com_ui_admin_dashboard_description')}
+          </p>
+        </header>
 
-      <section
-        className="mb-6 flex flex-wrap items-center gap-3"
-        aria-label={localize('com_ui_admin_filters')}
-      >
-        <Dropdown
-          value={groupId}
-          options={classOptions}
-          onChange={setGroupId}
-          ariaLabel={localize('com_ui_admin_class')}
-          testId="admin-class-select"
-        />
-        <Dropdown
-          value={String(days)}
-          options={dayOptions}
-          onChange={handleDaysChange}
-          ariaLabel={localize('com_ui_admin_time_window')}
-          testId="admin-days-select"
-        />
-        <div className="ml-auto flex items-center gap-2">
-          <BackgroundToggle />
-          {selectedAgent != null && (
-            <ShareWithClass
-              agentId={selectedAgent.agent_id}
-              agentName={selectedAgent.name}
-              key={selectedAgent.agent_id}
-            />
-          )}
-          {canCreateAgents && (
-            <Button variant="outline" onClick={() => handleBuilderOpenChange(true)}>
-              <Bot className="mr-2 size-4" aria-hidden="true" />
-              {localize('com_ui_admin_build_agent')}
-            </Button>
-          )}
-        </div>
-      </section>
+        <section
+          className="mb-6 flex flex-wrap items-center gap-3"
+          aria-label={localize('com_ui_admin_filters')}
+        >
+          <Dropdown
+            value={groupId}
+            options={classOptions}
+            onChange={setGroupId}
+            ariaLabel={localize('com_ui_admin_class')}
+            testId="admin-class-select"
+          />
+          <Dropdown
+            value={String(days)}
+            options={dayOptions}
+            onChange={handleDaysChange}
+            ariaLabel={localize('com_ui_admin_time_window')}
+            testId="admin-days-select"
+          />
+          <div className="ml-auto flex items-center gap-2">
+            <BackgroundToggle />
+            {selectedAgent != null && (
+              <ShareWithClass
+                agentId={selectedAgent.agent_id}
+                agentName={selectedAgent.name}
+                key={selectedAgent.agent_id}
+              />
+            )}
+            {canCreateAgents && (
+              <Button variant="outline" onClick={() => handleBuilderOpenChange(true)}>
+                <Bot className="mr-2 size-4" aria-hidden="true" />
+                {localize('com_ui_admin_build_agent')}
+              </Button>
+            )}
+          </div>
+        </section>
 
-      {groupsError != null && (
-        <p role="alert" className="mb-4 text-sm text-text-secondary">
-          {localize('com_ui_admin_classes_error')}
-        </p>
-      )}
-
-      {hasMoreClasses && (
-        <p role="status" className="mb-4 text-sm text-text-secondary">
-          {localize('com_ui_admin_classes_truncated', {
-            count: groupData?.groups.length ?? GROUP_PAGE_SIZE,
-            total: groupData?.total ?? 0,
-          })}
-        </p>
-      )}
-
-      {/* Class-wide, so it belongs with the agent list rather than a single student's drill-down. */}
-      {selectedAgent == null && <AnalyticsSection groupId={groupFilter} days={days} />}
-
-      <section aria-labelledby="admin-agents-heading">
-        <h2 id="admin-agents-heading" className="mb-3 text-lg font-medium text-text-primary">
-          {localize('com_ui_admin_agents_heading')}
-        </h2>
-        <AgentCards
-          groupId={groupFilter}
-          days={days}
-          selectedAgentId={selectedAgent?.agent_id ?? null}
-          onSelectAgent={setSelectedAgent}
-        />
-        {selectedAgent == null && (
-          <AgentUsageTable groupId={groupFilter} days={days} onSelectAgent={setSelectedAgent} />
+        {groupsError != null && (
+          <p role="alert" className="mb-4 text-sm text-text-secondary">
+            {localize('com_ui_admin_classes_error')}
+          </p>
         )}
-      </section>
 
-      {selectedAgent != null && (
-        <section aria-labelledby="admin-students-heading" className="mt-6">
-          <Button variant="ghost" onClick={handleBack} className="mb-3 px-2">
-            <ArrowLeft className="mr-2 size-4" aria-hidden="true" />
-            {localize('com_ui_admin_back_to_agents')}
-          </Button>
-          <h2 id="admin-students-heading" className="mb-3 text-lg font-medium text-text-primary">
-            {localize('com_ui_admin_students_heading', { name: selectedAgent.name })}
+        {hasMoreClasses && (
+          <p role="status" className="mb-4 text-sm text-text-secondary">
+            {localize('com_ui_admin_classes_truncated', {
+              count: groupData?.groups.length ?? GROUP_PAGE_SIZE,
+              total: groupData?.total ?? 0,
+            })}
+          </p>
+        )}
+
+        {/* Class-wide, so it belongs with the agent list rather than a single student's drill-down. */}
+        {selectedAgent == null && <AnalyticsSection groupId={groupFilter} days={days} />}
+
+        <section aria-labelledby="admin-agents-heading">
+          <h2 id="admin-agents-heading" className="mb-3 text-lg font-medium text-text-primary">
+            {localize('com_ui_admin_agents_heading')}
           </h2>
-          <StudentProgressTable
-            agentId={selectedAgent.agent_id}
-            agentName={selectedAgent.name}
+          <AgentCards
             groupId={groupFilter}
             days={days}
+            selectedAgentId={selectedAgent?.agent_id ?? null}
+            onSelectAgent={setSelectedAgent}
           />
+          {selectedAgent == null && (
+            <AgentUsageTable groupId={groupFilter} days={days} onSelectAgent={setSelectedAgent} />
+          )}
         </section>
-      )}
 
-      {canCreateAgents && (
-        <OGDialog open={isBuilding} onOpenChange={handleBuilderOpenChange}>
-          <OGDialogContent className="max-h-[90vh] w-11/12 max-w-lg overflow-y-auto">
-            <OGDialogTitle>{localize('com_agents_create')}</OGDialogTitle>
-            <AgentPanelSwitch onAgentCreated={handleAgentCreated} />
-          </OGDialogContent>
-        </OGDialog>
-      )}
+        {selectedAgent != null && (
+          <section aria-labelledby="admin-students-heading" className="mt-6">
+            <Button variant="ghost" onClick={handleBack} className="mb-3 px-2">
+              <ArrowLeft className="mr-2 size-4" aria-hidden="true" />
+              {localize('com_ui_admin_back_to_agents')}
+            </Button>
+            <h2 id="admin-students-heading" className="mb-3 text-lg font-medium text-text-primary">
+              {localize('com_ui_admin_students_heading', { name: selectedAgent.name })}
+            </h2>
+            <StudentProgressTable
+              agentId={selectedAgent.agent_id}
+              agentName={selectedAgent.name}
+              groupId={groupFilter}
+              days={days}
+            />
+          </section>
+        )}
+
+        {canCreateAgents && (
+          <OGDialog open={isBuilding} onOpenChange={handleBuilderOpenChange}>
+            <OGDialogContent className="max-h-[90vh] w-11/12 max-w-lg overflow-y-auto">
+              <OGDialogTitle>{localize('com_agents_create')}</OGDialogTitle>
+              <AgentPanelSwitch createdVia={DASHBOARD_ORIGIN} onAgentCreated={handleAgentCreated} />
+            </OGDialogContent>
+          </OGDialog>
+        )}
+      </div>
     </main>
   );
 }

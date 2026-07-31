@@ -231,9 +231,11 @@ export const isAvatarUploadOnlyDirty = (
 interface AgentPanelProps {
   /** Fired after an agent is created, so a host (e.g. a dialog) can react. */
   onAgentCreated?: (agentId: string) => void;
+  /** Stamped onto agents created here, so a host can later filter to its own builds. */
+  createdVia?: string;
 }
 
-export default function AgentPanel({ onAgentCreated }: AgentPanelProps = {}) {
+export default function AgentPanel({ onAgentCreated, createdVia }: AgentPanelProps = {}) {
   const localize = useLocalize();
   const { user } = useAuthContext();
   const { showToast } = useToastContext();
@@ -504,11 +506,18 @@ export default function AgentPanel({ onAgentCreated }: AgentPanelProps = {}) {
         });
       }
 
-      create.mutate({ ...basePayload, model, tools, provider });
+      create.mutate({
+        ...basePayload,
+        model,
+        tools,
+        provider,
+        ...(createdVia != null ? { createdVia } : {}),
+      });
     },
     [
       agent_id,
       create,
+      createdVia,
       dirtyFields,
       endpointsConfig,
       handleAvatarUpload,

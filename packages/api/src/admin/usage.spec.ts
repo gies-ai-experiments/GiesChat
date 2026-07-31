@@ -42,6 +42,9 @@ function mockAgent(overrides: Partial<IAgent> = {}): IAgent {
     provider: 'anthropic',
     model: 'claude',
     category: 'general',
+    /** The dashboard lists only its own builds, so fixtures are dashboard-built by
+     *  default and the scoping tests keep exercising authorship rather than origin. */
+    createdVia: 'dashboard',
     ...overrides,
   } as IAgent;
 }
@@ -175,6 +178,9 @@ const readAgentField: FieldReader<IAgent> = (doc, key) => {
   }
   if (key === 'author') {
     return String(doc.author);
+  }
+  if (key === 'createdVia') {
+    return doc.createdVia;
   }
   throw new Error(`Unknown agent field used in filter: ${key}`);
 };
@@ -622,6 +628,63 @@ describe('createAdminUsageHandlers', () => {
         expect(deps.findAccessibleResources).not.toHaveBeenCalled();
         expect(deps.findAgents).not.toHaveBeenCalled();
         expect(deps.aggregateAgentUsage).not.toHaveBeenCalled();
+      });
+    });
+
+    /**
+     * The dashboard lists only what was built there. This is a presentation filter,
+     * not a permission — authorship still bounds what is reachable at all.
+     */
+    describe('createdVia filter', () => {
+      it('excludes an agent the caller authored but did not build in the dashboard', async () => {
+        const deps = createDeps(
+          baseWorld({
+            agents: [
+              mockAgent({
+                id: 'agent_elsewhere',
+                name: 'Built In The Marketplace',
+                author: callerId,
+                createdVia: undefined,
+              }),
+              mockAgent({ id: 'agent_built', name: 'Built Here', author: callerId }),
+            ],
+          }),
+        );
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res, json } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        const ids = agentBody(json).agents.map((a) => a.agent_id);
+        expect(ids).toEqual(['agent_built']);
+      });
+
+      it('returns nothing when every agent the caller authored was built elsewhere', async () => {
+        const deps = createDeps(
+          baseWorld({
+            agents: [
+              mockAgent({ id: 'agent_a', name: 'A', author: callerId, createdVia: undefined }),
+              mockAgent({ id: 'agent_b', name: 'B', author: callerId, createdVia: undefined }),
+            ],
+          }),
+        );
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res, json } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        expect(agentBody(json).agents).toHaveLength(0);
+      });
+
+      it('asks the data layer to filter on createdVia', async () => {
+        const deps = createDeps(baseWorld());
+        const handlers = createAdminUsageHandlers(deps);
+        const { req, res } = createReqRes();
+
+        await handlers.listAgentUsage(req, res);
+
+        const [filter] = deps.findAgents.mock.calls[0];
+        expect(filter).toMatchObject({ createdVia: 'dashboard' });
       });
     });
 

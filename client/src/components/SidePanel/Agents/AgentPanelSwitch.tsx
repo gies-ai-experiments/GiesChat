@@ -9,17 +9,22 @@ import store from '~/store';
 interface AgentPanelSwitchProps {
   /** Fired after an agent is created, so a host (e.g. a dialog) can react. */
   onAgentCreated?: (agentId: string) => void;
+  /** Stamped onto agents created here, so a host can later filter to its own builds. */
+  createdVia?: string;
 }
 
-export default function AgentPanelSwitch({ onAgentCreated }: AgentPanelSwitchProps = {}) {
+export default function AgentPanelSwitch({
+  onAgentCreated,
+  createdVia,
+}: AgentPanelSwitchProps = {}) {
   return (
     <AgentPanelProvider>
-      <AgentPanelSwitchWithContext onAgentCreated={onAgentCreated} />
+      <AgentPanelSwitchWithContext onAgentCreated={onAgentCreated} createdVia={createdVia} />
     </AgentPanelProvider>
   );
 }
 
-function AgentPanelSwitchWithContext({ onAgentCreated }: AgentPanelSwitchProps) {
+function AgentPanelSwitchWithContext({ onAgentCreated, createdVia }: AgentPanelSwitchProps) {
   const { activePanel, setCurrentAgentId } = useAgentPanelContext();
   const agentId = useRecoilValue(store.conversationAgentIdByIndex(0));
 
@@ -33,5 +38,5 @@ function AgentPanelSwitchWithContext({ onAgentCreated }: AgentPanelSwitchProps) 
   if (activePanel === Panel.version) {
     return <VersionPanel />;
   }
-  return <AgentPanel onAgentCreated={onAgentCreated} />;
+  return <AgentPanel onAgentCreated={onAgentCreated} createdVia={createdVia} />;
 }
