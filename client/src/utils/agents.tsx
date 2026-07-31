@@ -3,11 +3,14 @@ import { Feather } from 'lucide-react';
 import { Skeleton } from '@librechat/client';
 import type t from 'librechat-data-provider';
 
+/** Everything the avatar helpers actually read. `t.Agent` satisfies it. */
+type AgentAvatarSource = Pick<t.Agent, 'avatar' | 'name'>;
+
 /**
  * Extracts the avatar URL from an agent's avatar property
  * Handles both string and object formats
  */
-export const getAgentAvatarUrl = (agent: t.Agent | null | undefined): string | null => {
+export const getAgentAvatarUrl = (agent: AgentAvatarSource | null | undefined): string | null => {
   if (!agent?.avatar) {
     return null;
   }
@@ -62,7 +65,7 @@ const LazyAgentAvatar = ({
  * Consistent across all agent displays
  */
 export const renderAgentAvatar = (
-  agent: t.Agent | null | undefined,
+  agent: AgentAvatarSource | null | undefined,
   options: {
     size?: 'icon' | 'sm' | 'md' | 'lg' | 'xl';
     className?: string;
