@@ -11,6 +11,7 @@ import { useHasAccess, useLocalize } from '~/hooks';
 import StudentProgressTable from './StudentProgressTable';
 import AgentUsageTable from './AgentUsageTable';
 import ShareWithClass from './ShareWithClass';
+import AgentCards from './AgentCards';
 import AnalyticsSection from './Analytics';
 
 const DAY_WINDOWS = [7, 30, 90] as const;
@@ -165,15 +166,23 @@ export default function AdminDashboard() {
       {/* Class-wide, so it belongs with the agent list rather than a single student's drill-down. */}
       {selectedAgent == null && <AnalyticsSection groupId={groupFilter} days={days} />}
 
-      {selectedAgent == null ? (
-        <section aria-labelledby="admin-agents-heading">
-          <h2 id="admin-agents-heading" className="mb-3 text-lg font-medium text-text-primary">
-            {localize('com_ui_admin_agents_heading')}
-          </h2>
+      <section aria-labelledby="admin-agents-heading">
+        <h2 id="admin-agents-heading" className="mb-3 text-lg font-medium text-text-primary">
+          {localize('com_ui_admin_agents_heading')}
+        </h2>
+        <AgentCards
+          groupId={groupFilter}
+          days={days}
+          selectedAgentId={selectedAgent?.agent_id ?? null}
+          onSelectAgent={setSelectedAgent}
+        />
+        {selectedAgent == null && (
           <AgentUsageTable groupId={groupFilter} days={days} onSelectAgent={setSelectedAgent} />
-        </section>
-      ) : (
-        <section aria-labelledby="admin-students-heading">
+        )}
+      </section>
+
+      {selectedAgent != null && (
+        <section aria-labelledby="admin-students-heading" className="mt-6">
           <Button variant="ghost" onClick={handleBack} className="mb-3 px-2">
             <ArrowLeft className="mr-2 size-4" aria-hidden="true" />
             {localize('com_ui_admin_back_to_agents')}

@@ -57,7 +57,6 @@ export default function AgentCards({
             <button
               type="button"
               aria-current={isSelected ? 'true' : undefined}
-              aria-label={localize('com_ui_admin_view_progress', { name: agent.name })}
               onClick={() => onSelectAgent(agent)}
               className={cn(
                 'relative flex h-full w-full gap-4 rounded-xl px-4 py-3 text-left',

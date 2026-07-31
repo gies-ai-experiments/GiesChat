@@ -2,7 +2,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import type {
   AdminAgentUsageResponse,
@@ -31,6 +31,7 @@ jest.mock('librechat-data-provider', () => {
       getAdminAgentUsage: (params?: unknown) => mockGetAdminAgentUsage(params),
       getAdminAgentStudentUsage: () => mockGetAdminAgentStudentUsage(),
       getAdminAgentAnalytics: (params?: unknown) => mockGetAdminAgentAnalytics(params),
+      getAgentCategories: () => Promise.resolve([{ value: 'course', label: 'Course' }]),
       getAgentById: () => mockGetAgentById(),
       deleteAgent: (body: unknown) => mockDeleteAgent(body),
     },
@@ -76,6 +77,9 @@ const agentUsage: AdminAgentUsageResponse = {
     {
       agent_id: 'agent_1',
       name: 'Case Study Coach',
+      description: 'Walks students through Harvard-style cases.',
+      avatar: null,
+      category: 'course',
       conversationCount: 12,
       userCount: 4,
       messageCount: 96,
@@ -434,6 +438,37 @@ describe('AdminDashboard', () => {
       expect(bars).toHaveLength(2);
       expect((bars[0] as HTMLElement).style.width).toBe('100%');
       expect((bars[1] as HTMLElement).style.width).toBe('25%');
+    });
+  });
+
+  describe('agent card strip', () => {
+    it('renders a card alongside the usage table', async () => {
+      renderDashboard();
+
+      expect(await screen.findByRole('list', { name: 'Agents you manage' })).toBeInTheDocument();
+      expect(screen.getByText('Walks students through Harvard-style cases.')).toBeInTheDocument();
+      expect(screen.getByRole('table')).toBeInTheDocument();
+    });
+
+    it('drills into student progress when a card is clicked', async () => {
+      renderDashboard();
+
+      const list = await screen.findByRole('list', { name: 'Agents you manage' });
+      const card = within(list).getByRole('button', { name: /Case Study Coach/ });
+      await userEvent.click(card);
+
+      expect(await screen.findByRole('heading', { name: /Case Study Coach/ })).toBeInTheDocument();
+      expect(card).toHaveAttribute('aria-current', 'true');
+    });
+
+    it('keeps the strip visible during the drill-down', async () => {
+      renderDashboard();
+
+      const list = await screen.findByRole('list', { name: 'Agents you manage' });
+      await userEvent.click(within(list).getByRole('button', { name: /Case Study Coach/ }));
+
+      await waitFor(() => expect(mockGetAdminAgentStudentUsage).toHaveBeenCalled());
+      expect(screen.getByRole('list', { name: 'Agents you manage' })).toBeInTheDocument();
     });
   });
 });
