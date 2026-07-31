@@ -6,6 +6,7 @@ import { QueryKeys, Permissions, PermissionTypes } from 'librechat-data-provider
 import type { AdminAgentUsage } from 'librechat-data-provider';
 import type { Option } from '@librechat/client';
 import AgentPanelSwitch from '~/components/SidePanel/Agents/AgentPanelSwitch';
+import { BackgroundToggle } from '~/components/ui';
 import { useAdminAccess, useAdminGroupsQuery } from '~/data-provider';
 import { useHasAccess, useLocalize } from '~/hooks';
 import StudentProgressTable from './StudentProgressTable';
@@ -132,6 +133,7 @@ export default function AdminDashboard() {
           testId="admin-days-select"
         />
         <div className="ml-auto flex items-center gap-2">
+          <BackgroundToggle />
           {selectedAgent != null && (
             <ShareWithClass
               agentId={selectedAgent.agent_id}
