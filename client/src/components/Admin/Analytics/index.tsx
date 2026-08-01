@@ -4,6 +4,7 @@ import { useAdminAgentAnalyticsQuery, useAdminDashboardLayoutQuery } from '~/dat
 import { PANEL_ORDER, SPAN_CLASS, columnsFor, panelFor } from './registry';
 import { useLocalize } from '~/hooks';
 import QueryState from '../QueryState';
+import Customize from './Customize';
 
 interface AnalyticsSectionProps {
   /** Empty string means unfiltered, matching how the tables read the class filter. */
@@ -42,9 +43,13 @@ export default function AnalyticsSection({ groupId, days }: AnalyticsSectionProp
 
   return (
     <section aria-labelledby="admin-analytics-heading" className="mb-8">
-      <h2 id="admin-analytics-heading" className="mb-3 text-lg font-medium text-text-primary">
-        {localize('com_ui_admin_analytics_heading')}
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 id="admin-analytics-heading" className="text-lg font-medium text-text-primary">
+          {localize('com_ui_admin_analytics_heading')}
+        </h2>
+        {/* Nothing to arrange while the analytics are loading, forbidden, erroring, or empty. */}
+        {data != null && <Customize layout={layout} />}
+      </div>
       <QueryState
         isLoading={isLoading}
         error={error}
