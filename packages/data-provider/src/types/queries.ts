@@ -3,6 +3,7 @@ import type * as p from '../accessPermissions';
 import type * as a from '../types/agents';
 import type * as s from '../schemas';
 import type * as t from '../types';
+import type { AdminDashboardPanel } from '../dashboard';
 import type { AgentAvatar } from './assistants';
 
 export type Conversation = {
@@ -304,6 +305,11 @@ export type AdminAnalyticsResponse = {
   oneTurnShare: number;
   /** Share of assistant messages that errored, 0–1. */
   errorRate: number;
+};
+
+/** The caller's own analytics panel layout. Array order is the panel order. */
+export type AdminDashboardLayoutResponse = {
+  panels: AdminDashboardPanel[];
 };
 
 export interface MCPServerStatus {
