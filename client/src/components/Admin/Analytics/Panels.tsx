@@ -45,7 +45,7 @@ export function KpiRow({ data }: PanelProps) {
     data.activeStudents === 0 ? '0' : (data.conversationCount / data.activeStudents).toFixed(1);
 
   return (
-    <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <Tile
         label={localize('com_ui_admin_analytics_active_students')}
         value={String(data.activeStudents)}
