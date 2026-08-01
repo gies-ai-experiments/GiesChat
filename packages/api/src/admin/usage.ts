@@ -1,5 +1,6 @@
-import { ResourceType, PermissionBits } from 'librechat-data-provider';
+import { ResourceType, PermissionBits, sanitizeLayout } from 'librechat-data-provider';
 import { logger, isValidObjectIdString } from '@librechat/data-schemas';
+import type { AdminDashboardPanel } from 'librechat-data-provider';
 import type { IUser, IAgent, IGroup } from '@librechat/data-schemas';
 import type { FilterQuery, Types } from 'mongoose';
 import type { Response } from 'express';
@@ -92,6 +93,7 @@ export interface AdminUsageDeps {
   aggregateAgentUsage: (scope: AgentUsageScope) => Promise<AgentUsageRow[]>;
   aggregateStudentUsage: (scope: StudentUsageScope) => Promise<StudentUsageRow[]>;
   aggregateAgentAnalytics: (scope: AgentAnalyticsScope) => Promise<AgentAnalyticsRaw>;
+  updateUser: (userId: string, updateData: Partial<IUser>) => Promise<IUser | null>;
 }
 
 /** The dashboard's analytics section — aggregate only, no student is identified. */
@@ -165,6 +167,8 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
   listAgentUsage: (req: ServerRequest, res: Response) => Promise<Response>;
   listAgentStudentUsage: (req: ServerRequest, res: Response) => Promise<Response>;
   listAgentAnalytics: (req: ServerRequest, res: Response) => Promise<Response>;
+  getDashboardLayout: (req: ServerRequest, res: Response) => Promise<Response>;
+  updateDashboardLayout: (req: ServerRequest, res: Response) => Promise<Response>;
 } {
   const {
     findAgents,
@@ -174,6 +178,7 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
     aggregateAgentUsage,
     aggregateStudentUsage,
     aggregateAgentAnalytics,
+    updateUser,
   } = deps;
 
   /**
@@ -465,9 +470,46 @@ export function createAdminUsageHandlers(deps: AdminUsageDeps): {
     }
   }
 
+  /**
+   * A personal display preference, not class data — which is why these two carry
+   * `access:admin` alone and touch nothing but the caller's own document.
+   */
+  async function getDashboardLayoutHandler(req: ServerRequest, res: Response) {
+    const caller = req.user;
+    if (!caller?._id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    return res.status(200).json({ panels: sanitizeLayout(caller.dashboardPanels) });
+  }
+
+  async function updateDashboardLayoutHandler(req: ServerRequest, res: Response) {
+    const caller = req.user;
+    if (!caller?._id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { panels: rawPanels } = (req.body ?? {}) as { panels?: unknown };
+    if (!Array.isArray(rawPanels)) {
+      return res.status(400).json({ error: 'panels must be an array' });
+    }
+
+    const panels: AdminDashboardPanel[] = sanitizeLayout(rawPanels);
+
+    try {
+      /** The caller's own id, never a body or path parameter — one professor's layout is not another's. */
+      await updateUser(String(caller._id), { dashboardPanels: panels });
+      return res.status(200).json({ panels });
+    } catch (error) {
+      logger.error('[adminUsage] updateDashboardLayout error:', error);
+      return res.status(500).json({ error: 'Failed to save dashboard layout' });
+    }
+  }
+
   return {
     listAgentUsage: listAgentUsageHandler,
     listAgentStudentUsage: listAgentStudentUsageHandler,
     listAgentAnalytics: listAgentAnalyticsHandler,
+    getDashboardLayout: getDashboardLayoutHandler,
+    updateDashboardLayout: updateDashboardLayoutHandler,
   };
 }

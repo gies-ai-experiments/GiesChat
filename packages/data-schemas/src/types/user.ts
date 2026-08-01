@@ -53,6 +53,8 @@ export interface IUser extends Document {
   personalization?: {
     memories?: boolean;
   };
+  /** Ordered analytics panels for the professor dashboard. Empty means the default layout. */
+  dashboardPanels?: Array<{ id: string; visible: boolean }>;
   favorites?: TUserFavorite[];
   /** Per-skill active/inactive overrides. Key = skillId, value = active state. */
   skillStates?: Record<string, boolean>;

@@ -144,6 +144,17 @@ const userSchema: Schema<IUser> = new Schema<IUser>(
       },
       default: {},
     },
+    /** Ordered analytics panels for the professor dashboard; empty means "never customized". */
+    dashboardPanels: {
+      type: [
+        {
+          _id: false,
+          id: { type: String, required: true },
+          visible: { type: Boolean, default: true },
+        },
+      ],
+      default: [],
+    },
     favorites: {
       type: [
         {

@@ -26,6 +26,7 @@ const handlers = createAdminUsageHandlers({
   aggregateAgentUsage: db.aggregateAgentUsage,
   aggregateStudentUsage: db.aggregateStudentUsage,
   aggregateAgentAnalytics: db.aggregateAgentAnalytics,
+  updateUser: db.updateUser,
 });
 
 router.use(requireJwtAuth, requireAdminAccess);
@@ -47,5 +48,14 @@ router.get(
   requireReadGroups,
   handlers.listAgentStudentUsage,
 );
+
+/**
+ * A personal display preference for this dashboard — no class or student data is
+ * read, so `access:admin` from `router.use` above is the whole gate. Deliberately
+ * NOT `read:usage`/`read:groups`: requiring roster permissions to save a checkbox
+ * would be a boundary that means nothing.
+ */
+router.get('/layout', handlers.getDashboardLayout);
+router.put('/layout', handlers.updateDashboardLayout);
 
 module.exports = router;

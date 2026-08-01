@@ -314,6 +314,7 @@ interface TestDeps extends AdminUsageDeps {
   aggregateAgentUsage: jest.Mock;
   aggregateStudentUsage: jest.Mock;
   aggregateAgentAnalytics: jest.Mock;
+  updateUser: jest.Mock;
 }
 
 /** The shape the analytics pipeline returns when nothing happened in the window. */
@@ -359,6 +360,7 @@ function createDeps(world: Partial<WorldFixture> = {}, overrides: DepOverrides =
     aggregateAgentUsage: jest.fn(fakeAggregateAgentUsage(conversations)),
     aggregateStudentUsage: jest.fn(fakeAggregateStudentUsage(conversations)),
     aggregateAgentAnalytics: jest.fn(async () => EMPTY_ANALYTICS_RAW),
+    updateUser: jest.fn(async () => null),
     ...overrides,
   };
 
@@ -369,13 +371,14 @@ function createReqRes(
   overrides: {
     params?: ServerRequest['params'];
     query?: ServerRequest['query'];
+    body?: ServerRequest['body'];
     user?: IUser | undefined;
   } = {},
 ) {
   const req = {
     params: overrides.params ?? {},
     query: overrides.query ?? {},
-    body: {},
+    body: overrides.body ?? {},
     user: 'user' in overrides ? overrides.user : mockUser({ _id: callerId, role: 'ADMIN' }),
   } as ServerRequest;
 
@@ -2104,6 +2107,101 @@ describe('createAdminUsageHandlers', () => {
       expect(status).toHaveBeenCalledWith(500);
       expect(errorBody(json).error).toBe('Failed to load analytics');
       expect(JSON.stringify(errorBody(json))).not.toContain('pipeline exploded');
+    });
+  });
+
+  /* ================================================================ *
+   * dashboard layout
+   * ================================================================ */
+
+  describe('dashboard layout', () => {
+    it('returns an empty layout for a professor who has never customized', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status, json } = createReqRes();
+
+      await handlers.getDashboardLayout(req, res);
+
+      expect(status).toHaveBeenCalledWith(200);
+      expect(json).toHaveBeenCalledWith({ panels: [] });
+    });
+
+    it('returns the stored layout, dropping ids this build no longer knows', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, json } = createReqRes({
+        user: mockUser({
+          _id: callerId,
+          role: 'ADMIN',
+          dashboardPanels: [
+            { id: 'signals', visible: false },
+            { id: 'retired-panel', visible: true },
+          ],
+        }),
+      });
+
+      await handlers.getDashboardLayout(req, res);
+
+      expect(json).toHaveBeenCalledWith({ panels: [{ id: 'signals', visible: false }] });
+    });
+
+    it('rejects a body whose panels is not an array', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({ body: { panels: 'kpi' } });
+
+      await handlers.updateDashboardLayout(req, res);
+
+      expect(status).toHaveBeenCalledWith(400);
+      expect(deps.updateUser).not.toHaveBeenCalled();
+    });
+
+    it('saves a sanitized layout to the caller and nobody else', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({
+        body: {
+          userId: otherAuthorId.toString(),
+          panels: [
+            { id: 'depth', visible: false },
+            { id: 'bogus', visible: true },
+            { id: 'depth', visible: true },
+          ],
+        },
+      });
+
+      await handlers.updateDashboardLayout(req, res);
+
+      expect(deps.updateUser).toHaveBeenCalledTimes(1);
+      expect(deps.updateUser).toHaveBeenCalledWith(callerId.toString(), {
+        dashboardPanels: [{ id: 'depth', visible: false }],
+      });
+      expect(status).toHaveBeenCalledWith(200);
+    });
+
+    it('answers 401 when there is no authenticated caller', async () => {
+      const deps = createDeps(baseWorld());
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({ user: undefined, body: { panels: [] } });
+
+      await handlers.updateDashboardLayout(req, res);
+
+      expect(status).toHaveBeenCalledWith(401);
+      expect(deps.updateUser).not.toHaveBeenCalled();
+    });
+
+    it('answers 500 when the write fails', async () => {
+      const deps = createDeps(baseWorld(), {
+        updateUser: jest.fn(async () => {
+          throw new Error('mongo down');
+        }),
+      });
+      const handlers = createAdminUsageHandlers(deps);
+      const { req, res, status } = createReqRes({ body: { panels: [] } });
+
+      await handlers.updateDashboardLayout(req, res);
+
+      expect(status).toHaveBeenCalledWith(500);
     });
   });
 });
