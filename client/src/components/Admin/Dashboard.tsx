@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { ArrowLeft, Bot } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Dropdown, OGDialog, OGDialogContent, OGDialogTitle } from '@librechat/client';
 import { QueryKeys, Permissions, PermissionTypes } from 'librechat-data-provider';
@@ -24,6 +25,7 @@ const DASHBOARD_ORIGIN = 'dashboard';
 
 export default function AdminDashboard() {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { hasAdminAccess, isLoading: isCheckingAccess, isDenied } = useAdminAccess();
   const canCreateAgents = useHasAccess({
@@ -83,10 +85,19 @@ export default function AdminDashboard() {
    * The builder does not close itself, so without this a freshly created agent sits
    * behind an open dialog and the list never refreshes — the usage query opts out of
    * refetch-on-mount, so only this invalidation brings it back.
+   *
+   * Creating an agent does not switch the conversation to it either: with
+   * `modelSpecs.prioritize`, a new chat starts on the default spec, so a professor who
+   * builds an agent and types straight away is talking to the default model and its
+   * instructions never apply. `agent_id` is an honoured deep-link param, which avoids
+   * depending on the chat providers this route sits outside of.
    */
   const handleAgentCreated = useCallback(
-    () => handleBuilderOpenChange(false),
-    [handleBuilderOpenChange],
+    (agentId: string) => {
+      handleBuilderOpenChange(false);
+      navigate(`/c/new?agent_id=${encodeURIComponent(agentId)}`);
+    },
+    [handleBuilderOpenChange, navigate],
   );
 
   const handleBack = useCallback(() => setSelectedAgent(null), []);
