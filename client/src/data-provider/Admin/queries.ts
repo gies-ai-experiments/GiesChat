@@ -9,6 +9,7 @@ import type {
   AdminAnalyticsResponse,
   AdminAgentUsageResponse,
   AdminGroupListResponse,
+  AdminDashboardLayoutResponse,
   AdminAgentStudentUsageResponse,
   AdminEffectiveCapabilitiesResponse,
 } from 'librechat-data-provider';
@@ -114,6 +115,20 @@ export const useAdminAgentAnalyticsQuery = (
   useQuery<AdminAnalyticsResponse>(
     [QueryKeys.adminAgentAnalytics, params?.groupId ?? '', params?.days ?? 0],
     () => dataService.getAdminAgentAnalytics(params),
+    { ...adminQueryConfig, retry: false, ...config },
+  );
+
+/**
+ * The caller's own panel layout. `retry: false` and a silent failure are deliberate:
+ * a display preference must never be able to block the analytics behind it, so the
+ * consumer falls back to the default layout when this errors.
+ */
+export const useAdminDashboardLayoutQuery = (
+  config?: UseQueryOptions<AdminDashboardLayoutResponse>,
+): QueryObserverResult<AdminDashboardLayoutResponse> =>
+  useQuery<AdminDashboardLayoutResponse>(
+    [QueryKeys.adminDashboardLayout],
+    () => dataService.getAdminDashboardLayout(),
     { ...adminQueryConfig, retry: false, ...config },
   );
 

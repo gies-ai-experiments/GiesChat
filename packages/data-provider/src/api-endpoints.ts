@@ -501,6 +501,9 @@ export const adminAgentStudentUsage = (agentId: string, params: q.AdminUsagePara
 export const adminAgentAnalytics = (params: q.AdminUsageParams = {}) =>
   `${BASE_URL}/api/admin/usage/analytics${buildQuery(params)}`;
 
+/** Per-professor analytics panel layout. A display preference, not class data. */
+export const adminDashboardLayout = () => `${BASE_URL}/api/admin/usage/layout`;
+
 /* Conversation Tags */
 export const conversationTags = (tag?: string) =>
   `${BASE_URL}/api/tags${tag != null && tag ? `/${encodeURIComponent(tag)}` : ''}`;

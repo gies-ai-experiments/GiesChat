@@ -94,6 +94,8 @@ export enum QueryKeys {
   adminAgentUsage = 'adminAgentUsage',
   adminAgentStudentUsage = 'adminAgentStudentUsage',
   adminAgentAnalytics = 'adminAgentAnalytics',
+  /* The caller's own analytics panel layout */
+  adminDashboardLayout = 'adminDashboardLayout',
 }
 
 // Dynamic query keys that require parameters
@@ -127,6 +129,7 @@ export enum MutationKeys {
   enableTwoFactor = 'enableTwoFactor',
   verifyTwoFactor = 'verifyTwoFactor',
   updateMemoryPreferences = 'updateMemoryPreferences',
+  updateAdminDashboardLayout = 'updateAdminDashboardLayout',
   createProject = 'createProject',
   updateProject = 'updateProject',
   deleteProject = 'deleteProject',

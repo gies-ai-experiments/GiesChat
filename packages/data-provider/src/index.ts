@@ -2,6 +2,7 @@
 export * from './azure';
 export * from './bedrock';
 export * from './balance';
+export * from './dashboard';
 export * from './config';
 export * from './file-config';
 /* messages  */

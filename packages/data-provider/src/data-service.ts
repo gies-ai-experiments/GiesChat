@@ -1,3 +1,4 @@
+import type { AdminDashboardPanel } from './dashboard';
 import type { AxiosResponse } from 'axios';
 import type { TFileConfig } from './file-config';
 import type * as t from './types';
@@ -1285,6 +1286,16 @@ export function getAdminAgentAnalytics(
   params?: q.AdminUsageParams,
 ): Promise<q.AdminAnalyticsResponse> {
   return request.get(endpoints.adminAgentAnalytics(params));
+}
+
+export function getAdminDashboardLayout(): Promise<q.AdminDashboardLayoutResponse> {
+  return request.get(endpoints.adminDashboardLayout());
+}
+
+export function updateAdminDashboardLayout(
+  panels: AdminDashboardPanel[],
+): Promise<q.AdminDashboardLayoutResponse> {
+  return request.put(endpoints.adminDashboardLayout(), { panels });
 }
 
 /* Roles */
