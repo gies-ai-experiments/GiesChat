@@ -2,7 +2,7 @@ name: Deploy GiesChat to Azure
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - 'api/**'
       - 'client/**'
@@ -15,8 +15,9 @@ on:
       - '.github/workflows/azure-deploy.yml'
   workflow_dispatch: {}
 
+# Per-branch, so a staging deploy never cancels a production one mid-flight.
 concurrency:
-  group: gieschat-azure-deploy
+  group: gieschat-azure-deploy-${{ github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -47,15 +48,31 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          # `latest` tracks production only — a staging build must never move the tag
+          # a human would reach for when asking "what is live?".
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name == 'main' && 'latest' || 'staging' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # One deploy step for both environments so the staging path cannot drift from
+      # production's. `main` → production slot, `staging` → the staging slot, each with
+      # its own publish profile (a slot profile does not authenticate the parent app).
       - name: Deploy image to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          slot-name: ${{ github.ref_name == 'staging' && 'staging' || 'production' }}
+          publish-profile: >-
+            ${{ github.ref_name == 'staging'
+                && secrets.AZURE_WEBAPP_STAGING_PUBLISH_PROFILE
+                || secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           images: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Report target
+        run: |
+          echo "branch:  ${{ github.ref_name }}"
+          echo "slot:    ${{ github.ref_name == 'staging' && 'staging' || 'production' }}"
+          echo "url:     ${{ github.ref_name == 'staging' && 'https://gieschat-staging.azurewebsites.net' || 'https://gieschat.azurewebsites.net' }}"
+          echo "image:   ${{ env.IMAGE_NAME }}:${{ github.sha }}"
