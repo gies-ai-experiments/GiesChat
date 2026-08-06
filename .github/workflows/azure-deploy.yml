@@ -28,6 +28,11 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # Surfaces the deployed URL on the run and in the repo's Deployments view, so
+    # "what is on staging right now" is answerable without opening Azure.
+    environment:
+      name: ${{ github.ref_name == 'staging' && 'staging' || 'production' }}
+      url: ${{ github.ref_name == 'staging' && 'https://gieschat-staging.azurewebsites.net' || 'https://gieschat.azurewebsites.net' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
